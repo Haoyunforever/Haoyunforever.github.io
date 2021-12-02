@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Memcached 未授权访问漏洞 |  小透的少年江湖</title>
+      <title>JAVA类型描述符 |  小透的少年江湖</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/haoyun.ico" />
@@ -59,7 +59,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Memcached未授权访问漏洞"
+  id="post-JAVA类型描述符"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -70,7 +70,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Memcached 未授权访问漏洞
+  JAVA类型描述符
 </h1>
  
 
@@ -78,11 +78,11 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/" class="article-date">
-  <time datetime="2021-06-11T02:56:28.000Z" itemprop="datePublished">2021-06-11</time>
+      <a href="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/" class="article-date">
+  <time datetime="2021-12-02T01:56:28.000Z" itemprop="datePublished">2021-12-02</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/">未授权访问</a>
+    <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/">java</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
   </div>
   
 <div class="word_count">
@@ -90,7 +90,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">579</span>
+            <span class="post-count">615</span>
         </span>
     </span>
 
@@ -114,60 +114,43 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
-<p>(2) 风险等级高风险。</p>
-<p>(3) 漏洞编号CVE-2013-7239 。</p>
-<p>(4) 影响范围Memcached 全版本。</p>
-<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
+  <h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
+<p>其中有这么一段记录,如下:</p>
+<p><img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" alt="image-20211202113340521"></p>
+<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
+<p>于是我写了个简单的打印字符串数组Demo:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为:</p>
+<p><img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" alt="image-20211202114946438"></p>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu/Debian</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
+<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>Redhat/Fedora/Centos</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
+<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() == “[Ljava.lang.String;”。</p>
+<p>我们在来看下Class的getName()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>FreeBSD</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
-
-
-
-<p>安装完后可以使用 whereis 查看命令的路径：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
-
-
-
-<p>安装完成后，启动Mecached</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png"></p>
-<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png"></p>
-<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png"></p>
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
+<p>最终实现交给了getnamenative()方法。</p>
+<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
+<p>对于非数组类型:</p>
+<p><img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" alt="image-20211202191218383"></p>
+<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java/lang/Thread.</p>
+<p>对于数组类型；</p>
+<p><img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" alt="image-20211202191455708"></p>
+<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
+<p>我们来看看getName()方法的文档:</p>
+<ul>
+<li>对于原始数据类型，返回其 java 关键字</li>
+<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
+<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+</ul>
+<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava/lang/String;，将其中的 / 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() == “[Ljava.lang.String;”。</p>
  
       <!-- reward -->
       
@@ -238,12 +221,12 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>  
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web%E6%BC%8F%E6%B4%9E-%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE-Memcached/" rel="tag">-Web漏洞 -未授权访问 -Memcached</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81-%E5%AE%A1%E8%AE%A1-java%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/" rel="tag">-代码 审计 -java基础知识 -类型描述符</a></li></ul>
 
     </footer>
   </div>
@@ -251,19 +234,10 @@
    
   <nav class="article-nav">
     
-      <a href="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            MongoDB未授权访问漏洞
-          
-        </div>
-      </a>
     
-    
-      <a href="/2020/11/11/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95%E4%B9%8B%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86(%E4%B8%80)/" class="article-nav-link">
+      <a href="/2021/12/01/ClassLoader%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">渗透测试之信息收集(一)</div>
+        <div class="article-nav-title">ClassLoader类加载机制</div>
       </a>
     
   </nav>
