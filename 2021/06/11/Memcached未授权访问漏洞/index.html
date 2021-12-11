@@ -142,11 +142,20 @@
 <p>安装完成后，启动Mecached</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png"></p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
+
+
+
 <p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png"></p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
+
+
+
 <p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
-<p><img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png"></p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
+
+
+
 <h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
 

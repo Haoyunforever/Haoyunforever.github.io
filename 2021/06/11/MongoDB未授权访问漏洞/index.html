@@ -133,8 +133,12 @@
 
 <p>下载MongoDB</p>
 <p>MongoDB 源码下载地址：<a target="_blank" rel="noopener" href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
-<p><img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg"></p>
-<p><img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg"></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
+
+
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
+
 <p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
 
@@ -156,13 +160,22 @@
 
 
 <p>Mongodb启动成功</p>
-<p><img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png"></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
+
+
+
 <h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png"></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
+
+
+
 <p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
-<p><img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png"></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
+
+
+
 <h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
 <p>① MongoDB 启动时添加 -auth 参数。</p>
 <p>② 给 MongoDB 添加用户</p>

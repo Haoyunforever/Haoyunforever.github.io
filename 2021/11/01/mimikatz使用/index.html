@@ -117,49 +117,94 @@
   <p>Mimikatz是一款后渗透测试工具，它能够从Windows认证(LSASS)的进程中获取内存，并且获取明文密码和NTLM哈希值的工具. lsass是微软Windows系统的安全机制它主要用于本地安全和登陆策略，通常我们在登陆系统时输入密码之后，密码便会储存在 lsass内存中，经过其 wdigest 和 tspkg 两个模块调用后，对其使用可逆的算法进行加密并存储在内存之中， 而 mimikatz 正是通过对lsass逆算获取到明文密码！</p>
 <p>注：但是在安装了KB2871997补丁或者系统版本大于windows server 2012时，系统的内存中就不再保存明文的密码，这样利用mimikatz就不能从内存中读出明文密码了。mimikatz的使用需要administrator用户执行，administrators中的其他用户都不行</p>
 <p>参考文章:<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1683140">Mimikatz 用法详解 - 云+社区 - 腾讯云 (tencent.com)</a></p>
-<h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161557630.png" alt="image-20211029161557630"></p>
+<h2 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h2><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161557630.png" class title="image-20211029161557630">
+
+
+
+
+
+
+
+
+
 <h2 id="privilege"><a href="#privilege" class="headerlink" title="privilege"></a>privilege</h2><hr>
 <p>通过id来确定权限 ，debug是20，driver是 10</p>
 <h3 id="privilege-debug"><a href="#privilege-debug" class="headerlink" title="privilege::debug"></a>privilege::debug</h3><p>提升为debug权限，id转换为20</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028180907459.png" alt="image-20211028180907459"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028180907459.png" class title="image-20211028180907459">
+
+
+
 <h3 id="privilege-id-number"><a href="#privilege-id-number" class="headerlink" title="privilege::id  $number$"></a>privilege::id  $number$</h3><p>id值在1到 20之间</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028181549132.png" alt="image-20211028181549132"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028181549132.png" class title="image-20211028181549132">
+
+
+
 <h2 id="crypto"><a href="#crypto" class="headerlink" title="crypto"></a>crypto</h2><hr>
 <p>导出未标记为可导出的 证书。一般私钥会被标记为不可导出，使用这个参数可以给系统打patch，之后就可以导出了</p>
 <h3 id="crypto-providers"><a href="#crypto-providers" class="headerlink" title="crypto::providers"></a>crypto::providers</h3><p>查看加密 提供者。 一般有 CryptoAPI和 CNG 两种，其重CNG较为古老</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028183434518.png" alt="image-20211028183434518"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028183434518.png" class title="image-20211028183434518">
+
+
+
 <h3 id="crypto-stores"><a href="#crypto-stores" class="headerlink" title="crypto::stores"></a>crypto::stores</h3><p>证书存储。windows 系统中有很多证书存储，默认的是CURRENT_USER 这个证书存储。</p>
 <p>可以通过查询证书存储子下的所有存储证书</p>
 <p>命令:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crypto::stores /systemstore::证书存储名称</span><br></pre></td></tr></table></figure>
 
 <p>比如local_machine证书存储,</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028192253999.png" alt="image-20211028192253999"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028192253999.png" class title="image-20211028192253999">
+
+
+
 <h3 id="crypto-certificates"><a href="#crypto-certificates" class="headerlink" title="crypto::certificates"></a>crypto::certificates</h3><p>查看子存储存在的证书(默认为系统存储Current_User下的子存储MY)</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028193029086.png" alt="image-20211028193029086"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028193029086.png" class title="image-20211028193029086">
+
+
+
 <h4 id="查询证书"><a href="#查询证书" class="headerlink" title="查询证书"></a>查询证书</h4><p>后面跟着/store:子存储证书名称(当前证书存储位置是由前一个命令获取存储证书位置来决定的)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crypto:certificates /store:Root(子存储位置)</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028193345511.png" alt="image-20211028193345511"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028193345511.png" class title="image-20211028193345511">
+
+
+
 <h4 id="导出证书"><a href="#导出证书" class="headerlink" title="导出证书"></a>导出证书</h4><p>Mimikatz不仅可以查询证书，还能将数据库中的证书导出(在Mimikatz目录下保存)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crypto::certificates/store:Root(子存储) /export</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028194234708.png" alt="image-20211028194234708"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028194234708.png" class title="image-20211028194234708">
+
+
+
 <p>导出的公钥是DER格式的，私钥是PFX格式的，密码是mimikatz</p>
 <h3 id="cypto-capi"><a href="#cypto-capi" class="headerlink" title="cypto::capi"></a>cypto::capi</h3><p>可以使用该命令给CryptoAPI打补丁，然后就支持CryptoAPI导出</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028194531013.png" alt="image-20211028194531013"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028194531013.png" class title="image-20211028194531013">
+
+
+
 <h3 id="crypto-cng"><a href="#crypto-cng" class="headerlink" title="crypto::cng"></a>crypto::cng</h3><p>打cng补丁</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028203725366.png" alt="image-20211028203725366"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028203725366.png" class title="image-20211028203725366">
+
+
+
 <h3 id="crypto-sc"><a href="#crypto-sc" class="headerlink" title="crypto::sc"></a>crypto::sc</h3><p>列出智能读卡器</p>
 <h3 id="crypto-keys"><a href="#crypto-keys" class="headerlink" title="crypto::keys"></a>crypto::keys</h3><p>读取密钥，会列举出CryptoAPI和CNG密钥</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028204138319.png" alt="image-20211028204138319"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028204138319.png" class title="image-20211028204138319">
+
+
+
 <p>可以看到有三个子选项</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Provider</span><br><span class="line"></span><br><span class="line">Provider type</span><br><span class="line"></span><br><span class="line">CNG Provider</span><br></pre></td></tr></table></figure>
 
 <p>使用/provider查看所有用户的密钥</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028210116946.png" alt="image-20211028210116946"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028210116946.png" class title="image-20211028210116946">
+
+
+
 <p>使用/export导出密钥，PVK files这个格式并不是我们平常的pem 格式，我们需要进一步转换</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028212205333.png" alt="image-20211028212205333"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211028212205333.png" class title="image-20211028212205333">
+
+
+
 <p>转化命令:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl rsa –inform pvk –in key.pvk–outform pem –out key.pem</span><br></pre></td></tr></table></figure>
 
@@ -169,17 +214,35 @@
 <p>从lsass进程中提取passwords、keys、pin、tickets等信息</p>
 <p>注意，既然是从内存中读取，那么就不会去SAM<a target="_blank" rel="noopener" href="https://cloud.tencent.com/solution/database?from=10680">数据库</a>读取，所以SAM数据库临时改动，只要内存中没有，那就读取不到</p>
 <p>有如下命令:</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029103412193.png" alt="image-20211029103412193"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029103412193.png" class title="image-20211029103412193">
+
+
+
 <h3 id="sekurlsa-msv"><a href="#sekurlsa-msv" class="headerlink" title="sekurlsa::msv"></a>sekurlsa::msv</h3><p>获取主机Hash值</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029105750418.png" alt="image-20211029105750418"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029105750418.png" class title="image-20211029105750418">
+
+
+
 <h3 id="sekurlsa-wdigest"><a href="#sekurlsa-wdigest" class="headerlink" title="sekurlsa::wdigest"></a>sekurlsa::wdigest</h3><p>通过可逆的方式去读取明文密码</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110012570.png" alt="image-20211029110012570"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110012570.png" class title="image-20211029110012570">
+
+
+
 <h3 id="sekurlsa-Kerberos"><a href="#sekurlsa-Kerberos" class="headerlink" title="sekurlsa::Kerberos"></a>sekurlsa::Kerberos</h3><p>假如域管理员正好在登陆了我们的电脑，我们可以通过这个命令来获取域管理员的明文密码</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110051172.png" alt="image-20211029110051172"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110051172.png" class title="image-20211029110051172">
+
+
+
 <h3 id="sekurlsa-tspkg"><a href="#sekurlsa-tspkg" class="headerlink" title="sekurlsa::tspkg"></a>sekurlsa::tspkg</h3><p>通过tspkg读取明文密码</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110121290.png" alt="image-20211029110121290"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110121290.png" class title="image-20211029110121290">
+
+
+
 <h3 id="sekurlsa-livessp"><a href="#sekurlsa-livessp" class="headerlink" title="sekurlsa::livessp"></a>sekurlsa::livessp</h3><p>通过livessp读取明文密码</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110148645.png" alt="image-20211029110148645"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029110148645.png" class title="image-20211029110148645">
+
+
+
 <h3 id="sekurlsa-logonPasswords"><a href="#sekurlsa-logonPasswords" class="headerlink" title="sekurlsa::logonPasswords"></a>sekurlsa::logonPasswords</h3><p>通过以上各种方式读取明文密码</p>
 <h3 id="sekurlsa-pth"><a href="#sekurlsa-pth" class="headerlink" title="sekurlsa::pth"></a>sekurlsa::pth</h3><p>可以直接用hash来进行登录</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa::pth /user:administrator/domain:host1 /ntlm:cdf34cda4e455232323xxxx</span><br><span class="line"></span><br><span class="line">sekurlsa::pth /user:administrator/domain:host1 /aes256:cdf34cda4e455232323xxxx</span><br></pre></td></tr></table></figure>
@@ -188,16 +251,25 @@
 <h2 id="kerberos"><a href="#kerberos" class="headerlink" title="kerberos"></a>kerberos</h2><hr>
 <p>与kerberos协议攻击相关的模块</p>
 <h3 id="kerberos-ptt"><a href="#kerberos-ptt" class="headerlink" title="kerberos::ptt"></a>kerberos::ptt</h3><p>将票据注入内存。票证传递。通常用于注入窃取或伪造的 Kerberos 票证（黄金票证/白银票证/信任票证）</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031234932540.png" alt="image-20211031234932540"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031234932540.png" class title="image-20211031234932540">
+
+
+
 <h3 id="kerberos-list"><a href="#kerberos-list" class="headerlink" title="kerberos::list"></a>kerberos::list</h3><p>列出所有的ticket票据</p>
 <h3 id="Kerberos-tgt"><a href="#Kerberos-tgt" class="headerlink" title="Kerberos::tgt"></a>Kerberos::tgt</h3><p>获取主机上的票据认证票据</p>
 <h3 id="kerberos-purge"><a href="#kerberos-purge" class="headerlink" title="kerberos:;purge"></a>kerberos:;purge</h3><p>清除内存中的票据</p>
 <h3 id="kerberos-golden"><a href="#kerberos-golden" class="headerlink" title="kerberos::golden"></a>kerberos::golden</h3><p>获取主机上的黄金票据</p>
 <h3 id="kerberos-hash"><a href="#kerberos-hash" class="headerlink" title="kerberos::hash"></a>kerberos::hash</h3><p>获取主机上所有Hash密钥</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031163020991.png" alt="image-20211031163020991"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031163020991.png" class title="image-20211031163020991">
+
+
+
 <h3 id="kerberos-clist"><a href="#kerberos-clist" class="headerlink" title="kerberos::clist"></a>kerberos::clist</h3><h2 id="Process"><a href="#Process" class="headerlink" title="Process"></a>Process</h2><hr>
 <h3 id="process-list"><a href="#process-list" class="headerlink" title="process::list"></a>process::list</h3><p>列出进程列表</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114318168.png" alt="image-20211029114318168"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114318168.png" class title="image-20211029114318168">
+
+
+
 <p>process::exports</p>
 <p>导入进程</p>
 <p>process::imports</p>
@@ -208,74 +280,147 @@
 
 
 <h3 id="process-stop"><a href="#process-stop" class="headerlink" title="process::stop"></a>process::stop</h3><p>暂停一个程序</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114951284.png" alt="image-20211029114951284"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114951284.png" class title="image-20211029114951284">
+
+
+
 <h3 id="process-suspend"><a href="#process-suspend" class="headerlink" title="process::suspend"></a>process::suspend</h3><p>冻结一个进程</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114900875.png" alt="image-20211029114900875"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029114900875.png" class title="image-20211029114900875">
+
+
+
 <h3 id="process-resume"><a href="#process-resume" class="headerlink" title="process::resume"></a>process::resume</h3><p>从冻结中恢复</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029115017551.png" alt="image-20211029115017551"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029115017551.png" class title="image-20211029115017551">
+
+
+
 <h3 id="process-run"><a href="#process-run" class="headerlink" title="process::run"></a>process::run</h3><p>运行进程</p>
 <h3 id="process-runp"><a href="#process-runp" class="headerlink" title="process::runp"></a>process::runp</h3><p>查看mimikatz使用的模块</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161425608.png" alt="image-20211029161425608"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161425608.png" class title="image-20211029161425608">
+
+
+
 <h2 id="lsadump"><a href="#lsadump" class="headerlink" title="lsadump"></a>lsadump</h2><hr>
 <p>通过查询SAM数据库来读取HASH</p>
 <h3 id="lsadump-sam"><a href="#lsadump-sam" class="headerlink" title="lsadump::sam"></a>lsadump::sam</h3><p>导出SAM的Hash值</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161746800.png" alt="image-20211029161746800"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211029161746800.png" class title="image-20211029161746800">
+
+
+
 <h3 id="lsamdump-setntlm"><a href="#lsamdump-setntlm" class="headerlink" title="lsamdump::setntlm"></a>lsamdump::setntlm</h3><h2 id="service"><a href="#service" class="headerlink" title="service"></a>service</h2><p>列出服务管理</p>
 <h3 id="service-list"><a href="#service-list" class="headerlink" title="service::list"></a>service::list</h3><p>列出当前服务</p>
 <h3 id="service-1"><a href="#service-1" class="headerlink" title="service::+"></a>service::+</h3><p>mimikatz 将自己注册为一个系统服务，这样每次系统起来就会自动运行了</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154423172.png" alt="image-20211031154423172"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154423172.png" class title="image-20211031154423172">
+
+
+
 <h3 id="service-2"><a href="#service-2" class="headerlink" title="service::-"></a>service::-</h3><p>停止并删除mimikatzsvc服务</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154526142.png" alt="image-20211031154526142"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154526142.png" class title="image-20211031154526142">
+
+
+
+
+
 <h2 id="ts"><a href="#ts" class="headerlink" title="ts"></a>ts</h2><hr>
 <p>终端服务 terminal service</p>
 <h3 id="ts-multirdp"><a href="#ts-multirdp" class="headerlink" title="ts::multirdp"></a>ts::multirdp</h3><p>默认非服务器系统，windows只允许一个用户登录，也就是说如果我让别人远程登录我的电脑，那么我就不能操作了</p>
 <p>这个命令可以让其支持多个用户同时在线</p>
 <h3 id="ts-sessions"><a href="#ts-sessions" class="headerlink" title="ts::sessions"></a>ts::sessions</h3><p>可以查看当前登录用户的登录信息</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154750092.png" alt="image-20211031154750092"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031154750092.png" class title="image-20211031154750092">
+
 <p>可以看到当前的登录sessions的相关信息，并且每个session都有编号。可以看到Session的状态，登录用户，连接登录时间等会话相关信息。</p>
 <h3 id="ts-remote-id-1"><a href="#ts-remote-id-1" class="headerlink" title="ts::remote /id:1"></a>ts::remote /id:1</h3><p>此时会跳出当前用户的账号，在主界面可以看到session为1的那个账号的已经登录了，我们输入密码可以看到他的登录信息，比如他在打开哪些文件</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155311474.png" alt="image-20211031155311474"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155311474.png" class title="image-20211031155311474">
+
+
+
 <h2 id="event"><a href="#event" class="headerlink" title="event"></a>event</h2><hr>
 <p>关于日志的操作，比如清空安全日志中的所有日志</p>
 <p>日志信息有很多，其中比较重要的是安全日志，其中包含xx在xx时间登录了</p>
 <h3 id="event-clear"><a href="#event-clear" class="headerlink" title="event:clear"></a>event:clear</h3><p>清空安全日志</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155348440.png" alt="image-20211031155348440"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155348440.png" class title="image-20211031155348440">
+
+
+
 <h3 id="event-drop"><a href="#event-drop" class="headerlink" title="event:drop"></a>event:drop</h3><p>避免新的日志继续产生（现在效果还不好，是一个试验性的功能）</p>
 <h2 id="misc"><a href="#misc" class="headerlink" title="misc"></a>misc</h2><hr>
 <p>杂项功能</p>
 <h3 id="misc-cmd"><a href="#misc-cmd" class="headerlink" title="misc::cmd"></a>misc::cmd</h3><p>开启命令处理器</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155537674.png" alt="image-20211031155537674"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155537674.png" class title="image-20211031155537674">
+
+
+
 <h3 id="misc-regedit"><a href="#misc-regedit" class="headerlink" title="misc::regedit"></a>misc::regedit</h3><p>打开计算机注册表编辑器</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155708066.png" alt="image-20211031155708066"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155708066.png" class title="image-20211031155708066">
+
+
+
 <h3 id="misc-taskmgr"><a href="#misc-taskmgr" class="headerlink" title="misc::taskmgr"></a>misc::taskmgr</h3><p>打开系统任务管理器</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155837254.png" alt="image-20211031155837254"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155837254.png" class title="image-20211031155837254">
+
+
+
 <h3 id="misc-clip"><a href="#misc-clip" class="headerlink" title="misc::clip"></a>misc::clip</h3><p>监听剪切板，可以看到剪切板中的复制剪切的内容</p>
 <p>执行之后会一直监听着，直到我们输入Ctrl+c停止该模块</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155954031.png" alt="image-20211031155954031"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031155954031.png" class title="image-20211031155954031">
+
+
+
+
+
 <h2 id="dpapi"><a href="#dpapi" class="headerlink" title="dpapi"></a>dpapi</h2><hr>
 <p>基于密码系统级别的应用数据保护服务（密码／私钥）</p>
 <p>支持以上使用数据保护的服务</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031160213750.png" alt="image-20211031160213750"></p>
-<h3 id="dpapi-protect"><a href="#dpapi-protect" class="headerlink" title="dpapi::protect"></a>dpapi::protect</h3><p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031160401467.png" alt="image-20211031160401467"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031160213750.png" class title="image-20211031160213750">
+
+
+
+<h3 id="dpapi-protect"><a href="#dpapi-protect" class="headerlink" title="dpapi::protect"></a>dpapi::protect</h3><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031160401467.png" class title="image-20211031160401467">
+
+
+
 <h3 id="dpapi-ssh"><a href="#dpapi-ssh" class="headerlink" title="dpapi::ssh"></a>dpapi::ssh</h3><p>查看客户端SSH注册记录</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161232541.png" alt="image-20211031161232541"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161232541.png" class title="image-20211031161232541">
+
+
+
+
+
 <h2 id="token"><a href="#token" class="headerlink" title="token"></a>token</h2><hr>
 <p>查看用户令牌</p>
 <h3 id="token-whoami"><a href="#token-whoami" class="headerlink" title="token::whoami"></a>token::whoami</h3><p>查看你是who，当前操作用户</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161513486.png" alt="image-20211031161513486"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161513486.png" class title="image-20211031161513486">
+
+
+
 <h3 id="token-list"><a href="#token-list" class="headerlink" title="token::list"></a>token::list</h3><p>列出都有哪些登录了的账号</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161611130.png" alt="image-20211031161611130"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161611130.png" class title="image-20211031161611130">
+
+
+
 <h3 id="token-elevate-domain-域名"><a href="#token-elevate-domain-域名" class="headerlink" title="token::elevate /domain(域名)"></a>token::elevate /domain(域名)</h3><p>假如domain域存在，我们可以假冒成为域管理员的token</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161702476.png" alt="image-20211031161702476"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161702476.png" class title="image-20211031161702476">
+
+
+
 <h3 id="token-revert"><a href="#token-revert" class="headerlink" title="token::revert"></a>token::revert</h3><p>取消之前假冒的令牌，回到起初登录用户的令牌</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161737723.png" alt="image-20211031161737723"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031161737723.png" class title="image-20211031161737723">
+
+
+
 <h3 id="token-run"><a href="#token-run" class="headerlink" title="token::run"></a>token::run</h3><p>显示当前用户进程的相关信息</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162006155.png" alt="image-20211031162006155"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162006155.png" class title="image-20211031162006155">
+
+
+
 <h2 id="vault"><a href="#vault" class="headerlink" title="vault"></a>vault</h2><hr>
 <h3 id="vault-list"><a href="#vault-list" class="headerlink" title="vault::list"></a>vault::list</h3><p>列出所有系统品证，包括Windows凭证和Web凭证</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162143549.png" alt="image-20211031162143549"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162143549.png" class title="image-20211031162143549">
+
+
+
 <h3 id="vault-cred"><a href="#vault-cred" class="headerlink" title="vault::cred"></a>vault::cred</h3><p>查看系统凭据。可以看到保存在系统上的所有凭证，比如github,Microsft等相关凭证</p>
-<p><img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162335610.png" alt="image-20211031162335610"></p>
+<img src="/2021/11/01/mimikatz%E4%BD%BF%E7%94%A8/11/01/mimikatz%E4%BD%BF%E7%94%A8/image-20211031162335610.png" class title="image-20211031162335610">
  
       <!-- reward -->
       

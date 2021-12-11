@@ -119,15 +119,19 @@
 <h3 id="setspn"><a href="#setspn" class="headerlink" title="setspn"></a>setspn</h3><p>普通域用户即可查询</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setspn -T domain.com -Q */*</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805185944585.png" alt="image-20210805185944585"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805185944585.png" class title="image-20210805185944585">
+
 <h3 id="kerberoast工具包"><a href="#kerberoast工具包" class="headerlink" title="kerberoast工具包"></a>kerberoast工具包</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/nidem/kerberoast</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194526691.png" alt="image-20210805194526691"></p>
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194541996.png" alt="image-20210805194541996"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194526691.png" class title="image-20210805194526691">
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194541996.png" class title="image-20210805194541996">
+
 <p>可以用于快速定位<code>域控</code>，以及排查内网中存在的<code>服务及主机</code>。</p>
 <h2 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano -p tcp</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805191040466.png" alt="image-20210805191040466"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805191040466.png" class title="image-20210805191040466">
+
 <p>利用netstat -ano命令获取机器通信信息，根据通信的端口、ip可以获取到如下信息:</p>
 <ul>
 <li><p>如果通信信息是入流量，则可以获取到跳板机/堡垒机、管理员的PC来源IP、本地web应用端口等信息</p>
@@ -166,11 +170,13 @@
 <p>在WINSERVER上，使用dnscmd获取DNS记录</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Dnscmd /ZonePrint hack.local</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104621284.png" alt="image-20210806104621284"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104621284.png" class title="image-20210806104621284">
+
 <p>非WINSERVER机器上，使用PowerView.ps1</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">import-module</span> PowerView.ps1</span><br><span class="line"><span class="built_in">Get-DNSRecord</span> <span class="literal">-ZoneName</span> hack.local</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104911527.png" alt="image-20210806104911527"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104911527.png" class title="image-20210806104911527">
+
 <h3 id="nbtscan、nmap"><a href="#nbtscan、nmap" class="headerlink" title="nbtscan、nmap"></a>nbtscan、nmap</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nbtscan.exe 192.168.1.4/24</span><br></pre></td></tr></table></figure>
 
 <h3 id="icmp"><a href="#icmp" class="headerlink" title="icmp"></a>icmp</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for /L %I in (1,1,254) DO @ping -w 1 -n 1 192.168.1.%I | findstr &quot;TTL=&quot;   #利用ICMP协议快速探测内网</span><br></pre></td></tr></table></figure>
@@ -187,7 +193,8 @@
 <h3 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PowerView  https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1</span><br></pre></td></tr></table></figure>
 
 <p>查看用户登录过哪些机器</p>
-<p><img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" alt="image-20210805230416357"></p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
+
 <p>查询机器被哪些用户登录过</p>
 <img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
 

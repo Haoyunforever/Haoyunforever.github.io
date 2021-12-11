@@ -120,30 +120,54 @@
 <p>关闭windows系统防火墙需进入目标主机shell和拥有管理员及以上权限才能执行，若权限不足需进行提权操作</p>
 <p>首先使用msf反弹shell成功后，在meterpreter通道中进去目标主机shell，此时的权限为系统管理员权限</p>
 <p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110239586.png" alt="image-20211021110239586"><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110239705.png" alt="image-20211021110239705"></p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110136651.png" alt="image-20211021110136651"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110136651.png" class title="image-20211021110136651">
+
+
+
 <p>使用netsh命令关闭windows防火墙</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Netsh advfirewall set allprofiles state off</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110353082.png" alt="image-20211021110353082"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110353082.png" class title="image-20211021110353082">
+
+
+
 <p>目标主机之前的windows防火墙是开启的</p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110536165.png" alt="image-20211021110536165"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110536165.png" class title="image-20211021110536165">
+
+
+
 <p>执行命令后被关闭</p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110718801.png" alt="image-20211021110718801"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021110718801.png" class title="image-20211021110718801">
+
+
+
 <h3 id="Denfender服务"><a href="#Denfender服务" class="headerlink" title="Denfender服务"></a>Denfender服务</h3><hr>
 <p>Denfender是系统防火墙服务，可通过管理控制台命令停止该服务</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net stop windefend(服务名称)</span><br></pre></td></tr></table></figure>
 
 <p>关闭windows Defender服务</p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111629546.png" alt="image-20211021111629546"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111629546.png" class title="image-20211021111629546">
+
+
+
 <p>服务开启自启动</p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111451170.png" alt="image-20211021111451170"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111451170.png" class title="image-20211021111451170">
+
+
+
 <p>服务停止</p>
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111952028.png" alt="image-20211021111952028"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021111952028.png" class title="image-20211021111952028">
+
+
+
 <h3 id="DEP-数据执行保护"><a href="#DEP-数据执行保护" class="headerlink" title="DEP(数据执行保护)"></a>DEP(数据执行保护)</h3><hr>
 <p>DEP 可以防止应用运行用于暂存指令的那部分内存中的数据，从而保护电脑。 如果 DEP 发现某个运行此类数据的应用，它将关闭该应用并通知你</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bcdedit.exe /set &#123;current&#125; nx AlwaysOf</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021112310183.png" alt="image-20211021112310183"></p>
+<img src="/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/image-20211021112310183.png" class title="image-20211021112310183">
+
+
+
 <h2 id="杀毒软件"><a href="#杀毒软件" class="headerlink" title="杀毒软件"></a>杀毒软件</h2><hr>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">run  killav</span><br><span class="line"></span><br><span class="line">run post/windows/manage/killava</span><br></pre></td></tr></table></figure>
 

