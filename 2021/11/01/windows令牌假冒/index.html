@@ -131,7 +131,7 @@
 <p>这里使用msf的模块对系统中从令牌进行窃取，并对获取到的令牌进行利用</p>
 <h3 id="incognito模块"><a href="#incognito模块" class="headerlink" title="incognito模块"></a>incognito模块</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">load incognito 加载模块</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210024276.png" class title="image-20211021210024276">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210024276.png" class title="image-20211021210024276">
 
 <p>相关参数命令:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">list_tokens               列举token，-u参数列举用户，-g参数列举用户组</span><br><span class="line">impersonate_token [token] 令牌假冒登录用户</span><br></pre></td></tr></table></figure>
@@ -139,29 +139,29 @@
 
 
 <p>列举所有用户令牌</p>
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210254864.png" class title="image-20211021210254864">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210254864.png" class title="image-20211021210254864">
 
 
 
 <p>列举所有用户组令牌</p>
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210343650.png" class title="image-20211021210343650">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021210343650.png" class title="image-20211021210343650">
 
 
 
 <p>此时的权限为SYSTEM权限</p>
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211343377.png" class title="image-20211021211343377">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211343377.png" class title="image-20211021211343377">
 
 
 
 <p>假冒NETWORK SERVICE的令牌，这里的\有两个，前面的符号是转义符号</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">impressonate_token ndsec-PC\\ndsec</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211257111.png" class title="image-20211021211257111">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211257111.png" class title="image-20211021211257111">
 
 
 
 <p>令牌已经被修改</p>
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211407856.png" class title="image-20211021211407856">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021211407856.png" class title="image-20211021211407856">
 
 
 
@@ -170,12 +170,12 @@
 <p>列出当前状态下服务器的运行的进程</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps</span><br></pre></td></tr></table></figure>
 
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021212304540.png" class title="image-20211021212304540">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021212304540.png" class title="image-20211021212304540">
 
 
 
 <p>可以看到我们此时的会话进程号是1288，令牌是SYSTEM</p>
-<img src="/.com//11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021212412558.png" class title="image-20211021212412558">
+<img src="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/image-20211021212412558.png" class title="image-20211021212412558">
 
 
 

