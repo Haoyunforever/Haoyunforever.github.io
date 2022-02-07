@@ -150,7 +150,7 @@
 <li>查询语句</li>
 </ul>
 <p>URL的形式如下:</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116103541596.png" class title="image-20211116103541596">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116103541596.png" class title="image-20211116103541596">
 
 
 
@@ -162,54 +162,54 @@
 <ol>
 <li><p>实体集合（Entity Set）：等同于RSS中的Feed节点，是某一种信息的集合</p>
 </li>
-<li><p>实体（Entity）：等同于RSS中的Entry节点，描述了具体某一条目信息的内容 </p>
+<li><p>实体（Entity）：等同于RSS中的Entry节点，描述了具体某一条目信息的内容</p>
 </li>
 </ol>
 <ol start="3">
-<li><p> 实体类型（Entity Type）：表明实体的类型，每一个实体都对应一个Entity Type</p>
+<li><p>实体类型（Entity Type）：表明实体的类型，每一个实体都对应一个Entity Type</p>
 </li>
 <li><p>属性（Property）: 实体具体的属性</p>
 </li>
-<li><p> 导航属性（Navigation Property）：用于描述层级关系，例如Category - Sub-category这种关系</p>
+<li><p>导航属性（Navigation Property）：用于描述层级关系，例如Category - Sub-category这种关系</p>
 </li>
-<li><p> 关联（Association）：描述关联关系</p>
+<li><p>关联（Association）：描述关联关系</p>
 </li>
 </ol>
 <p>示例访问ODATA文件:</p>
 <p># 访问OData的Service Document：</p>
 <p><a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/">https://services.odata.org/V3/Northwind/Northwind.svc/</a></p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105053919.png" class title="image-20211116105053919">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105053919.png" class title="image-20211116105053919">
 
 <p>在OData的service document中可以看到所有的Entity Set</p>
 <p>#访问ODATA的Medata Document:</p>
 <p><a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/$metadata">https://services.odata.org/V3/Northwind/Northwind.svc/$metadata</a></p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105523325.png" class title="image-20211116105523325">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105523325.png" class title="image-20211116105523325">
 
 <p>在OData的metadata document中可找到Entity Type和Property</p>
 <p># 访问OData中具体的某一个Entity Set实体集合：</p>
 <p><a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/Products">https://services.odata.org/V3/Northwind/Northwind.svc/Products</a></p>
 <p>Products为实体集合名称，前面的为网站根目录</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105622393.png" class title="image-20211116105622393">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116105622393.png" class title="image-20211116105622393">
 
 
 
 <p># 访问OData中具体的某一个Entiry实体:</p>
 <p> <a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/Product(1)">https://services.odata.org/V3/Northwind/Northwind.svc/Product(1)</a></p>
 <p>OData采用圆括号作为表示单独实体的键值的字段（key segment）</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112103418.png" class title="image-20211116112103418">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112103418.png" class title="image-20211116112103418">
 
 
 
 <p># 访问OData服务中，某一Entity实体的属性：</p>
 <p><a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/Product(1)/productID">https://services.odata.org/V3/Northwind/Northwind.svc/Product(1)/productID</a></p>
 <p>product(1)为实体，productID为 实体中的某一属性</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112135292.png" class title="image-20211116112135292">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112135292.png" class title="image-20211116112135292">
 
 <p>如果想查看某一具体的实体，则直接在OData Service Document的URL后直接append上具体的实体名称即可，例如上例中的实体集合Customers；在实体集合中，每一条entry也即对应着一条数据的Entity。</p>
 <p>#访问Odata服务中，某一属性的原始值:</p>
 <p><a target="_blank" rel="noopener" href="https://services.odata.org/V3/Northwind/Northwind.svc/product(1)/productID/$value">https://services.odata.org/V3/Northwind/Northwind.svc/product(1)/productID/$value</a></p>
 <h2 id="ODATA常用操作"><a href="#ODATA常用操作" class="headerlink" title="ODATA常用操作"></a>ODATA常用操作</h2><p>下表列举了一些常用的Odata操作:</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112457200.png" class title="image-20211116112457200">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116112457200.png" class title="image-20211116112457200">
 
 
 
@@ -222,7 +222,7 @@
 <p>返回Category属性在包含的数据中</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products?$select=Category</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116134650724.png" class title="image-20211116134650724">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116134650724.png" class title="image-20211116134650724">
 
 
 
@@ -236,7 +236,7 @@
 <p>返回Customers类型中Orders的子集</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Customers?$expand=Orders</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116135324387.png" class title="image-20211116135324387">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116135324387.png" class title="image-20211116135324387">
 
 
 
@@ -248,7 +248,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Customers(&#x27;ALFKI&#x27;)?$filter=Country%20eq%20%27Germany%27</span><br></pre></td></tr></table></figure>
 
 <p>返回Customers(‘ALFKI’)中Country属性为Germany的数据</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116142402227.png" class title="image-20211116142402227">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116142402227.png" class title="image-20211116142402227">
 
 
 
@@ -263,7 +263,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products/$count</span><br></pre></td></tr></table></figure>
 
 <p>统计Product类型实体的总数为77</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116142842365.png" class title="image-20211116142842365">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116142842365.png" class title="image-20211116142842365">
 
 
 
@@ -275,21 +275,21 @@
 <p>查询Products实体集合前2条记录</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products?$top=2</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116143548406.png" class title="image-20211116143548406">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116143548406.png" class title="image-20211116143548406">
 
 
 
 <p>查询Products实体集合中不包含前两条记录</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products?$skip=2</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116144246408.png" class title="image-20211116144246408">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116144246408.png" class title="image-20211116144246408">
 
 
 
 <p>查询获取第3和第4个实体集合的记录</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products?$top=2&amp;$skip=2</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116144447375.png" class title="image-20211116144447375">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116144447375.png" class title="image-20211116144447375">
 
 
 
@@ -299,7 +299,7 @@
 
 
 <p>将查询结果输出为json格式</p>
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116145230659.png" class title="image-20211116145230659">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116145230659.png" class title="image-20211116145230659">
 
 
 
@@ -311,7 +311,7 @@
 <p>将前两条记录中的UnitPrice属性降序处理</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">命令:https://services.odata.org/V3/Northwind/Northwind.svc/Products?$top=2&amp;$orderby=UnitPrice%20desc&amp;$format=json</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116152912055.png" class title="image-20211116152912055">
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116152912055.png" class title="image-20211116152912055">
 
 
 
@@ -323,7 +323,7 @@
 <p>获取Products实体集合中符合条件的资源总数</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://services.odata.org/V3/Northwind/Northwind.svc/Products?$inlinecount=allpages&amp;$format=json</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116155709323.png" class title="image-20211116155709323"> 
+<img src="/.com//11/15/ODATA%E7%94%A8%E6%B3%95%E7%AE%80%E4%BB%8B/image-20211116155709323.png" class title="image-20211116155709323"> 
       <!-- reward -->
       
       <div id="reword-out">

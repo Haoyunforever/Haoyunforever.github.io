@@ -118,7 +118,7 @@
 <h2 id="JWT简介"><a href="#JWT简介" class="headerlink" title="JWT简介"></a>JWT简介</h2><hr>
 <p>JSON Web Token（JWT）是一种用于客户端和服务端通信双方之间传递身份认证信息、URL安全的表述性声明规范，经常用在跨域身份验证，分布式站点的单点登录。</p>
 <h2 id="JWT认证流程"><a href="#JWT认证流程" class="headerlink" title="JWT认证流程"></a><strong>JWT认证流程</strong></h2><p>如图所示：</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122154727932.png" class title="image-20211122154727932">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122154727932.png" class title="image-20211122154727932">
 
 
 
@@ -136,7 +136,7 @@
 
 
 <p>这三个部分使用Base64进行加密处理，中间以”.”符号进行连接</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122172203146.png" class title="image-20211122172203146">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122172203146.png" class title="image-20211122172203146">
 
 
 
@@ -197,16 +197,16 @@
 <p>JWT靶场地址:</p>
 <p><a target="_blank" rel="noopener" href="https://authlab.digi.ninja/">https://authlab.digi.ninja/</a></p>
 <p>webgoat离线靶场</p>
-<p>Base64编码 /解码工具:</p>
+<p>Base64编码 &#x2F;解码工具:</p>
 <p><a target="_blank" rel="noopener" href="https://tool.oschina.net/encrypt?type=3">在线加密解密 (oschina.net)</a></p>
 <h3 id="信息泄露"><a href="#信息泄露" class="headerlink" title="信息泄露"></a>信息泄露</h3><p>当在荷载(payload)中添加了一些敏感信息(如账号密码等)，可通过Base64解码得到。</p>
 <p>靶场地址: <a target="_blank" rel="noopener" href="https://authlab.digi.ninja/Leaky_JWT">Leaky JWT (digi.ninja)</a></p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193259546.png" class title="image-20211122193259546">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193259546.png" class title="image-20211122193259546">
 
 
 
 <p>将图中的JWT进行解密</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193555616.png" class title="image-20211122193555616">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193555616.png" class title="image-20211122193555616">
 
 
 
@@ -216,7 +216,7 @@
 
 
 <p>这里的密码字段由MD5加密而成，尝试进行解密</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193807785.png" class title="image-20211122193807785">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193807785.png" class title="image-20211122193807785">
 
 
 
@@ -224,19 +224,19 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">username: joe</span><br><span class="line">passwd:Password1</span><br></pre></td></tr></table></figure>
 
 <p>登录成功</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193946272.png" class title="image-20211122193946272">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211122193946272.png" class title="image-20211122193946272">
 
 
 
 <h3 id="无效签名（CVE-2019-7644）"><a href="#无效签名（CVE-2019-7644）" class="headerlink" title="无效签名（CVE-2019-7644）"></a>无效签名（CVE-2019-7644）</h3><p>1.0.4 之前的Auth0 Auth0-WCF-Service-JWT 在无法成功验证 JWT 签名时，会在错误消息中泄漏预期的 JWT 签名。如果向攻击者显示此错误消息，他们可以伪造任意 JWT 令牌，该令牌将被易受攻击的应用程序接受</p>
 <p>靶场地址:</p>
 <p><a target="_blank" rel="noopener" href="https://authlab.digi.ninja/Auth1">Auth1 (digi.ninja)</a></p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211123201720181.png" class title="image-20211123201720181">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211123201720181.png" class title="image-20211123201720181">
 
 
 
 <p>当对JWT进行改动时，会报错显示签名</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211123202044385.png" class title="image-20211123202044385">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211123202044385.png" class title="image-20211123202044385">
 
 <p>签名如下:</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hnpn5k6NtrXn8qvOuiSsFjXhAolQGn3TfmGBvA7EGTU</span><br></pre></td></tr></table></figure>
@@ -244,7 +244,7 @@
 
 
 <p>将报错显示的签名信息替换原来的Signature（签名）字段，登录成功</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126144522655.png" class title="image-20211126144522655">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126144522655.png" class title="image-20211126144522655">
 
 
 
@@ -261,13 +261,13 @@
 
 
 <p>使用Base64编码工具设置JWT的Header部分的alg字段为None</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126111400515.png" class title="image-20211126111400515">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126111400515.png" class title="image-20211126111400515">
 
 
 
 
 
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211123203312415.png" class title="image-20211123203312415">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211123203312415.png" class title="image-20211123203312415">
 
 
 
@@ -284,7 +284,7 @@
 <p><a target="_blank" rel="noopener" href="https://github.com/brendan-rius/c-jwt-cracker">c-jwt-cracker</a></p>
 <p>我们打开靶场地址，如下:</p>
 <p>可以看到使用靶场提供的JWT登录为jasper用户</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126135442521.png" class title="image-20211126135442521">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126135442521.png" class title="image-20211126135442521">
 
 
 
@@ -292,11 +292,11 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//Build a Docker Image</span><br><span class="line">docker build . -t jwtcrack</span><br><span class="line"></span><br><span class="line">//Run on Docker</span><br><span class="line">docker run -it --rm  jwtcrack eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2Mzc4OTgwMjgsImxldmVsIjoidXNlciIsInVzZXIiOiJqYXNwZXIifQ.T1J2RL69EufdU4I6g_JnKm3UaITCJsk5DxrR2HgDFhk</span><br></pre></td></tr></table></figure>
 
 <p>使用cracker工具爆破JWT中的密钥，可以看到下方密钥为hello</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126135148847.png" class title="image-20211126135148847">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126135148847.png" class title="image-20211126135148847">
 
 <p>知道密钥后我们可以自定义设置JWT内容，设置加密密钥为hello，伪造登录用户</p>
 <p>下面我们来伪造JWT</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126141542944.png" class title="image-20211126141542944">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126141542944.png" class title="image-20211126141542944">
 
 <p>得到伪造的JWT：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2Mzc4OTgwMjgsImxldmVsIjoiYWRtaW4iLCJ1c2VyIjoid2hhbGVmYWxsIn0.DpJepuO0BICPKPFevJfTvLTPthbsKS9FvQv_Ws_h1AM</span><br></pre></td></tr></table></figure>
@@ -304,7 +304,7 @@
 
 
 <p>将伪造的JWT放到靶场进行登录，登录成功</p>
-<img src="/2021/11/26/JWT%E6%94%BB%E5%87%BB/11/26/JWT%E6%94%BB%E5%87%BB/image-20211126141706896.png" class title="image-20211126141706896">
+<img src="/.com//11/26/JWT%E6%94%BB%E5%87%BB/image-20211126141706896.png" class title="image-20211126141706896">
 
 
 
@@ -325,7 +325,7 @@
 
 
 
-<h3 id="修改JKU-XSU参数"><a href="#修改JKU-XSU参数" class="headerlink" title="修改JKU/XSU参数"></a>修改JKU/XSU参数</h3><p>这两个参数也是为Header部分的可选字段，JKU（JWKSet URL）用于指定链接到一组加密token密钥的URL。XSU头部参数允许攻击者用户验证Token的公钥证书或者证书链。</p>
+<h3 id="修改JKU-x2F-XSU参数"><a href="#修改JKU-x2F-XSU参数" class="headerlink" title="修改JKU&#x2F;XSU参数"></a>修改JKU&#x2F;XSU参数</h3><p>这两个参数也是为Header部分的可选字段，JKU（JWKSet URL）用于指定链接到一组加密token密钥的URL。XSU头部参数允许攻击者用户验证Token的公钥证书或者证书链。</p>
 <p>如果没有对JKU字段内容进行严格过滤且舐限定条件，可以随机指定一组自定义密钥文件，并指定Web应用使用设置的密钥来验证token。</p>
  
       <!-- reward -->

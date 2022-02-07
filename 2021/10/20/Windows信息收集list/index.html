@@ -119,22 +119,22 @@
 <h3 id="setspn"><a href="#setspn" class="headerlink" title="setspn"></a>setspn</h3><p>普通域用户即可查询</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setspn -T domain.com -Q */*</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805185944585.png" class title="image-20210805185944585">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805185944585.png" class title="image-20210805185944585">
 
 <h3 id="kerberoast工具包"><a href="#kerberoast工具包" class="headerlink" title="kerberoast工具包"></a>kerberoast工具包</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/nidem/kerberoast</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194526691.png" class title="image-20210805194526691">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194526691.png" class title="image-20210805194526691">
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194541996.png" class title="image-20210805194541996">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194541996.png" class title="image-20210805194541996">
 
 <p>可以用于快速定位<code>域控</code>，以及排查内网中存在的<code>服务及主机</code>。</p>
 <h2 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano -p tcp</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805191040466.png" class title="image-20210805191040466">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805191040466.png" class title="image-20210805191040466">
 
 <p>利用netstat -ano命令获取机器通信信息，根据通信的端口、ip可以获取到如下信息:</p>
 <ul>
-<li><p>如果通信信息是入流量，则可以获取到跳板机/堡垒机、管理员的PC来源IP、本地web应用端口等信息</p>
+<li><p>如果通信信息是入流量，则可以获取到跳板机&#x2F;堡垒机、管理员的PC来源IP、本地web应用端口等信息</p>
 </li>
 <li><p>如果通信信息是出流量，则可以获取到敏感端口（redis、mysql、mssql等）、API端口等信息</p>
 </li>
@@ -144,7 +144,7 @@
 
 <h2 id="域网络对象信息"><a href="#域网络对象信息" class="headerlink" title="域网络对象信息"></a>域网络对象信息</h2><h3 id="判断是否有域环境"><a href="#判断是否有域环境" class="headerlink" title="判断是否有域环境"></a>判断是否有域环境</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ipconfig /all 	  		 #查看网关 IP 地址、DNS 的 IP 地址、本地地址是否和 DNS 服务器为同一网段、域名</span><br><span class="line">nslookup 域名    		   #通过反向解析查询命令 nslookup 来解析域名的 IP 地址。使用解析出来的 IP 地址进行对比，判断域控制器和 DNS 服务器是否在同一台服务器上</span><br><span class="line">systeminfo        		 #域显示不为workgroup 说明有域</span><br><span class="line">net config workstation   #工作站域 DNS 名称显示域名（如果显示为 WORKGROUP，则表示非域环境）。登录域表明当前用户是域用户登录还是本地用户登录。</span><br><span class="line">net time /domain  		 #判断主域。存在域，但是当前用户不是域用户，提示拒绝访问；存在域，是域用户，提示成功完成；不存在域，提示找不到域控制器。</span><br></pre></td></tr></table></figure>
 
-<p>/domain的命令使用条件：当前机器是域机器，当前用户是域用户</p>
+<p>&#x2F;domain的命令使用条件：当前机器是域机器，当前用户是域用户</p>
 <h3 id="查询域用户"><a href="#查询域用户" class="headerlink" title="查询域用户"></a>查询域用户</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">net user /domain</span><br><span class="line">net group &quot;domain users&quot; /domain</span><br><span class="line">net user 域用户 /domain	  		  		  获取域用户的详细信息</span><br><span class="line">net user /domain 域用户 12345678 	  		  修改域用户密码，需要域管理员权限</span><br><span class="line">net accounts /domain                         查询域用户账户等信息</span><br></pre></td></tr></table></figure>
 
 <h3 id="查询域管理员"><a href="#查询域管理员" class="headerlink" title="查询域管理员"></a>查询域管理员</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group &quot;domain admins&quot; /domain</span><br></pre></td></tr></table></figure>
@@ -170,12 +170,12 @@
 <p>在WINSERVER上，使用dnscmd获取DNS记录</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Dnscmd /ZonePrint hack.local</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104621284.png" class title="image-20210806104621284">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104621284.png" class title="image-20210806104621284">
 
 <p>非WINSERVER机器上，使用PowerView.ps1</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">import-module</span> PowerView.ps1</span><br><span class="line"><span class="built_in">Get-DNSRecord</span> <span class="literal">-ZoneName</span> hack.local</span><br></pre></td></tr></table></figure>
 
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104911527.png" class title="image-20210806104911527">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104911527.png" class title="image-20210806104911527">
 
 <h3 id="nbtscan、nmap"><a href="#nbtscan、nmap" class="headerlink" title="nbtscan、nmap"></a>nbtscan、nmap</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nbtscan.exe 192.168.1.4/24</span><br></pre></td></tr></table></figure>
 
@@ -193,10 +193,10 @@
 <h3 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PowerView  https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1</span><br></pre></td></tr></table></figure>
 
 <p>查看用户登录过哪些机器</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
+<img src="/.com//10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
 
 <p>查询机器被哪些用户登录过</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
+<img src="/.com//image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
 
 <h2 id="凭据信息"><a href="#凭据信息" class="headerlink" title="凭据信息"></a>凭据信息</h2><h3 id="navicat"><a href="#navicat" class="headerlink" title="navicat"></a>navicat</h3><table>
 <thead>
@@ -233,12 +233,12 @@
 <h3 id="SecureCRT"><a href="#SecureCRT" class="headerlink" title="SecureCRT"></a>SecureCRT</h3><table>
 <thead>
 <tr>
-<th>xp/win2003</th>
+<th>xp&#x2F;win2003</th>
 <th>C:\Documents  and Settings\USERNAME\Application Data\VanDyke\Config\Sessions</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>win7/win2008以上</td>
+<td>win7&#x2F;win2008以上</td>
 <td>C:\Users\USERNAME\AppData\Roaming\VanDyke\Config\Sessions</td>
 </tr>
 </tbody></table>
@@ -304,7 +304,7 @@
 
 <p>别看到普通权限就提权，实在没法深入再提权。</p>
 <p>提权可能打崩服务器，或者不免杀触发警报。</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
+<img src="/.com//image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
 
 <h3 id="systeminfo"><a href="#systeminfo" class="headerlink" title="systeminfo"></a>systeminfo</h3><p>主要关注修补程序</p>
 <h3 id="机器名"><a href="#机器名" class="headerlink" title="机器名"></a>机器名</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostname</span><br></pre></td></tr></table></figure>
