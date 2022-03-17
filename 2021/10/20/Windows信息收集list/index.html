@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Windows信息收集 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Windows信息收集list"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Windows信息收集
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/" class="article-date">
+  <time datetime="2021-10-20T12:22:48.150Z" itemprop="datePublished">2021-10-20</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a> / <a class="article-category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E5%9F%9F%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/">域信息收集</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Windows信息收集list"><a href="#Windows信息收集list" class="headerlink" title="Windows信息收集list"></a>Windows信息收集list</h1><h2 id="SPN"><a href="#SPN" class="headerlink" title="SPN"></a>SPN</h2><p>SPN即(Service Principal Names)服务器主体名称，可以理解为一个服务(如HTTP，MSSQL)等的唯一标识符，<strong>在加入域时是自动注册的</strong>，如果想使用<code>Kerberos</code>协议来认证服务，那么必须正确配置SPN。</p>
+<h3 id="SPN扫描的优势"><a href="#SPN扫描的优势" class="headerlink" title="SPN扫描的优势"></a>SPN扫描的优势</h3><p>在查询SPN的时候，会向域控制器发起LDAP查询，这是正常Kerberos票据行为的一部分，所以很难被检测出来。且不需要进行大范围扫描，效率高，不需要与目标主机建立链接，可以隐蔽的同时快速发现内网中的资产以及服务。</p>
+<h3 id="setspn"><a href="#setspn" class="headerlink" title="setspn"></a>setspn</h3><p>普通域用户即可查询</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setspn -T domain.com -Q */*</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805185944585.png" class title="image-20210805185944585">
+
+<h3 id="kerberoast工具包"><a href="#kerberoast工具包" class="headerlink" title="kerberoast工具包"></a>kerberoast工具包</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://github.com/nidem/kerberoast</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194526691.png" class title="image-20210805194526691">
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805194541996.png" class title="image-20210805194541996">
+
+<p>可以用于快速定位<code>域控</code>，以及排查内网中存在的<code>服务及主机</code>。</p>
+<h2 id="端口"><a href="#端口" class="headerlink" title="端口"></a>端口</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano -p tcp</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805191040466.png" class title="image-20210805191040466">
+
+<p>利用netstat -ano命令获取机器通信信息，根据通信的端口、ip可以获取到如下信息:</p>
+<ul>
+<li><p>如果通信信息是入流量，则可以获取到跳板机&#x2F;堡垒机、管理员的PC来源IP、本地web应用端口等信息</p>
+</li>
+<li><p>如果通信信息是出流量，则可以获取到敏感端口（redis、mysql、mssql等）、API端口等信息</p>
+</li>
+</ul>
+<h2 id="web配置文件"><a href="#web配置文件" class="headerlink" title="web配置文件"></a>web配置文件</h2><p>一个正常的Web应用肯定有对应的数据库账号密码信息，可以使用如下命令寻找包含密码字段的文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">findstr /s /m &quot;password&quot; *.*</span><br><span class="line">下面是常用应用的默认配置路径：</span><br><span class="line"></span><br><span class="line">Tomcat:</span><br><span class="line">CATALINA_HOME/conf/tomcat-users.xml</span><br><span class="line"></span><br><span class="line">Apache:</span><br><span class="line">/etc/httpd/conf/httpd.conf</span><br><span class="line"></span><br><span class="line">Nginx:</span><br><span class="line">/etc/nginx/nginx.conf</span><br><span class="line"></span><br><span class="line">Wdcp:</span><br><span class="line">/www/wdlinux/wdcp/conf/mrpw.conf</span><br><span class="line"></span><br><span class="line">Mysql:</span><br><span class="line">mysql\data\mysql\user.MYD</span><br></pre></td></tr></table></figure>
+
+<h2 id="域网络对象信息"><a href="#域网络对象信息" class="headerlink" title="域网络对象信息"></a>域网络对象信息</h2><h3 id="判断是否有域环境"><a href="#判断是否有域环境" class="headerlink" title="判断是否有域环境"></a>判断是否有域环境</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ipconfig /all 	  		 #查看网关 IP 地址、DNS 的 IP 地址、本地地址是否和 DNS 服务器为同一网段、域名</span><br><span class="line">nslookup 域名    		   #通过反向解析查询命令 nslookup 来解析域名的 IP 地址。使用解析出来的 IP 地址进行对比，判断域控制器和 DNS 服务器是否在同一台服务器上</span><br><span class="line">systeminfo        		 #域显示不为workgroup 说明有域</span><br><span class="line">net config workstation   #工作站域 DNS 名称显示域名（如果显示为 WORKGROUP，则表示非域环境）。登录域表明当前用户是域用户登录还是本地用户登录。</span><br><span class="line">net time /domain  		 #判断主域。存在域，但是当前用户不是域用户，提示拒绝访问；存在域，是域用户，提示成功完成；不存在域，提示找不到域控制器。</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;domain的命令使用条件：当前机器是域机器，当前用户是域用户</p>
+<h3 id="查询域用户"><a href="#查询域用户" class="headerlink" title="查询域用户"></a>查询域用户</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">net user /domain</span><br><span class="line">net group &quot;domain users&quot; /domain</span><br><span class="line">net user 域用户 /domain	  		  		  获取域用户的详细信息</span><br><span class="line">net user /domain 域用户 12345678 	  		  修改域用户密码，需要域管理员权限</span><br><span class="line">net accounts /domain                         查询域用户账户等信息</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询域管理员"><a href="#查询域管理员" class="headerlink" title="查询域管理员"></a>查询域管理员</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group &quot;domain admins&quot; /domain</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询域控制器、定位域控制器"><a href="#查询域控制器、定位域控制器" class="headerlink" title="查询域控制器、定位域控制器"></a>查询域控制器、定位域控制器</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net group &quot;domain controllers&quot; /domain</span><br><span class="line">net time /domain</span><br><span class="line">ipconfig /all</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看域内组"><a href="#查看域内组" class="headerlink" title="查看域内组"></a>查看域内组</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group /domain</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询域机器"><a href="#查询域机器" class="headerlink" title="查询域机器"></a>查询域机器</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net group &quot;domain computers&quot; /domain</span><br></pre></td></tr></table></figure>
+
+<h3 id="共享"><a href="#共享" class="headerlink" title="共享"></a>共享</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">net view 				查看同一域内机器列表</span><br><span class="line">net view \\IP			查看IP的机器共享</span><br><span class="line">net view \\TEST			查看TEST计算机的共享资源列表</span><br><span class="line">net view /domain 		查看内网存在多少个域</span><br><span class="line">net view /domain:hack	查看hack域中的机器列表</span><br></pre></td></tr></table></figure>
+
+<h2 id="本地网络对象信息"><a href="#本地网络对象信息" class="headerlink" title="本地网络对象信息"></a>本地网络对象信息</h2><h3 id="本地用户"><a href="#本地用户" class="headerlink" title="本地用户"></a>本地用户</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net localgroup administrators 							查看本机管理员组成员</span><br><span class="line">net localgroup administrators /domain 					登录本机的域管理员</span><br><span class="line">net localgroup administrators workgroup\user01 /add		域用户添加到本机管理组</span><br></pre></td></tr></table></figure>
+
+<h2 id="主机发现"><a href="#主机发现" class="headerlink" title="主机发现"></a>主机发现</h2><h3 id="共享-1"><a href="#共享-1" class="headerlink" title="共享"></a>共享</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net view</span><br></pre></td></tr></table></figure>
+
+<h3 id="Arp路由表"><a href="#Arp路由表" class="headerlink" title="Arp路由表"></a>Arp路由表</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arp -a</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看hosts文件"><a href="#查看hosts文件" class="headerlink" title="查看hosts文件"></a>查看hosts文件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type  c:\Windows\system32\drivers\etc\hosts</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看DNS"><a href="#查看DNS" class="headerlink" title="查看DNS"></a>查看DNS</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ipconfig /displaydns</span><br></pre></td></tr></table></figure>
+
+<p>在WINSERVER上，使用dnscmd获取DNS记录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Dnscmd /ZonePrint hack.local</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104621284.png" class title="image-20210806104621284">
+
+<p>非WINSERVER机器上，使用PowerView.ps1</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">import-module</span> PowerView.ps1</span><br><span class="line"><span class="built_in">Get-DNSRecord</span> <span class="literal">-ZoneName</span> hack.local</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806104911527.png" class title="image-20210806104911527">
+
+<h3 id="nbtscan、nmap"><a href="#nbtscan、nmap" class="headerlink" title="nbtscan、nmap"></a>nbtscan、nmap</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nbtscan.exe 192.168.1.4/24</span><br></pre></td></tr></table></figure>
+
+<h3 id="icmp"><a href="#icmp" class="headerlink" title="icmp"></a>icmp</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for /L %I in (1,1,254) DO @ping -w 1 -n 1 192.168.1.%I | findstr &quot;TTL=&quot;   #利用ICMP协议快速探测内网</span><br></pre></td></tr></table></figure>
+
+<h3 id="arp-exe"><a href="#arp-exe" class="headerlink" title="arp.exe"></a>arp.exe</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arp.exe –t 192.168.1.0/20  #arp-scan工具，需要上传arp.exe</span><br></pre></td></tr></table></figure>
+
+<h3 id="powershell"><a href="#powershell" class="headerlink" title="powershell"></a>powershell</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">powershell.exe -exec bypass -Command &quot;&amp; &#123;Import-Module C:\windows\temp\InvokeARPScan.ps1; Invoke-ARPScan -CIDR 192.168.1.0/24&#125;&quot; &gt;&gt; C:\windows\temp\log.txt  </span><br><span class="line">#使用Nishang中的Invoke-ARPScan.ps1脚本，可以将脚本上传到目标主机执行，也可以直接远程加载执行</span><br></pre></td></tr></table></figure>
+
+<h3 id="scanline"><a href="#scanline" class="headerlink" title="scanline"></a>scanline</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scanline -h -t 22,80- 89,110,389,445,3389,1099,1433,2049,6379,7001,8080,1521,3306,3389,5432 -u 53,161,137,139 -O c:\windows\temp\log.txt -p 192.168.1.1-254 /b   </span><br><span class="line">#使用ScanLine对常规 TCP/UDP 端口扫描探测内网</span><br></pre></td></tr></table></figure>
+
+<h2 id="会话信息"><a href="#会话信息" class="headerlink" title="会话信息"></a>会话信息</h2><blockquote>
+<p>用于查看管理员（或某用户）登录过哪些机器，机器被哪些用户登陆过</p>
+</blockquote>
+<h3 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PowerView  https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1</span><br></pre></td></tr></table></figure>
+
+<p>查看用户登录过哪些机器</p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
+
+<p>查询机器被哪些用户登录过</p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
+
+<h2 id="凭据信息"><a href="#凭据信息" class="headerlink" title="凭据信息"></a>凭据信息</h2><h3 id="navicat"><a href="#navicat" class="headerlink" title="navicat"></a>navicat</h3><table>
+<thead>
+<tr>
+<th>MySQL</th>
+<th>HKEY_CURRENT_USER\Software\PremiumSoft\Navicat\Servers&lt;your  connection name&gt;</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MariaDB</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatMARIADB\Servers&lt;your  connection name&gt;</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatMONGODB\Servers&lt;your  connection name&gt;</td>
+</tr>
+<tr>
+<td>Microsoft  SQL</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatMSSQL\Servers&lt;your  connection name&gt;</td>
+</tr>
+<tr>
+<td>Oracle</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatOra\Servers&lt;your  connection name&gt;</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatPG\Servers&lt;your  connection name&gt;</td>
+</tr>
+<tr>
+<td>SQLite</td>
+<td>HKEY_CURRENT_USER\Software\PremiumSoft\NavicatSQLite\Servers&lt;your  connection name&gt;</td>
+</tr>
+</tbody></table>
+<h3 id="SecureCRT"><a href="#SecureCRT" class="headerlink" title="SecureCRT"></a>SecureCRT</h3><table>
+<thead>
+<tr>
+<th>xp&#x2F;win2003</th>
+<th>C:\Documents  and Settings\USERNAME\Application Data\VanDyke\Config\Sessions</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>win7&#x2F;win2008以上</td>
+<td>C:\Users\USERNAME\AppData\Roaming\VanDyke\Config\Sessions</td>
+</tr>
+</tbody></table>
+<h3 id="Xshell"><a href="#Xshell" class="headerlink" title="Xshell"></a>Xshell</h3><table>
+<thead>
+<tr>
+<th>Xshell 5</th>
+<th>%userprofile%\Documents\NetSarang\Xshell\Sessions</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Xshell 6</td>
+<td>%userprofile%\Documents\NetSarang  Computer\6\Xshell\Sessions</td>
+</tr>
+</tbody></table>
+<h3 id="WinSCP"><a href="#WinSCP" class="headerlink" title="WinSCP"></a>WinSCP</h3><table>
+<thead>
+<tr>
+<th>HKCU\Software\Martin  Prikryl\WinSCP 2\Sessions</th>
+</tr>
+</thead>
+</table>
+<h3 id="VNC"><a href="#VNC" class="headerlink" title="VNC"></a>VNC</h3><table>
+<thead>
+<tr>
+<th>RealVNC</th>
+<th>HKEY_LOCAL_MACHINE\SOFTWARE\RealVNC\vncserver</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TightVNC</td>
+<td>HKEY_CURRENT_USER\Software\TightVNC\Server  Value</td>
+<td>Password  or PasswordViewOnly</td>
+</tr>
+<tr>
+<td>TigerVNC</td>
+<td>HKEY_LOCAL_USER\Software\TigerVNC\WinVNC4</td>
+<td>Password</td>
+</tr>
+<tr>
+<td>UltraVNC</td>
+<td>C:\Program  Files\UltraVNC\ultravnc.ini</td>
+<td>passwd or  passwd2</td>
+</tr>
+</tbody></table>
+<h3 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmdkey/list</span><br></pre></td></tr></table></figure>
+
+<h2 id="DPAPI"><a href="#DPAPI" class="headerlink" title="DPAPI"></a>DPAPI</h2><h3 id="解密Chrome密码："><a href="#解密Chrome密码：" class="headerlink" title="解密Chrome密码："></a>解密Chrome密码：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz dpapi::chrome /in:&quot;%localappdata%\Google\Chrome\User Data\Default\Login  Data&quot; /unprotect</span><br></pre></td></tr></table></figure>
+
+<h3 id="解密Credential："><a href="#解密Credential：" class="headerlink" title="解密Credential："></a>解密Credential：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz vault::cred /patch</span><br></pre></td></tr></table></figure>
+
+<h2 id="域信任"><a href="#域信任" class="headerlink" title="域信任"></a>域信任</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nltest /domain_trusts</span><br></pre></td></tr></table></figure>
+
+<h2 id="域传送"><a href="#域传送" class="headerlink" title="域传送"></a>域传送</h2><h3 id="windows"><a href="#windows" class="headerlink" title="windows"></a>windows</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nslookup  -type=ns domain.comnslookupsserver  dns.domain.comls  domain.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="linux"><a href="#linux" class="headerlink" title="linux"></a>linux</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dig  @dns.domain.com axfr domain.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="WIFI"><a href="#WIFI" class="headerlink" title="WIFI"></a>WIFI</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for /f &quot;skip=9 tokens=1,2 delims=:&quot; %i in (&#x27;netsh wlan show profiles&#x27;)  do  @echo %j | findstr -i -v echo |  netsh wlan show profiles %j key=clear</span><br></pre></td></tr></table></figure>
+
+<h2 id="GPP"><a href="#GPP" class="headerlink" title="GPP"></a>GPP</h2><p>学习提权的时候再做了解</p>
+<h2 id="其他基础信息收集"><a href="#其他基础信息收集" class="headerlink" title="其他基础信息收集"></a>其他基础信息收集</h2><h3 id="获取当前shell权限"><a href="#获取当前shell权限" class="headerlink" title="获取当前shell权限"></a>获取当前shell权限</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whoami /user &amp;&amp; whoami /priv</span><br></pre></td></tr></table></figure>
+
+<p>别看到普通权限就提权，实在没法深入再提权。</p>
+<p>提权可能打崩服务器，或者不免杀触发警报。</p>
+<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
+
+<h3 id="systeminfo"><a href="#systeminfo" class="headerlink" title="systeminfo"></a>systeminfo</h3><p>主要关注修补程序</p>
+<h3 id="机器名"><a href="#机器名" class="headerlink" title="机器名"></a>机器名</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostname</span><br></pre></td></tr></table></figure>
+
+<h3 id="操作系统"><a href="#操作系统" class="headerlink" title="操作系统"></a>操作系统</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic OS get Caption,CSDVersion,OSArchitecture,Version</span><br></pre></td></tr></table></figure>
+
+<h3 id="版本"><a href="#版本" class="headerlink" title="版本"></a>版本</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ver</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看杀软"><a href="#查看杀软" class="headerlink" title="查看杀软"></a>查看杀软</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看当前安装程序"><a href="#查看当前安装程序" class="headerlink" title="查看当前安装程序"></a>查看当前安装程序</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic product get name,version</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看在线用户"><a href="#查看在线用户" class="headerlink" title="查看在线用户"></a>查看在线用户</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">quser</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看进程"><a href="#查看进程" class="headerlink" title="查看进程"></a>查看进程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tasklist /v    #/v可以查看是谁开启的进程</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看当前登录域"><a href="#查看当前登录域" class="headerlink" title="查看当前登录域"></a>查看当前登录域</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net config workstation</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询并开启RDP"><a href="#查询并开启RDP" class="headerlink" title="查询并开启RDP"></a>查询并开启RDP</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">REG QUERY &quot;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp&quot; /V PortNumber    #查看远程连接端口</span><br><span class="line">wmic path win32_terminalservicesetting where (__CLASS !=&quot;&quot;) call setallowtsconnections 1    #在 Windows Server 2003 中开启 3389 端口</span><br><span class="line"></span><br><span class="line">wmic /namespace:\\root\cimv2\terminalservices path win32_terminalservicesetting where (__CLASS !=&quot;&quot;) call setallowtsconnections 1  </span><br><span class="line">wmic /namespace:\\root\cimv2\terminalservices path win32_tsgeneralsetting where (TerminalName=&#x27;RDP-Tcp&#x27;) call setuserauthenticationrequired 1</span><br><span class="line">reg add &quot;HKLM\SYSTEM\CURRENT\CONTROLSET\CONTROL\TERMINAL SERVER&quot; /v fSingleSessionPerUser /t REG_DWORD /d 0 /f</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看RDP连接历史"><a href="#查看RDP连接历史" class="headerlink" title="查看RDP连接历史"></a>查看RDP连接历史</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cmdkey /l</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看防火墙配置"><a href="#查看防火墙配置" class="headerlink" title="查看防火墙配置"></a>查看防火墙配置</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">netsh firewall set opmode disable  			  #winserver2003及之前版本 关闭防火墙</span><br><span class="line">netsh advfirewall set allprofiles state off   #winserver2003之后版本 关闭防火墙</span><br><span class="line">netsh firewall show config #查看防火墙配置</span><br><span class="line">netsh firewall add allowedprogram c:\nc.exe &quot;allow nc&quot; enable  #Windows Server 2003 系统及之前版本，允许指定程序全部连接</span><br><span class="line"></span><br><span class="line">netsh advfirewall firewall add rule name=&quot;pass nc&quot; dir=in action=allow program=&quot;C: \nc.exe&quot;  				#Windows Server 2003 之后系统版本允许指定程序连入</span><br><span class="line">netsh advfirewall firewall add rule name=&quot;Allow nc&quot; dir=out action=allow program=&quot;C: \nc.exe&quot;  				# 允许指定程序连出</span><br><span class="line">netsh advfirewall firewall add rule name=&quot;Remote Desktop&quot; protocol=TCP dir=in localport=3389 action=allow   #允许 3389 端口放行</span><br><span class="line">netsh advfirewall set currentprofile logging filename &quot;C:\windows\temp\fw.log&quot; 								#自定义防火墙日志储存位置</span><br></pre></td></tr></table></figure>
+
+<h2 id="Exchange"><a href="#Exchange" class="headerlink" title="Exchange"></a>Exchange</h2><p>exchange一般都在域内的核心位置上，包括甚至安装在域控服务器上，因此需要exchange的相关漏洞，如果拿下exchange机器，则域控也不远了。</p>
+<h3 id="邮箱用户密码爆破"><a href="#邮箱用户密码爆破" class="headerlink" title="邮箱用户密码爆破"></a>邮箱用户密码爆破</h3><p>使用ruler工具对owa接口进行爆破：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./ruler --domain targetdomain.com brute --users /path/to/user.txt --passwords /path/to/passwords.txt</span><br></pre></td></tr></table></figure>
+
+<p>ruler工具会自动搜索owa可以爆破的接口，如：</p>
+<p><a target="_blank" rel="noopener" href="https://autodiscover.targetdomain.com/autodiscover/autodiscover.xml">https://autodiscover.targetdomain.com/autodiscover/autodiscover.xml</a></p>
+<p>其他如ews接口也存在被暴力破解利用的风险：</p>
+<p><a target="_blank" rel="noopener" href="https://mail.targetdomain.com/ews">https://mail.targetdomain.com/ews</a></p>
+<h3 id="通讯录收集"><a href="#通讯录收集" class="headerlink" title="通讯录收集"></a>通讯录收集</h3><p>在获取一个邮箱账号密码后，可以使用MailSniper收集通讯录，当拿到通讯录后，可以再次利用上述爆破手段继续尝试弱密码，但是记住，密码次数不要太多，很有可能会造成域用户锁定：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Get-GlobalAddressList -ExchHostname mail.domain.com -UserName domain\username -Password Fall2016 -OutFile global-address-list.txt</span><br></pre></td></tr></table></figure>
+
+<h3 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h3><p>当我们拿下exchange服务器后，可以做一些信息收集，包括不限于用户、邮件。</p>
+<p>获取所有邮箱用户：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Get-Mailbox</span><br></pre></td></tr></table></figure>
+
+<p>导出邮件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">New-MailboxexportRequest -mailbox username -FilePath (&quot;\\localhost\c$\test\username.pst&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>也可以通过web口导出，登录：</p>
+<p><a target="_blank" rel="noopener" href="https://mail.domain.com/ecp/">https://mail.domain.com/ecp/</a></p>
+<p>导出后会有记录，用如下命令可以查看：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Get-MailboxExportRequest</span><br></pre></td></tr></table></figure>
+
+<p>删除某个导出记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Remove-MailboxExportRequest -Identity &#x27;username\mailboxexport&#x27; -Confirm:$false</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Seatbelt"><a href="#Seatbelt" class="headerlink" title="Seatbelt"></a>Seatbelt</h2><h2 id="Bloodhound"><a href="#Bloodhound" class="headerlink" title="Bloodhound"></a>Bloodhound</h2><p>可以了解，都不推荐使用</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F-%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-windows%E5%9F%9F%E7%8E%AF%E5%A2%83/" rel="tag">-内网渗透 -信息收集 -windows域环境</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/10/22/Spring%20Boot%20Actuator%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8%E5%AE%9E%E6%88%98%E5%88%A9%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Spring Boot Actuator未授权访问利用实战利用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/10/02/%E7%BA%A2%E6%97%A5%E9%9D%B6%E5%9C%BA%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">红日靶场</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

