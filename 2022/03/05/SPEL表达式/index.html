@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>OGNL表达式 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-SPEL表达式"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  OGNL表达式
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="article-date">
+  <time datetime="2022-03-05T02:56:28.000Z" itemprop="datePublished">2022-03-05</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/">内功心法</a> / <a class="article-category-link" href="/categories/%E5%86%85%E5%8A%9F%E5%BF%83%E6%B3%95/java%E8%A1%A8%E8%BE%BE%E5%BC%8F/">java表达式</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">16 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="SPEL表达式"><a href="#SPEL表达式" class="headerlink" title="SPEL表达式"></a>SPEL表达式</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Spring表达式语言全称为“Spring Expression Language”，缩写为“SpEL”，类似于Struts2x中使用的OGNL表达式语言，能在运行时构建复杂表达式、存取对象图属性、对象方法调用等等，并且能与Spring功能完美整合，如能用来配置Bean定义。SpEL是单独模块，只依赖于core模块，不依赖于其他模块，可以单独使用。</p>
+<p><strong>表达式语言给静态Java语言增加了动态功能。</strong></p>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><p>SPEL有三种用法，一种在注解@Value中，一种在XML配置中，一种是带代码中使用表达式。</p>
+<p><strong>@Value</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//@Value能修饰成员变量和方法形参</span><br><span class="line">//#&#123;&#125;内就是表达式的内容</span><br><span class="line">@Value(&quot;#&#123;表达式&#125;&quot;)</span><br><span class="line">public String arg;</span><br></pre></td></tr></table></figure>
+
+<p><strong><bean>配置</bean></strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=&quot;xxx&quot; class=&quot;com.java.XXXXX.xx&quot;&gt;</span><br><span class="line">    &lt;!-- 同@Value,#&#123;&#125;内是表达式的值，可放在property或constructor-arg内 --&gt;</span><br><span class="line">    &lt;property name=&quot;arg&quot; value=&quot;#&#123;表达式&#125;&quot;&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Expression</strong></p>
+<p>Spel支持以下表达式:</p>
+<p><strong>基本表达式</strong></p>
+<p>字面量表达式、关系，逻辑与算数运算表达式、字符串连接及截取表达式、三目运算及Elivis表达式、正则表达式、括号优先级表达式</p>
+<p><strong>类相关表达式</strong></p>
+<p>类类型表达式、类实例化、instanceof表达式、变量定义及引用、赋值表达式、自定义函数、对象属性存取及安全导航表达式、对象方法调用、Bean引用</p>
+<p><strong>集合相关表达式</strong></p>
+<p>内联List、内联数组、集合，字典访问、列表，字典，数组修改、集合投影、集合选择；不支持多维内联数组初始化；不支持内联字典定义</p>
+<p><strong>其他表达式</strong> </p>
+<p>模板表达式</p>
+<p><strong>注：SpEL表达式中的关键字是不区分大小写的</strong></p>
+<h2 id="SpEl基础"><a href="#SpEl基础" class="headerlink" title="SpEl基础"></a>SpEl基础</h2><p>首先编写个Demo</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">package com.javacode2018.spel;</span><br><span class="line"></span><br><span class="line">import com.javacode2018.spel.test1.LessonModel;</span><br><span class="line">import com.javacode2018.spel.test1.MainConfig;</span><br><span class="line">import org.junit.Assert;</span><br><span class="line">import org.junit.Test;</span><br><span class="line">import org.springframework.beans.factory.support.DefaultListableBeanFactory;</span><br><span class="line">import org.springframework.context.annotation.AnnotationConfigApplicationContext;</span><br><span class="line">import org.springframework.context.expression.BeanFactoryResolver;</span><br><span class="line">import org.springframework.expression.*;</span><br><span class="line">import org.springframework.expression.common.TemplateParserContext;</span><br><span class="line">import org.springframework.expression.spel.standard.SpelExpressionParser;</span><br><span class="line">import org.springframework.expression.spel.support.StandardEvaluationContext;</span><br><span class="line"></span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line">import java.util.*;</span><br><span class="line"></span><br><span class="line">public class SpelTest &#123;</span><br><span class="line">    @Test</span><br><span class="line">    public void test1() &#123;</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        #使用ExpressionParser接口创造解析器，提供SpelExpressionParser默认实现</span><br><span class="line">        Expression expression = parser.parseExpression(&quot;(&#x27;Hello&#x27; + &#x27; World&#x27;).concat(#end)&quot;);</span><br><span class="line">        #调用parsexpression解析相应的表达式为Expression对象</span><br><span class="line">        EvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">        #准备变量定义需要的上下文数据</span><br><span class="line">        context.setVariable(&quot;end&quot;, &quot;!&quot;);</span><br><span class="line">        #传值        System.out.println(expression.getValue(context));</span><br><span class="line">        #输出值</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424103321347.png" class title="image-20220424103321347">
+
+<h3 id="Spel原理及接口"><a href="#Spel原理及接口" class="headerlink" title="Spel原理及接口"></a>Spel原理及接口</h3><ol>
+<li>表达式: “干什么”</li>
+<li>解析器: “谁来干”</li>
+<li>上下文: “在哪干”</li>
+<li>根对象及活动上下文对象: “对谁干”</li>
+</ol>
+<p>Spel工作流程图:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424105051661.png" class title="image-20220424105051661">
+
+<p>工作原理</p>
+<ol>
+<li><p>定义表达式</p>
+</li>
+<li><p>定义解析器ExpressionParser实现，Spel默认实现spelExpressionParser</p>
+<p>2.1 SpelExpressionParser解析器内部使用Tokenizer类进行词法分析，即把字符串流分析为记号流，记号在SpEL使用Token类来表示；<br>2.2 有了记号流后，解析器便可根据记号流生成内部抽象语法树；在SpEL中语法树节点由SpelNode接口实现代表：如OpPlus表示加操作节点、IntLiteral表示int型字面量节点；使用SpelNodel实现组成了抽象语法树；<br>2.3 对外提供Expression接口来简化表示抽象语法树，从而隐藏内部实现细节，并提供getValue简单方法用于获取表达式值；SpEL提供默认实现为SpelExpression</p>
+</li>
+<li><p>定义表达式上下文对象。SpEL使用EvaluationContext接口表示上下文对象，用于设置根对象、自定义变量、自定义函数、类型转换器等，SpEL提供默认实现StandardEvaluationContext</p>
+</li>
+<li><p>使用表达式对象根据上下文对象求值(getvalue方法获取)</p>
+</li>
+</ol>
+<h3 id="ExpressionParser接口"><a href="#ExpressionParser接口" class="headerlink" title="ExpressionParser接口"></a>ExpressionParser接口</h3><p>表示解析器，默认实现是org.springframework.expression.spel.standard包中的SpelExpressionParser类，使用parseExpression方法将字符串表达式转换为Expression对象，对于ParserContext接口用于定义字符串表达式是不是模板，及模板开始与结束字符：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public interface ExpressionParser &#123;</span><br><span class="line"> Expression parseExpression(String expressionString) throws ParseException;</span><br><span class="line"> Expression parseExpression(String expressionString, ParserContext context) throws ParseException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Demo</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">public void testParserContext() &#123;</span><br><span class="line">    ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">    ParserContext parserContext = new ParserContext() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public boolean isTemplate() &#123;</span><br><span class="line">            return true;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public String getExpressionPrefix() &#123;</span><br><span class="line">            return &quot;#&#123;&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        #设置表达式前缀</span><br><span class="line">        @Override</span><br><span class="line">        public String getExpressionSuffix() &#123;</span><br><span class="line">            return &quot;&#125;&quot;;</span><br><span class="line">        #设置表达式后缀</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    String template = &quot;#&#123;&#x27;Hello &#x27;&#125;#&#123;&#x27;World!&#x27;&#125;&quot;;</span><br><span class="line">    #传入表达式模板</span><br><span class="line">    Expression expression = parser.parseExpression(template, parserContext);</span><br><span class="line">    System.out.println(expression.getValue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该代码演示的是调用ParserContext接口的情况，通过重写接口中isTemplate()，getExpressionPrefix()设置前缀”#{“，getExprssionSuffix()设置后缀“}”，然后设置表达式以该模板进行格式化定义。</p>
+<h3 id="EvaluationContext接口"><a href="#EvaluationContext接口" class="headerlink" title="EvaluationContext接口"></a>EvaluationContext接口</h3><p>表示上下文环境，默认实现是org.springframework.expression.spel.support包中的StandardEvaluationContext类，使用setRootObject方法来设置根对象，使用setVariable方法来注册自定义变量，使用registerFunction来注册自定义函数等等。</p>
+<h3 id="Expression接口"><a href="#Expression接口" class="headerlink" title="Expression接口"></a>Expression接口</h3><p>表示表达式对象，默认实现是org.springframework.expression.spel.standard包中的SpelExpression，提供getValue方法用于获取表达式值，提供setValue方法用于设置对象值。</p>
+<h2 id="SpEl语法"><a href="#SpEl语法" class="headerlink" title="SpEl语法"></a>SpEl语法</h2><h3 id="基本表达式"><a href="#基本表达式" class="headerlink" title="基本表达式"></a>基本表达式</h3><h4 id="字面量表达式"><a href="#字面量表达式" class="headerlink" title="字面量表达式"></a>字面量表达式</h4><p>SpEL支持的字面量包括：字符串、数字类型（int、long、float、double）、布尔类型、null类型。</p>
+<p>通过getvalue(类.class)来表达类型</p>
+<p>示例:</p>
+<p>String str1 &#x3D; parser.parserExpression(“‘Hello World!’”).getvalue(Sting.class)</p>
+<p>Demo</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ExpressionParser parser = <span class="keyword">new</span> SpelExpressionParser();</span><br><span class="line"></span><br><span class="line">        String str1 = parser.parseExpression(<span class="string">&quot;&#x27;Hello World!&#x27;&quot;</span>).getValue(String.class);</span><br><span class="line">        <span class="keyword">int</span> int1 = parser.parseExpression(<span class="string">&quot;1&quot;</span>).getValue(Integer.class);</span><br><span class="line">        <span class="keyword">long</span> long1 = parser.parseExpression(<span class="string">&quot;-1L&quot;</span>).getValue(<span class="keyword">long</span>.class);</span><br><span class="line">        <span class="keyword">float</span> float1 = parser.parseExpression(<span class="string">&quot;1.1&quot;</span>).getValue(Float.class);</span><br><span class="line">        <span class="keyword">double</span> double1 = parser.parseExpression(<span class="string">&quot;1.1E+2&quot;</span>).getValue(<span class="keyword">double</span>.class);</span><br><span class="line">        <span class="keyword">int</span> hex1 = parser.parseExpression(<span class="string">&quot;0xa&quot;</span>).getValue(Integer.class);</span><br><span class="line">        <span class="keyword">long</span> hex2 = parser.parseExpression(<span class="string">&quot;0xaL&quot;</span>).getValue(<span class="keyword">long</span>.class);</span><br><span class="line">        <span class="keyword">boolean</span> true1 = parser.parseExpression(<span class="string">&quot;true&quot;</span>).getValue(<span class="keyword">boolean</span>.class);</span><br><span class="line">        <span class="keyword">boolean</span> false1 = parser.parseExpression(<span class="string">&quot;false&quot;</span>).getValue(<span class="keyword">boolean</span>.class);</span><br><span class="line">        Object null1 = parser.parseExpression(<span class="string">&quot;null&quot;</span>).getValue(Object.class);</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">&quot;str1=&quot;</span> + str1);</span><br><span class="line">        System.out.println(<span class="string">&quot;int1=&quot;</span> + int1);</span><br><span class="line">        System.out.println(<span class="string">&quot;long1=&quot;</span> + long1);</span><br><span class="line">        System.out.println(<span class="string">&quot;float1=&quot;</span> + float1);</span><br><span class="line">        System.out.println(<span class="string">&quot;double1=&quot;</span> + double1);</span><br><span class="line">        System.out.println(<span class="string">&quot;hex1=&quot;</span> + hex1);</span><br><span class="line">        System.out.println(<span class="string">&quot;hex2=&quot;</span> + hex2);</span><br><span class="line">        System.out.println(<span class="string">&quot;true1=&quot;</span> + true1);</span><br><span class="line">        System.out.println(<span class="string">&quot;false1=&quot;</span> + false1);</span><br><span class="line">        System.out.println(<span class="string">&quot;null1=&quot;</span> + null1);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424112217726.png" class title="image-20220424112217726">
+
+<h4 id="算数运算表达式"><a href="#算数运算表达式" class="headerlink" title="算数运算表达式"></a>算数运算表达式</h4><p>SpEL支持加减乘除、求余、幂运算</p>
+<p>Demo</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int test1 = parser.parseExpression(&quot;(1+2-2)*4/2%1^5&quot;).getValue(Integer.class);</span><br><span class="line">        System.out.println(&quot;result=&quot;+test1);</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424112934057.png" class title="image-20220424112934057">
+
+<h4 id="关系表达式"><a href="#关系表达式" class="headerlink" title="关系表达式"></a>关系表达式</h4><p>等于（&#x3D;&#x3D;）、不等于(!&#x3D;)、大于(&gt;)、大于等于(&gt;&#x3D;)、小于(&lt;)、小于等于(&lt;&#x3D;)，区间（between）运算，等价的“EQ” 、“NE”、 “GT”、“GE”、 “LT” 、“LE”来表示等于、不等于、大于、大于等于、小于、小于等于，不区分大小写。</p>
+<p>Demo</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void test3() &#123;</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        boolean v1 = parser.parseExpression(&quot;1&gt;2&quot;).getValue(boolean.class);</span><br><span class="line">        boolean between1 = parser.parseExpression(&quot;1 between &#123;1,2&#125;&quot;).getValue(boolean.class);</span><br><span class="line">        System.out.println(&quot;v1=&quot; + v1);</span><br><span class="line">        System.out.println(&quot;between1=&quot; + between1);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424113134637.png" class title="image-20220424113134637">
+
+<p><strong>between运算符右边操作数必须是列表类型，且只能包含2个元素。第一个元素为开始，第二个元素为结束，区间运算是包含边界值的，即 xxx&gt;&#x3D;list.get(0) &amp;&amp; xxx&lt;&#x3D;list.get(1)</strong></p>
+<h4 id="逻辑表达式"><a href="#逻辑表达式" class="headerlink" title="逻辑表达式"></a>逻辑表达式</h4><p>且（and或者&amp;&amp;）、或(or或者||)、非(!或NOT)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void test4() &#123;</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line"></span><br><span class="line">        boolean result1 = parser.parseExpression(&quot;2&gt;1 and (!true or !false)&quot;).getValue(boolean.class);</span><br><span class="line">        boolean result2 = parser.parseExpression(&quot;2&gt;1 &amp;&amp; (!true || !false)&quot;).getValue(boolean.class);</span><br><span class="line"></span><br><span class="line">        boolean result3 = parser.parseExpression(&quot;2&gt;1 and (NOT true or NOT false)&quot;).getValue(boolean.class);</span><br><span class="line">        boolean result4 = parser.parseExpression(&quot;2&gt;1 &amp;&amp; (NOT true || NOT false)&quot;).getValue(boolean.class);</span><br><span class="line"></span><br><span class="line">        System.out.println(&quot;result1=&quot; + result1);</span><br><span class="line">        System.out.println(&quot;result2=&quot; + result2);</span><br><span class="line">        System.out.println(&quot;result3=&quot; + result3);</span><br><span class="line">        System.out.println(&quot;result4=&quot; + result4);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424113702504.png" class title="image-20220424113702504">
+
+<h4 id="字符串连接及截取表达式"><a href="#字符串连接及截取表达式" class="headerlink" title="字符串连接及截取表达式"></a>字符串连接及截取表达式</h4><p>使用“+”进行字符串连接，使用“’String’[0] [index]”来截取一个字符，目前只支持截取一个，如“’Hello ‘ + ‘World!’”得到“Hello World!”；而“’Hello World!’[0]”将返回“H”</p>
+<h4 id="三目运算"><a href="#三目运算" class="headerlink" title="三目运算"></a>三目运算</h4><p>三目运算符 <strong>“表达式1?表达式2:表达式3”</strong>用于构造三目运算表达式，如“2&gt;1?true:false”将返回true。</p>
+<h4 id="Elivis运算符"><a href="#Elivis运算符" class="headerlink" title="Elivis运算符"></a>Elivis运算符</h4><p>Elivis运算符<strong>“表达式1?:表达式2”</strong>从Groovy语言引入用于简化三目运算符的，当表达式1为非null时则返回表达式1，当表达式1为null时则返回表达式2，简化了三目运算符方式“表达式1? 表达式1:表达式2”，如“null?:false”将返回false，而“true?:false”将返回true</p>
+<h4 id="正则表达式"><a href="#正则表达式" class="headerlink" title="正则表达式"></a>正则表达式</h4><p>使用“str matches regex，如“’123’ matches ‘\d{3}’”将返回true</p>
+<h4 id="括号优先级表达式"><a href="#括号优先级表达式" class="headerlink" title="括号优先级表达式"></a>括号优先级表达式</h4><p>使用“(表达式)”构造，括号里的具有高优先级</p>
+<h3 id="类相关表达式"><a href="#类相关表达式" class="headerlink" title="类相关表达式"></a>类相关表达式</h3><h4 id="类类型表达式"><a href="#类类型表达式" class="headerlink" title="类类型表达式"></a>类类型表达式</h4><p>使用“T(Type)”来表示java.lang.Class实例，“Type”必须是类全限定名，“java.lang”包除外，即该包下的类可以不指定包名；使用类类型表达式还可以进行访问类静态方法及类静态字段</p>
+<p><strong>Demo</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testClassTypeExpression</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ExpressionParser parser = <span class="keyword">new</span> SpelExpressionParser();</span><br><span class="line">        <span class="comment">//java.lang包类访问</span></span><br><span class="line">        Class&lt;String&gt; result1 = parser.parseExpression(<span class="string">&quot;T(String)&quot;</span>).getValue(Class.class);</span><br><span class="line">        System.out.println(result1);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//其他包类访问</span></span><br><span class="line">        String expression2 = <span class="string">&quot;T(com.javacode2018.spel.SpelTest)&quot;</span>;</span><br><span class="line">        Class&lt;SpelTest&gt; value = parser.parseExpression(expression2).getValue(Class.class);</span><br><span class="line">        System.out.println(value == SpelTest.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//类静态字段访问</span></span><br><span class="line">        <span class="keyword">int</span> result3 = parser.parseExpression(<span class="string">&quot;T(Integer).MAX_VALUE&quot;</span>).getValue(<span class="keyword">int</span>.class);</span><br><span class="line">        System.out.println(result3 == Integer.MAX_VALUE);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//类静态方法调用</span></span><br><span class="line">        <span class="keyword">int</span> result4 = parser.parseExpression(<span class="string">&quot;T(Integer).parseInt(&#x27;1&#x27;)&quot;</span>).getValue(<span class="keyword">int</span>.class);</span><br><span class="line">        System.out.println(result4);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424142703091.png" class title="image-20220424142703091">
+
+<p>对于java.lang包里的可以直接使用“T(String)”访问；其他包必须是类全限定名；可以进行静态字段访问如“T(Integer).MA</p>
+<h4 id="类实例化"><a href="#类实例化" class="headerlink" title="类实例化"></a>类实例化</h4><p>类实例化同样使用java关键字“new”，类名必须是全限定名，但java.lang包内的类型除外，如String、Integer</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">public void testConstructorExpression() &#123;</span><br><span class="line">    ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">    String result1 = parser.parseExpression(&quot;new String(&#x27;路人甲java&#x27;)&quot;).getValue(String.class);</span><br><span class="line">    System.out.println(result1);</span><br><span class="line"></span><br><span class="line">    Date result2 = parser.parseExpression(&quot;new java.util.Date()&quot;).getValue(Date.class);</span><br><span class="line">    System.out.println(result2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果；</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424144159414.png" class title="image-20220424144159414">
+
+<h4 id="instanceof表达式"><a href="#instanceof表达式" class="headerlink" title="instanceof表达式"></a>instanceof表达式</h4><p>SpEL支持instanceof运算符，跟Java内使用同义；如“’haha’ instanceof T(String)”将返回true</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void testInstanceOfExpression() &#123;</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        Boolean value = parser.parseExpression(&quot;&#x27;路人甲&#x27; instanceof T(String)&quot;).getValue(Boolean.class);</span><br><span class="line">        System.out.println(value);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424144504113.png" class title="image-20220424144504113">
+
+<h4 id="变量定义及引用"><a href="#变量定义及引用" class="headerlink" title="变量定义及引用"></a>变量定义及引用</h4><p>变量定义通过EvaluationContext接口的setVariable(variableName, value)方法定义；在表达式中使用<code>&quot;#variableName&quot;</code>引用；除了引用自定义变量，SpE还允许引用根对象及当前上下文对象，使用<code>&quot;#root&quot;</code>引用根对象，使用<code>&quot;#this&quot;</code>引用当前上下文对象</p>
+<p><strong>Demo</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void testVariableExpression() &#123;</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        EvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">        context.setVariable(&quot;name&quot;, &quot;路人甲java&quot;);</span><br><span class="line">        context.setVariable(&quot;lesson&quot;, &quot;Spring系列&quot;);</span><br><span class="line"></span><br><span class="line">        //获取name变量，lesson变量</span><br><span class="line">        String name = parser.parseExpression(&quot;#name&quot;).getValue(context, String.class);</span><br><span class="line">        System.out.println(name);</span><br><span class="line">        String lesson = parser.parseExpression(&quot;#lesson&quot;).getValue(context, String.class);</span><br><span class="line">        System.out.println(lesson);</span><br><span class="line"></span><br><span class="line">        //StandardEvaluationContext构造器传入root对象，可以通过#root来访问root对象</span><br><span class="line">        context = new StandardEvaluationContext(&quot;我是root对象&quot;);</span><br><span class="line">        String rootObj = parser.parseExpression(&quot;#root&quot;).getValue(context, String.class);</span><br><span class="line">        System.out.println(rootObj);</span><br><span class="line"></span><br><span class="line">        //#this用来访问当前上线文中的对象</span><br><span class="line">        String thisObj = parser.parseExpression(&quot;#this&quot;).getValue(context, String.class);</span><br><span class="line">        System.out.println(thisObj);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424145136913.png" class title="image-20220424145136913">
+
+<p>使用“#variable”来引用在EvaluationContext定义的变量；除了可以引用自定义变量，还可以使用“#root”引用根对象，“#this”引用当前上下文对象，此处“#this”即根对象</p>
+<h4 id="自定义函数"><a href="#自定义函数" class="headerlink" title="自定义函数"></a>自定义函数</h4><p>目前只支持类静态方法注册为自定义函数；SpEL使用StandardEvaluationContext的registerFunction方法进行注册自定义函数，其实完全可以使用setVariable代替，两者其实本质是一样的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void testFunctionExpression() throws SecurityException, NoSuchMethodException &#123;</span><br><span class="line">        //定义2个函数,registerFunction和setVariable都可以，不过从语义上面来看用registerFunction更恰当</span><br><span class="line">        StandardEvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">        Method parseInt = Integer.class.getDeclaredMethod(&quot;parseInt&quot;, String.class);</span><br><span class="line">        context.registerFunction(&quot;parseInt1&quot;, parseInt);</span><br><span class="line">        context.setVariable(&quot;parseInt2&quot;, parseInt);</span><br><span class="line"></span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        System.out.println(parser.parseExpression(&quot;#parseInt1(&#x27;3&#x27;)&quot;).getValue(context, int.class));</span><br><span class="line">        System.out.println(parser.parseExpression(&quot;#parseInt2(&#x27;3&#x27;)&quot;).getValue(context, int.class));</span><br><span class="line"></span><br><span class="line">        String expression1 = &quot;#parseInt1(&#x27;3&#x27;) == #parseInt2(&#x27;3&#x27;)&quot;;</span><br><span class="line">        boolean result1 = parser.parseExpression(expression1).getValue(context, boolean.class);</span><br><span class="line">        System.out.println(result1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424153403507.png" class title="image-20220424153403507">
+
+<h4 id="表达式赋值"><a href="#表达式赋值" class="headerlink" title="表达式赋值"></a>表达式赋值</h4><p>Demo</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">    public void testAssignExpression1() &#123;</span><br><span class="line">        Object user = new Object() &#123;</span><br><span class="line">            private String name;</span><br><span class="line"></span><br><span class="line">            public String getName() &#123;</span><br><span class="line">                return name;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            public void setName(String name) &#123;</span><br><span class="line">                this.name = name;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public String toString() &#123;</span><br><span class="line">                return &quot;$classname&#123;&quot; +</span><br><span class="line">                        &quot;name=&#x27;&quot; + name + &#x27;\&#x27;&#x27; +</span><br><span class="line">                        &#x27;&#125;&#x27;;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        &#123;</span><br><span class="line">            //user为root对象</span><br><span class="line">            ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">            EvaluationContext context = new StandardEvaluationContext(user);</span><br><span class="line">            parser.parseExpression(&quot;#root.name&quot;).setValue(context, &quot;路人甲java&quot;);</span><br><span class="line">            System.out.println(parser.parseExpression(&quot;#root&quot;).getValue(context, user.getClass()));</span><br><span class="line">        &#125;</span><br><span class="line">        &#123;</span><br><span class="line">            //user为变量</span><br><span class="line">            ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">            EvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">            context.setVariable(&quot;user&quot;, user);</span><br><span class="line">            parser.parseExpression(&quot;#user.name&quot;).setValue(context, &quot;路人甲java&quot;);</span><br><span class="line">            System.out.println(parser.parseExpression(&quot;#user&quot;).getValue(context, user.getClass()));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果:</p>
+<img src="/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/image-20220424175245146.png" class title="image-20220424175245146">
+
+<h4 id="对象属性存取及安全导航表达式"><a href="#对象属性存取及安全导航表达式" class="headerlink" title="对象属性存取及安全导航表达式"></a>对象属性存取及安全导航表达式</h4><p>对象属性获取非常简单，即使用如“a.property.property”这种点缀式获取，SpEL对于属性名首字母是不区分大小写的；SpEL还引入了Groovy语言中的安全导航运算符“**(对象|属性)?.属性**”，用来避免“?.”前边的表达式为null时抛出空指针异常，而是返回null；修改对象属性值则可以通过赋值表达式或Expression接口的setValue方法修改</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">public static class Car &#123;</span><br><span class="line">        private String name;</span><br><span class="line"></span><br><span class="line">        public String getName() &#123;</span><br><span class="line">            return name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public void setName(String name) &#123;</span><br><span class="line">            this.name = name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public String toString() &#123;</span><br><span class="line">            return &quot;Car&#123;&quot; +</span><br><span class="line">                    &quot;name=&#x27;&quot; + name + &#x27;\&#x27;&#x27; +</span><br><span class="line">                    &#x27;&#125;&#x27;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static class User &#123;</span><br><span class="line">        private Car car;</span><br><span class="line"></span><br><span class="line">        public Car getCar() &#123;</span><br><span class="line">            return car;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public void setCar(Car car) &#123;</span><br><span class="line">            this.car = car;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public String toString() &#123;</span><br><span class="line">            return &quot;User&#123;&quot; +</span><br><span class="line">                    &quot;car=&quot; + car +</span><br><span class="line">                    &#x27;&#125;&#x27;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void test5() &#123;</span><br><span class="line">        User user = new User();</span><br><span class="line">        EvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">        context.setVariable(&quot;user&quot;, user);</span><br><span class="line"></span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        //使用.符号，访问user.car.name会报错，原因：user.car为空</span><br><span class="line">        try &#123;</span><br><span class="line">            System.out.println(parser.parseExpression(&quot;#user.car.name&quot;).getValue(context, String.class));</span><br><span class="line">        &#125; catch (EvaluationException | ParseException e) &#123;</span><br><span class="line">            System.out.println(&quot;出错了：&quot; + e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">        //使用安全访问符号?.，可以规避null错误</span><br><span class="line">        System.out.println(parser.parseExpression(&quot;#user?.car?.name&quot;).getValue(context, String.class));</span><br><span class="line"></span><br><span class="line">        Car car = new Car();</span><br><span class="line">        car.setName(&quot;保时捷&quot;);</span><br><span class="line">        user.setCar(car);</span><br><span class="line"></span><br><span class="line">        System.out.println(parser.parseExpression(&quot;#user?.car?.toString()&quot;).getValue(context, String.class));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void test6() &#123;</span><br><span class="line">        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();</span><br><span class="line">        User user = new User();</span><br><span class="line">        Car car = new Car();</span><br><span class="line">        car.setName(&quot;保时捷&quot;);</span><br><span class="line">        user.setCar(car);</span><br><span class="line">        factory.registerSingleton(&quot;user&quot;, user);</span><br><span class="line"></span><br><span class="line">        StandardEvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">        context.setBeanResolver(new BeanFactoryResolver(factory));</span><br><span class="line"></span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        User userBean = parser.parseExpression(&quot;@user&quot;).getValue(context, User.class);</span><br><span class="line">        System.out.println(userBean);</span><br><span class="line">        System.out.println(userBean == factory.getBean(&quot;user&quot;));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/174786047">玩转Spring中强大的spel表达式！ - 知乎 (zhihu.com)</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/e0b50053b5d3">SpEL表达式总结 - 简书 (jianshu.com)</a></p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/05/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OGNL-%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" rel="tag">-OGNL -命令执行</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/03/05/OGNL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            OGNL表达式
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/03/05/Structs2%E6%BC%8F%E6%B4%9E%E9%9B%86%E5%90%88/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Struts2漏洞集合</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
