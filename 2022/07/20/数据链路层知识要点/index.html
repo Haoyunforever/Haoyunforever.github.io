@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title> 小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-数据链路层知识要点"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+     
+    <div class="article-meta">
+      <a href="/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-date">
+  <time datetime="2022-07-20T01:45:08.313Z" itemprop="datePublished">2022-07-20</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">4.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">14 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a><strong>数据链路层</strong></h1><p>信道类型：点对点信道(PPP)、广播信道</p>
+<h2 id="三个基本问题"><a href="#三个基本问题" class="headerlink" title="三个基本问题"></a>三个基本问题</h2><p><strong>封装成帧：</strong>将上层的IP数据报分组前后添加首部和尾部构成一个数据帧。帧定界(首尾部)。<br><strong>透明传输：</strong>发送端数据链路层在”SOH”,”EOT”的前面插入一个转义字符”ESC”，接收端的数据链路层在将数据发送到网络层之前删除插入的转义字符。<br><strong>差错检测：</strong>在数据后面添加的冗余码(FCS),使用循环冗余检验方法(CRC)进行帧差错检测。</p>
+<p>冗余码计算：在数据(k位)后面添加n个0(根据生成多项式最高项数决定)，使用(k+n)位的数除以(n+1)位的除数P进行除法得到商Q和余数R(n位)，把余数R作为冗余码添加在数据M后面进行发送。即发送的数据是：2nM+R。</p>
+<p>CRC原理：在发送端时将分组数据后面添加n位冗余码一起发送。接受端对得到帧数进行检验，若余数R&#x3D;0则帧无差错，否则有差错。</p>
+<p>差错控制基本方式：检错反馈&#x2F;重发、前向纠错方式、混合法。</p>
+<h2 id="点对点协议-PPP"><a href="#点对点协议-PPP" class="headerlink" title="点对点协议(PPP)"></a>点对点协议(PPP)</h2><p>在串行链路上封装ip数据报的方法，异步链路和同步链路。</p>
+<p>链路控制协议(Link Control Protocol,LCP)：用于建立、配置和测试数据链路连接、通信的选项。</p>
+<p>网络控制协议(Network Control Protocol,NCP)：用于建立、配置多种不同网络层协议。</p>
+<h2 id="广播信道"><a href="#广播信道" class="headerlink" title="广播信道"></a>广播信道</h2><p><strong>CSMA&#x2F;CD协议</strong>：载波监听多址接入&#x2F;碰撞检测(Carrier Sense Multiple Access with Collision Detection)</p>
+<p><strong>载波监听多址接入</strong>：在计算机以多点接入在一根总线的计算机网络中，每个站点在发送数据之前需要先检测总线是否被占用，若线路被占用则不发送数据以免发生碰撞，否则就发送数据。使用电子技术检测总线是否存在数据信号。</p>
+<p><strong>碰撞检测</strong>：计算机边发数据边检测信道上的信号电压大小。</p>
+<p>使用该协议的以太网只能进行双向交替通信(半双工通信)。</p>
+<p>集线器工作在物理层(物理结构星型，逻辑为总线型)，网桥在数据链路层。</p>
+<p><strong>MAC地址</strong>：在局域网中计算机适配器的硬件地址，物理地址(48位地址&#x2F;6个字节)。IEEE的注册管理机构RA向厂家分配地址字段的前3个字节(高位24位)，地址字段中的后3个字节(低位24位)由厂家自行指派(扩展标识符)。</p>
+<p><strong>以太网MAC帧格式标准</strong>：DIX Ethernet V2标准，IEEE的802.3标准</p>
+<p>为了确保发送站点在传输时检测可能的冲突，数据帧的传输时延至少要等于信号传播时延的2倍。争用期就是以太网端到端往返时间2r，碰撞窗口。</p>
+<p>以太网帧格式：</p>
+<img src="/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220807132654604.png" class title="image-20220807132654604">
+
+<p>以太网帧首部14字节，尾部4字节。</p>
+<img src="/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220807132620903.png" class title="image-20220807132620903">
+
+
+
+
+
+<h2 id="高速以太网"><a href="#高速以太网" class="headerlink" title="高速以太网"></a>高速以太网</h2><p><strong>100Base-T以太网</strong></p>
+<p>速率达到或超过100Mb&#x2F;s的以太网。</p>
+<p>可在全双工方式下工作而无冲突发送。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">物理层标准：</span><br><span class="line"></span><br><span class="line">100Base-TX:使用两对UTP5类线或屏蔽双绞线STP</span><br><span class="line">100Base-FX:使用两对光纤</span><br><span class="line">100Base-T4:使用四队UTP3类线或5类线</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="知识要点"><a href="#知识要点" class="headerlink" title="知识要点"></a>知识要点</h2><p>1、通过一些数据链路层协议，在不太可靠的物理链路上实现可靠的数据传输。</p>
+<p>2、数据链路层中数据传送单位是帧。</p>
+<p>3、在计算机通信中，采用检错重发进行差错控制。</p>
+<p>4、链路的两种基本配置，非平衡配置和平衡配置</p>
+<p>5、用户接入的方法是，用户使用拨号电话线接入和使用专线接入</p>
+<p>6、载波监听多路访问CSMA技术的退避算法有非坚持、1-坚持、P-坚持。</p>
+<p>7、ATM的信元具有固定的长度，为53字节，其中5字节是信头，48是信息段。</p>
+<p>8、以太网交换机的数据转发方式分为 直接交换、存储转发交换、改进的直接交换</p>
+<h2 id="简答题"><a href="#简答题" class="headerlink" title="简答题"></a>简答题</h2><p>1、在停止等待协议中，应答帧中不需要序号。</p>
+<p>答：接收方每接到一个正确的数据后，都立即向发送方回送个应答帧，发送方只有收到上一个数据的确认帧后，才继续发送下一帧。无需对应答帧进行编号。</p>
+<p>2、HDLC帧各字段的意义。</p>
+<p>标志字段F：标明帧的开始和结束</p>
+<p>地址字段A：非平衡方式传送时写入次站的地址，在平衡方式下填入应答站的地址。</p>
+<p>帧校验序列FCS：检验所有地址字段</p>
+<p>控制字段C。</p>
+<p>根据标志字段和地址字段比特的取值将HDLC帧划分为信息帧、监控帧和无编号帧。</p>
+<p>3、零比特填充法。</p>
+<p>在HDLC的帧结构中，若在两个标志字段之间的比特串中出现了标志字段F(0011111100，6个连续的1)会被误认为是帧边界。避免这种情况使用零比特填充法进行处理。具体做法：当发送端数据检测到5个连续1时，立即在后面填上一个0.在接收端发现5个连续的1时，将这5个连续1后的0删除进行还原。</p>
+<p>4、正常响应方式特点。</p>
+<p>只有主站才能发起向次站的数据传输，而次站只有在主站向她发送命令帧进行轮询时才以响应帧的形式回答主站。</p>
+<p>5、数据链路层功能</p>
+<p>通过一系列的控制和管理，构成透明的、相对无差错的数据链路，向网络层提供可靠、有效的数据帧传送服务。主要功能包括链路管理、帧定界、流量控制、差错控制、数据和控制信息的识别、透明传输和寻址。</p>
+<p>6、差错控制方法及其特点。</p>
+<p>检错重发(ARQ)：接收端检测到接受信息有错时，通过自动要求发送重发保存的副本以达到纠错的目的。(需要编码)</p>
+<p>前向纠错(FEC)：接受端检测到接受信息有错后，通过计算确定差错位置并自动加以纠正。(需要编码)</p>
+<p>混合方式：接受端采取纠检错混合，对少量差错予以自动纠正，超过其纠正能力的差错通过重发的方法加以纠正。</p>
+<p>信息反馈(IRQ)：接收端把收到的数据序列全部由反向信道送回给发送端，发送端比较其发送的数据序列和送回的数据序列从而发现是否有错误，并把认为错误的数据序列的原始数据再次发送直到发送端没有发现错误为止。(不需要编码)</p>
+<p>7、网络适配器的作用对数据的串行和并行传输进行转换，并且能够对缓存数据进行操作实现以太网协议，实现帧的传送和接受、对帧进行封闭等。工作在物理层和数据链路层。</p>
+<p>8、帧定界使接收方能从收到的比特流中准确的区分出一个帧数据的开始和结束在什么地方，避免发生帧数据错误，造成数据混乱导致通信失败；透明传输使得不管所传数据是什么样的比特组合都能够在链路上传送；差错控制主要包括差错检测和差错纠正，降低传输的比特差错率。</p>
+<p>9、PPP协议工作状态分为“链路静止”状态、“”链路建立“状态、鉴别”状态、“网络层协议”状态、“链路打开”状态和“链路终止”状态。</p>
+<p>用户要使用PPP协议和ISP建立连接进行通信需要建立的连接为链路静止、链路建立、鉴别、网络层协议、链路打开。链路静止时，在用户PC和ISP的路由器之间并不存在物理层的连接。链路建立时，目的是建立链路层的LCP连接。鉴别时，只允许传送LCP协议的分组、鉴别协议的分组以及监测链路质量的分组。网络层协议时，PPP链路两端的网络控制协议NCP根据网络层的不同协议互相交换网络层特定的网络控制分组。链路打开时，链路的两个PPP端点可以彼此向对方发送分组。</p>
+<p>10、局域网的主要特点</p>
+<p>（1）功能角度：</p>
+<p>共享传输信道，多个系统连接到一个共享的通信媒体。</p>
+<p>地理范围有限，用户个数有限。覆盖范围一般在10m - 10Km</p>
+<p>传输速率高。一般在1-100Mb&#x2F;s</p>
+<p>误码率低，近距离传输。</p>
+<p>多采用分布式控制和广播式通信。</p>
+<p>（2）网络体系结构和传输规程：</p>
+<p>底层协议简单。距离短、时延小、成本低、传输速率高、可靠性高。</p>
+<p>不单独设置网络层。网内一般不需要中间转换，流量控制和路由选择</p>
+<p>采用多种媒体访问控制技术。</p>
+<p>局域网采用广播通信是因为局域网中的机器都连接到同一条物理线路，所有主机的数据传输都经过这条链路。将主机要发送的数据发送到公用链路上的所有主机，接收端通过地址对比接收属于自己的数据并丢弃其他数据。广域网是由更大的地理空间、更多的主机构成的网络，若使用广播通信可能会导致网络无法运行。当主机A向主机B发送数据时，是向网络中所有的主机发送数据，当主机数量庞大时，严重消耗主机A的处理能力，造成数据的无效流动，易产生广播风暴，使网络无法运行。</p>
+<p>11、常用的局域网的网络拓扑有总线网、星型网、环型网、树型网。现在最流行的是星型网络拓扑。</p>
+<p>当时可靠的星型拓扑结构较贵，并且无源的总线型结构更加可靠。但当来连接有大量站点的总线式以太网很容易出现故障，而现在专用的ASIC芯片使用可以将星型结构的集线器做的非常可靠。</p>
+<p>12、以太网是现有局域网采用最通用的通信协议标准。一种传输速率为10Mb&#x2F;s的常用局域网标准。在以太网中，采用共享传输媒体，所有主机通过总线型拓扑结构连接在同一条同轴电缆上，采用CSMA&#x2F;CD(载波监听多址接入&#x2F;碰撞监测)方法进行传输。</p>
+<p>以太网封装帧格式：DIX Ethernet V2标准、802.3标准</p>
+<p>13、码元传输速率为波特率。以太网使用曼彻斯特编码(用电平跳变来表示1或0的编码方法)，即意味着发送的每一位都有两个信号周期。波特率为数据速率的两倍。</p>
+<p>14、为了能使数据链路层更好使用多种局域网标准，802委员将局域网的数据链路层拆成两个子层，逻辑链路控制(LLC)子层和媒体介入控制(MAC)子层与接入传输媒体有关的内容都放在MAC子层中，而LLC子层与传输媒体无关，不管采用何种协议的局域网对LLC子层都是透明的。并且由于现在TCP&#x2F;ip体系经常使用的局域网协议是DIX Ethernet V2而不是802.3，所以逻辑链路控制子层(LLC)的作用已经不大啦，很少使用。</p>
+<p>15、“10Base-T”各数字字母代表的含义</p>
+<p>“10”：表示传输速率为10Mb&#x2F;s。</p>
+<p>“Base”:表示电缆上的信号是基带信号。</p>
+<p>“T”：表示使用双绞线的最大长度是500m。</p>
+<p>16、CSMA&#x2F;CD与TDM相比优缺点。</p>
+<p>优势：CSMA&#x2F;CD是一种动态的媒体随机接入共享信道方式，TDM是一种静态的信道复用。CSMA&#x2F;CD是用户共享信道，TDM是为用户按时隙固定分配信道，当用户没有数据需要传送时，信道在用户时隙是浪费的，相比而言CSMD&#x2F;CD更灵活，提高信道的利用率。</p>
+<p>劣势：CSMD&#x2F;CD当同时有用户使用信道时会发生碰撞，而TDM中用户在分配的时隙中不会与别的用户发生冲突。</p>
+<p>对于局域网来说，连入信道的是相距较近的用户，通信信道带宽较宽，若使用TDM方式，用户在自己的时隙内没有数据发送的情况会更多，不利于信道的充分利用。</p>
+<p>17、比特时间：传输1bit所需要的时间。这种时间单位与数据率密切相关，用来计量时延可以将时间与数据量联系起来。</p>
+<p>18、以太网的极限信道利用率与链接在以太网上的站点数无关。</p>
+<p>19、集线器中每个站点共享带宽，交换机每个站点独占带宽。</p>
+<p>20、以太网传输速率提高后需要解决哪些技术问题？</p>
+<p>由于以太网传输速率提高，数据帧的发送时间按比例缩短。在局域网中进行传输会影响冲突的检测，所以需要减小最大电缆长度或增大帧的最小长度，才能有效地检测冲突。</p>
+<p>21、以太网交换机是一个工作在数据链路层的多端口网桥。以太网交换机的每个端口都直接与一个单个主机或另一个集线器相连，并且工作在全双工方式。交换机能同时来连通多对的端口，使每一对相互通信的主机都能像独占通信媒体一样，进行无碰撞地传输数据。通信完成后就断开连接。</p>
+<p>区别：以太网交换机工作在数据链路层，集线器工作在物理层 。集线器只对端口上进来的比特流进行复制转发，不能支持多端口的并发连接。</p>
+<p>22、网桥工作原理特点。</p>
+<p>网桥的每个端口与一个网段相连。当网桥从端口接收主机传送的数据帧，先将其暂存在其缓冲区中，若此帧未出现差错，且目的数据帧MAC地址在网桥转发表中则通过查找转发表将其转发到对应的端口。若此帧出现差错或者在转发表中未存在目的MAC地址则丢弃此帧。</p>
+<p>网桥过滤了通信量，扩大了物理范围，提高了可靠性，可互连不同物理层、不同MAC子层和不同速率的局域网。增加了时延，对用户太多和通信量太大的局域网不合适。</p>
+<p>网桥与转发器不同：</p>
+<p>网桥工作在数据链路层，而转发器工作在物理层。</p>
+<p>网桥只转发未出现差错且目的MAC地址存在与转发表的数据帧。</p>
+<p>网桥在转发数据帧前必须执行CSMA&#x2F;CD算法，转发表不用。</p>
+<p>网桥和转发器都有扩展局域网的作用，网桥还能提高局域网的效率。</p>
+<p>网桥和以太网交换机区别：</p>
+<p>以太网交换机通常有十几个端口，网桥一般只有2-4个端口，都工作在数据链路层。</p>
+<p>网桥端口一般连接到局域网，以太网交换机每个接口都直接连接主机，交换机允许多对计算机同时通信，网桥允许每个网段上的计算机同时通信。以太网交换机是一个多端口的网桥。</p>
+<p>网桥采用存储转发方式进行转发，以太网交换机采用直通方式转发。</p>
+<p>以太网交换机采用专用的交换机构芯片，转发速度比网桥快。</p>
+<p>23、如果站点仅仅接受数据，那么在转发表中没有这样的项目。当主机不知道目的地址位置时，会广播一条寻找目标MAC地址的询问帧，每个网桥会转发该帧使得达到每一个LAN，当目标主机收到该帧后会向源主机发送答复帧，这样途经的网桥就会记录目标MAC在转发表中。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/06/30/CISP-PTE%E7%BB%BC%E5%90%88%E9%A2%98%E9%9D%B6%E5%9C%BA/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

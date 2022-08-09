@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title> 小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-网络安全知识要点"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+     
+    <div class="article-meta">
+      <a href="/2022/08/02/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-date">
+  <time datetime="2022-08-02T08:50:24.881Z" itemprop="datePublished">2022-08-02</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.8k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="网络安全知识要点"><a href="#网络安全知识要点" class="headerlink" title="网络安全知识要点"></a>网络安全知识要点</h1><h2 id="网络安全问题"><a href="#网络安全问题" class="headerlink" title="网络安全问题"></a>网络安全问题</h2><p><strong>面临安全性威胁</strong></p>
+<p>计算机网络上面临的威胁：</p>
+<p>截获：从网络上窃听他人的通信内容</p>
+<p>中断：有意中断他人在网络上的通信</p>
+<p>篡改：故意篡改网络上传送的报文</p>
+<p>伪造：伪造信息在网络上传送</p>
+<p> 被动攻击是攻击者观察和分析某PDU而不干扰信息流，主动攻击是指攻击者对PDU进行操作处理。</p>
+<p><strong>通信安全目标</strong></p>
+<p>防止分析出报文内容；防止通信量分析；检测更改报文流；检测拒绝报文服务；检测伪造初始化连接。</p>
+<p><strong>恶意程序</strong></p>
+<p>计算机病毒、计算机蠕虫、特洛伊木马、逻辑炸弹</p>
+<p><strong>计算机网络安全内容</strong></p>
+<p>保密性、安全协议设计、访问控制</p>
+<h2 id="密码体制"><a href="#密码体制" class="headerlink" title="密码体制"></a>密码体制</h2><p><strong>对称密钥密码体制</strong></p>
+<p>1、加密密钥和解密密钥相同</p>
+<p>2、数据加密标准DES。分组密码，在加密前先对整个明文进行分组，每个组64位，对每一个64位二进制数据进行加密处理产生密文数据。对密钥的保密。</p>
+<p>3、如DES、3DES、TDEA、Blowfish算法、RC5算法和IDEA算法。</p>
+<p><strong>公钥密码体制</strong></p>
+<p>加密密钥与解密密钥不同。由已知加密密钥推导出解密密钥在计算上是不可行的。加密密钥(公钥)PK是公开信息，解密密钥(私钥)SK是保密的。加密算法E和解密算法D也公开。</p>
+<p>A使用公钥对明文消息进行加密 ， B使用对应的私钥对密文进行解密</p>
+<p>解决问题：密钥分配和数字签名</p>
+<p>算法：RSA、ECC、D-H算法</p>
+<h2 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名</h2><p>保证完整性、不可否认性、身份认证</p>
+<p>A使用私钥对认证消息进行加密，然后B使用公钥对其进行解密判断是否为A发送的消息。</p>
+<h2 id="鉴别"><a href="#鉴别" class="headerlink" title="鉴别"></a>鉴别</h2><p>被动攻击措施是加密；主动攻击措施是鉴别。</p>
+<p><strong>报文鉴别</strong></p>
+<p>当很长报文进行数字签名是会是计算机增加很大的负担，使用简单的方法获取报文的摘要。</p>
+<p>过程：A将所需发送的报文X通过报文摘要算法(单向函数)得到消息摘要H，使用私钥对H进行加密进行数字签名得到D。将D追加到报文后面发送给B</p>
+<p>B接收到A发送过来的消息时，就先将报文和摘要分开，使用自己的公钥解密得到消息摘要H，并且对报文X进行摘要计算判断是符合H相同。</p>
+<p><strong>实体鉴别</strong></p>
+<p>在接入的全部时间内对通信对方只需验证一次。</p>
+<p>通信双方使用共享对称密码进行加解密鉴别实体身份。</p>
+<p><strong>漏洞：</strong></p>
+<p>重放攻击：当入侵者C截获了A发送到B的消息，直接将消息发送给B让B认为C就是发送消息的A，就会像C返回响应内容。(使用随机数防止)</p>
+<p>IP欺骗：将自己的IP地址换成A的IP地址进行IP欺骗。</p>
+<p>中间人攻击：C截取A与B之间的通信信息获取相关信息。</p>
+<h2 id="密钥分配"><a href="#密钥分配" class="headerlink" title="密钥分配"></a>密钥分配</h2><p>如何通过安全的通路进行分配。常用密钥分配是设立密钥分配中心KDC。</p>
+<p><strong>对称密钥分配</strong></p>
+<p>使用KDC来进行密钥分配。</p>
+<p><strong>公钥分配</strong></p>
+<p>通过认证中心CA将公钥和实体进行绑定，每个实体都有CA发送的证书，通过获取CA的公钥来验证。</p>
+<h2 id="安全协议"><a href="#安全协议" class="headerlink" title="安全协议"></a>安全协议</h2><p><strong>网络层安全协议</strong>IPSec</p>
+<p>对在IP数据报中的数据进行加密</p>
+<p><strong>运输层安全协议TLS</strong></p>
+<p>安全套接字对万维网客户与服务器之间传送数据进行加密和鉴别，在双方联络协商使用的加密算法和密钥。</p>
+<p>提供功能：</p>
+<p>1、SSL服务器鉴别。用户认证服务器身份，浏览器上有CA以及公钥。</p>
+<p>2、加密SSL会话。客户端和服务器之间进行加密传输</p>
+<p>3、SSL客户鉴别。允许服务器证实客户身份。</p>
+<p><strong>安全电子交易SET</strong></p>
+<p>专为因特网上进行安全支付卡交易的协议。</p>
+<p>特点：</p>
+<p>1、专为与支付有关的报文进行加密</p>
+<p>2、涉及顾客、商家和商业银行。三方交互信息都被加密</p>
+<p>3、三方都要有证书进行y验证。</p>
+<p><strong>应用层的安全协议</strong></p>
+<p>PGP：对电子邮件传送过程进行加密、鉴别、电子签名和压缩</p>
+<p>PEM：因特网的邮件加密建议标准</p>
+<h2 id="系统安全"><a href="#系统安全" class="headerlink" title="系统安全"></a>系统安全</h2><p><strong>防火墙</strong></p>
+<p>隔绝内联网和外联网，控制进出网络的流量</p>
+<p>分为网络级防火墙和应用级防火墙。</p>
+<p>网络级防火墙：防止整个网络出现外来非法的入侵。</p>
+<p>应用级防火墙：防从应用程序来进行接入控制。</p>
+<p><strong>入侵检测系统</strong>IDS</p>
+<p>基于特征的入侵检测和基于异常的入侵异常。</p>
+<h2 id="重点知识点"><a href="#重点知识点" class="headerlink" title="重点知识点"></a>重点知识点</h2><p>1、网络安全的威胁可以分为主动攻击和被动攻击</p>
+<p>2、主动攻击可进一步划分为更改报文流、拒绝报文服务和伪造连接初始化。</p>
+<p>3、加密策略：链路加密和端到端加密</p>
+<p>4、网络为用户提供的安全服务包括身份认证、访问控制、数据加密、数据完整和不可否认。</p>
+<p>5、对信息流的干预方式可以分为中断、截取、修改和假冒。</p>
+<p>6、系统安全的策略有防火墙和入侵检测。</p>
+<p>7、经典加密算法：替换加密、换位加密和一次性填充。</p>
+<p>8、计算机网络安全包括问题：</p>
+<p> 保密性：为用户提供安全可靠的保密通信。</p>
+<p>全协议设计：设计针对攻击安全的通信协议。</p>
+<p>存取控制：对接入网络的权限加以控制，规定每个用户的接入权限。</p>
+<p>9、密钥分配方法：</p>
+<p>网外分配方式：采用可靠方法携带密钥分配给各用户</p>
+<p>网内分配方式：用户之间直接分配和使用密钥分配中心KDC来分配密钥</p>
+<p>10、网络安全面临的威胁：</p>
+<p>系统漏洞、黑客攻击、病毒入侵、网络配置管理不当</p>
+<p>11、Novell NetWare对文件服务器的共享硬盘提供的5级措施。</p>
+<p>对硬盘目录和文件分配表(FAT)的保护；</p>
+<p>对硬盘表面损坏时的数据保护；</p>
+<p>采用磁盘镜像的方法实现对磁盘驱动器损坏的保护</p>
+<p>采用磁盘双工，大队磁盘通道和驱动器损坏起到保护作用</p>
+<p>采用事务系统跟踪系统TTS的附加容错功能</p>
+<p>12、防火墙和入侵检测系统技术区别与联系。</p>
+<p>区别：</p>
+<p>防火墙是设置在本地网络和外部网络的一道防御系统，以防止发生不可预测的、潜在的、破坏性的侵入。通过检测、限制、更改跨越防火墙的数据流，尽可能的对外部屏蔽内部的信息、结构和允许状态来保护内部网络中的信息和资源受到外部网络非法用户的入侵。过滤不安全的服务和非法用户，控制对特殊站点的访问，统计数据，提供告警和审计功能。</p>
+<p>入侵检测系统从计算机网络或计算机关键点收集信息并进行分析，从中发现用户或系统是否存在违反安全策略的行为和被攻击的迹象。监测、分析用户及其系统异常活动，提示管理员对其行为做出响应。</p>
+<p>联系：</p>
+<p>IDS是继防火墙之后的防线，防火墙是防御，IDS是主动防御，结合有力地保证内部系统安全。</p>
+<p>IDS实时监测防火墙未发现的入侵行为，发现入侵行为规律，使得防火墙将这些行为特征加入规则中，提高防火墙的防护力度。</p>
+<p>13、</p>
+<p>重放攻击：攻击者截获发往目的主机已接收过的包并向其发送，用于身份认证。</p>
+<p>拒绝服务DOS：攻击者向因特网上服务器不同发送大量分组使得服务器无法提供正常服务</p>
+<p>访问控制：对接入网络的权限加以控制并规定接入的用户的权限</p>
+<p>流量分析：通过观察PDU的协议控制信息部分，了解正在通信的协议实体地址和身份，PDU的长度和传输频率。</p>
+<p>恶意程序：带有攻击攻击意图所编写的程序。</p>
+<p>14、密码学：密码编码学和密码分析学</p>
+<p>密码编码学：对密码体制的设计学，研究对数据进行变换的原理、手段和方法的技术和科学</p>
+<p>密码分析学：在未知密钥的情况下将密文推导出明文或密钥的技术</p>
+<p>15、</p>
+<p>“无条件安全的密码体制”：无论截取获得多少密文都无法唯一的确定出对应的明文。</p>
+<p>“在计算上是安全的密码体制”：破译密码花费的价值超过密文价值，破译时间超过密文有限生存周期。</p>
+<p>16、进行报文鉴别是为了防止主动攻击中的篡改和伪造，验证通信对方的确是自己所需通信的对象。保密是对传送消息进行加密，防止受到被动攻击被攻击者观察并分析传输数据报协议以及IP地址。授权是对所进行的进程是否被允许进行验证。</p>
+<p>17、MD5是RFC1321的报文摘要算法，对任意长报文进行运算得到128bit的报文摘要算法。</p>
+<p>18、Kerberos协议优缺点。</p>
+<p>Kerberos协议主要用于计算机网络的身份鉴别，只需要输入一次身份验证信息就可凭借此验证获取的票据访问多个服务。</p>
+<p>19、网络层安全协议簇IPSec包含鉴别首部AH和封装安全有效载荷ESP</p>
+<p>AH将每个数据报中的数据和一个变化的数字签名结合在一起验证发送方身份。提供源站鉴别和数据完整性。</p>
+<p>ESP对IP负载进行加密机制，对数据报中数据进行加密，提供源站鉴别、数据完整性和保密性。</p>
+<p>20、PGP使用一个随机生成密钥及IDEA算法对明文加密，再使用RSA算法对该密钥进行加密。</p>
+<p>21、防火墙工作原理：分组过滤路由器检查进出内部网络的分组数据，按照系统管理员设置的防火墙规则来与分组进行匹配，符合条件的分组就通过，否则就丢弃。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/08/02/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/08/04/%E5%9B%A0%E7%89%B9%E7%BD%91%E4%B8%8A%E7%9A%84%E9%9F%B3%E9%A2%91%E8%A7%86%E9%A2%91%E6%9C%8D%E5%8A%A1/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/07/31/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

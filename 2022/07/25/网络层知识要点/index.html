@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title> 小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-网络层知识要点"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+     
+    <div class="article-meta">
+      <a href="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-date">
+  <time datetime="2022-07-25T11:00:44.285Z" itemprop="datePublished">2022-07-25</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">4.1k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">14 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="网络层知识要点"><a href="#网络层知识要点" class="headerlink" title="网络层知识要点"></a>网络层知识要点</h1><h2 id="提供服务-两种"><a href="#提供服务-两种" class="headerlink" title="提供服务(两种)"></a>提供服务(两种)</h2><p>1、虚电路服务</p>
+<p>建立虚电路，让网络负责可靠交付面向连接的通信方式，分组沿这条逻辑连接进行存储转发方式传送，使得所发送的分组无差错按序到达终点。</p>
+<p>2、数据报服务</p>
+<p>网络层向上只提供简单灵活的、无连接的、尽最大努力交付的数据包服务(不可靠)。不需要建立连接，每个分组独立发送，尽最大努力进行交付，使得网络路由简单并且价格低廉。提供面向非连接、不可靠和尽最大努力的服务。</p>
+<h2 id="网际协议-IP"><a href="#网际协议-IP" class="headerlink" title="网际协议(IP)"></a>网际协议(IP)</h2><p>配套协议ARP(地址解析协议)、RARP(逆地址解析协议)、Icmp(网络控制报文协议)、IGMP(网络组管理协议)</p>
+<p><strong>虚拟互连网络</strong></p>
+<p>(1) 网络互相连接的中间设备</p>
+<p>物理层中继系统：转发器,放大器</p>
+<p>数据链路中继系统：网桥或桥接器、交换机</p>
+<p>网络层中继系统：路由器</p>
+<p>网络层以上的中继系统：网关</p>
+<p><strong>IP地址</strong></p>
+<p>全世界唯一的32位标识符，由因特网名字与号码指派公司(ICANN)进行分配。标志着一个主机(路由器)和一条链路的接口。</p>
+<p>IP地址分类是通过网络号和主机号这两个字段来分类的：</p>
+<p>IP地址定义为&#x3D;{&lt;网络号&gt;,&lt;主机号&gt;}</p>
+<p>A类地址：网络号8位(0)，主机号24位。范围为0.0.0.0-127.255.255.255。保留给政府机构。</p>
+<p>B类地址：网络号16位(10)，主机号16位。范围为128.0.0.0-191.255.255.255。中等规模公司。</p>
+<p>C类地址：网络号24位(110)，主机号8位。范围为192.0.0.0-223.255.255.255。个人</p>
+<p>D类地址：网络位32位(1110)。组播</p>
+<p>E类地址：网络位32位(1111)。实验</p>
+<p><strong>点分十进制记法</strong>：将每8位的二进制数转换为十进制数，提高可读性。</p>
+<p><strong>IP地址分等级地址结构好处</strong>：</p>
+<p>1、IP地址管理机构只分配网络号，剩下的主机号由该网络号单位自行分配，方便IP地址的管理。</p>
+<p>2、路由器根据主机号对应的网络号来对接收到的分组进行转发，使得路由表中项目数大幅度减少，从而减小了路由表所占的存储空间。</p>
+<p><strong>地址解析协议ARP</strong></p>
+<p>将IP地址转换为MAC物理地址。每个主机有ARP高速缓存保存各主机关于IP地址到MAC地址的映射表。在主机通信时，在高速缓存中查找目标IP对应的MAC地址将其添加到数据帧中进行发送，若没有相对应的MAC地址，主机会在局域网中广播寻找目标IP地址的MAC地址并将自己的映射关系包含在广播报文中，目标主机接受到该广播后返回映射关系并记录源主机的映射关系到ARP高速缓存中。</p>
+<p><strong>4种情形</strong></p>
+<p>(1)、主机将IP数据包发送到局域网中的另一个主机，使用ARP查找目的主机MAC地址进行发送。</p>
+<p>(2)、主机将IP数据包发送到另外一个网络上的主机，使用ARP查找路由器的MAC地址将其发送给路由器，路由器通过对路由表中的目的IP的查找将IP数据包转发到对应网段的端口，在另外一个局域网中即可通过ARP返回目的主机的MAC地址并进行封装将IP数据包发送到该主机。</p>
+<p>(3)、当源主机与目标主机之间相隔多个局域网时，主机先将IP数据报发送到路由器网关后，在通过路由器转发到另外一个路由器网关上进行转发，直到目标主机收到该IP数据报。</p>
+<p><strong>IP数据报格式</strong></p>
+<p>由首部和数据组成。首部固定部分为20字节，后面有可选字段，首部长度是可变的。</p>
+<img src="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220725190114559.png" class title="image-20220725190114559">
+
+<p>报文字段：</p>
+<p>1、版本。4位，IP协议的版本，即IPV4。</p>
+<p>2、首部长度。4位，可表示的最大数值是15个单位(一个单位)，首都长度最大长度是60字节。</p>
+<p>3、区分服务。8位。</p>
+<p>4、总长度。16位，首部和数据之和的长度。数据报最大长度为65535字节。</p>
+<p>5、标识。16位。</p>
+<p>6、标志。3位。标志字段最低位MF(MF&#x3D;1表示后面还有分片，MF&#x3D;0表示最后一个分片)，中间一位是DF(DF&#x3D;0允许分片)。</p>
+<p>7、片偏移。13位。指分组在分片后中每个分片在原分组中的相对位置。以8个字节位偏移单位。</p>
+<p>8、生存事件(TTL)。8位。数据报中可通过的路由器数的最大值。</p>
+<p>9、协议。8位。指出使用何种协议使得IP层将数据包上交给哪个处理过程。</p>
+<p>10、首部校验和。16位。检验首部是否符合。</p>
+<p>11、源地址和目的地址字段。各占4字节。</p>
+<p><strong>IP层转发分组的流程</strong></p>
+<p>路由器路由表中记录的是目的网络地址、子网掩码以及对应的下一跳接口地址。</p>
+<p>默认路由是指当在路由器转发表中找不到目的网络时，选择的路由(0.0.0.0)</p>
+<p>流程：、</p>
+<p>1、若路由表中有直接到达目标主机对应网段的路由，直接将分组转发到对应的接口交付到目标主机。</p>
+<p>2、主机A到主机B中相隔多个网段时，首先将该网段连接的路由器接口Mac地址填入数据帧中发送给路由器，路由器接收到该数据报后，首先通过自身路由表查找IP数据报中目的IP对应网段的下一跳地址，将该数据报转发到对应下一跳接口。此时继续进行数据报转发，将数据链路层的数据帧源帧修改为本路由器MAC地址(需要ARP协议转换)，目的MAC地址填入下一个路由器MAC地址进行转发。当数据报转发到最后一个路由器时，直接通过转发表交付数据报。</p>
+<h2 id="划分子网"><a href="#划分子网" class="headerlink" title="划分子网"></a>划分子网</h2><p>网络号从主机号中借用若干位来作为子网号进行子网的划分。</p>
+<p>IP地址：：&#x3D;{&lt;网络号&gt;，&lt;子网号&gt;，&lt;主机号&gt;}</p>
+<p>使用子网掩码可以判断目标IP是否进行了子网划分。</p>
+<p>(IP地址) AND (子网掩码) &#x3D; 网络地址</p>
+<p><strong>无分类编址(CIDR)</strong></p>
+<p>使用变长子网掩码(VLSM)进一步提高IP地址资源的利用率，更加有效的分配IPV4的地址空间。将网络号和子网号作为网络前缀，变成二级编制。</p>
+<p>IP地址：：&#x3D;{&lt;网络前缀&gt;，&lt;主机号&gt;}</p>
+<p>地址块：n为主机位数，地址块为2的n次方个地址。主机地址为2的n次方-2(除去全0，全1)。网络前缀越少，其地址块所包含地址数越多。</p>
+<p>路由聚合：一个CIDR地址块可以表示为很多地址，将这些地址进行聚合称为路由聚合。</p>
+<p>最长前缀匹配：在路由器进行路由转发过程中，应从匹配结果中选择具有最长网络前缀的路由。网络前缀越长，路由越具体。</p>
+<h2 id="网际报文控制协议-ICMP"><a href="#网际报文控制协议-ICMP" class="headerlink" title="网际报文控制协议(ICMP)"></a><strong>网际报文控制协议(ICMP)</strong></h2><p>提高数据报交付成功机会，ICMP允许主机或路由器报告差错情况和提供有异常情况的报告。</p>
+<img src="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220726142131495.png" class title="image-20220726142131495">
+
+<p>1、类型：8位，一个字节，表示报文类型。</p>
+<p>2、代码：8位，一个字节。</p>
+<p>3、校验和：16位。</p>
+<img src="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220726143400812.png" class title="image-20220726143400812">
+
+<img src="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220726143425591.png" class title="image-20220726143425591">
+
+<p>ICMP报文分为ICMP差错报告报文和ICMP询问报文。</p>
+<p>差错报告报文有5种：终点不可达，源点抑制，时间超过，参数问题和路由重定向。</p>
+<p>不应当发送差错报告报文情况：</p>
+<img src="/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220726144230972.png" class title="image-20220726144230972">
+
+<p>ICMP询问报文有两种：回送请求和回答报文(ping命令)、时间戳请求和回答报文。</p>
+<h2 id="路由选择协议"><a href="#路由选择协议" class="headerlink" title="路由选择协议"></a>路由选择协议</h2><h3 id="内部网关协议IGP-interior-Gateway-Protocol"><a href="#内部网关协议IGP-interior-Gateway-Protocol" class="headerlink" title="内部网关协议IGP(interior Gateway Protocol)"></a><strong>内部网关协议IGP</strong>(interior Gateway Protocol)</h3><p>在一个自治系统内部使用的路由选择协议。RIP和OSPF协议。</p>
+<p><strong>RIP(Routing information Protocol)</strong></p>
+<p>分布式的基于矢量的路由选择协议。</p>
+<p>每经过一个路由器，跳数加1.一条路径最多包含15跳。只适用于小型互联网。</p>
+<p>(1)仅和相邻路由器交换信息</p>
+<p>(2)交换信息即当前自己的路由表</p>
+<p>(3)按固定的使劲啊进行交换路由信息</p>
+<p><strong>距离矢量算法</strong></p>
+<p>(1)收到相邻路由器(地址为X)的RIP报文：</p>
+<p>先修改此RIP报文中的所有项目，将“下一条”地址修改为X，并将“距离”的值加1。若报文中项目的目的网络不在路由表中，则将该项目添加到路由表中；否则将收到的项目替换原路由表中的项目，当项目中距离小于路由表中距离则更新。3min还没收到相邻路由器的更新路由表，则将其标记为不可达路由器。</p>
+<p>(2)路由器之间交换信息</p>
+<p>RIP协议让互联网中所有路由器和自己相邻的路由器不断交换路由信息，使得路由最短</p>
+<p>存在问题：当网络出现故障时，经过较长的时间才能将此信息传送到所有的路由器。</p>
+<p>优点：实现简单、开销较小。</p>
+<p>缺点：限制了网络的规模。随着网络规模的扩大，导致开销增大。</p>
+<p><strong>OSPF(Open Shortest Path First)</strong></p>
+<p>分布式链路状态协议。</p>
+<p>(1)向本自治系统中所有路由器发送消息，使用洪泛法。</p>
+<p>(2)发送的信息就是与路由器相邻的所有路由器的链路状态。如与那些路由相邻，以及该链路的度量。</p>
+<p>(3)当链路状态发生变化后，路由器才用洪泛法向多有路由器发送。</p>
+<p><strong>链路状态数据库</strong></p>
+<p>所有的路由器建立一个链路状态数据库，在全网范围内是一致的，并且能够较快的进行更新使得各个路由器及时更新路由表。更新过程收敛快。</p>
+<p><strong>划分区域</strong></p>
+<p>将自治系统划分为若干个更小的范围，称为区域，最好不要超过200个。利用洪泛法交换链路状态的范围局限与每一个区域，减少整个网络上的通信量。</p>
+<p><strong>分组类型</strong></p>
+<p>问候分组</p>
+<p>数据库描述分组</p>
+<p>链路状态请求分组</p>
+<p>链路状态更新分组</p>
+<p>链路状态确认分组</p>
+<h3 id="外部网关协议EGP-external-Gateway-Protocol"><a href="#外部网关协议EGP-external-Gateway-Protocol" class="headerlink" title="外部网关协议EGP(external Gateway Protocol)"></a><strong>外部网关协议EGP</strong>(external Gateway Protocol)</h3><p>源站和目的站处在不同的自治系统中，在自治系统之间的路由选择。如BGP-4.</p>
+<p><strong>BGP</strong></p>
+<p>不同于自治系统的路由器之间交换路由信息的协议。力求寻找一条能够到达目的网络且比较好的路由，并非寻找一条最佳路由。</p>
+<p><strong>4种报文</strong></p>
+<p>打开报文：用来与相邻的另一个BGP发言人建立关系。</p>
+<p>更新报文：用来发送某一路由的信息，以及列出要撤销的多条路由。</p>
+<p>保活报文：用来确认打开报文和周期性的证实邻站关系。</p>
+<p>通知：用来发送监测到的差错</p>
+<h2 id="IP多播"><a href="#IP多播" class="headerlink" title="IP多播"></a>IP多播</h2><p>多播使用组地址，IP使用D类地址用于目的地址，不能用于源地址。</p>
+<p>其中组地址由因特网号码指派管理局IANA负责指派。</p>
+<p>使用硬件进行多播。</p>
+<p>使用网际管理协议(Internet Group Management Protocol)，连接在因特网上的多播路由器必须和因特网上的其他多播路由器协同工作，以便把多播数据报最小代价传送所有的组成员。</p>
+<p>阶段过程：</p>
+<p>第一阶段：当某个主机加入新的多播组后，该主机向多播组的多播地址发送IGMP报文。本地的多播路由器收到IGMP报文后将组成员关系转发到因特网上的其他多播路由器。</p>
+<p>第二阶段：本地多播路由器收到IGMP报文后，将组成员转发给因特网上其他多播路由器。</p>
+<h2 id="虚拟专用网VPN和网络地址转换NAT"><a href="#虚拟专用网VPN和网络地址转换NAT" class="headerlink" title="虚拟专用网VPN和网络地址转换NAT"></a>虚拟专用网VPN和网络地址转换NAT</h2><p><strong>虚拟专用网VPN</strong></p>
+<p>内部地址：</p>
+<p>10.0.0.0 - 10.255.255.255 、172.16.0.0 - 172.31.255.255、192.168.0.0 - 192.168.255.255</p>
+<p><strong>网络地址转换NAT</strong></p>
+<p>本地主机通过NAT路由器将本地地址转换为公有IP地址与因特网连接。</p>
+<p>转换过程：</p>
+<p>一个局域网中的主机要与互联网中另外一个主机进行通信，通过NAT路由器将数据报中的本机地址转换为公网地址，目的地址不变。在收到目标主机的数据报时，根据路由器中映射将数据报中目的地址转换为本地IP地址，最后转发到本地主机。</p>
+<h2 id="知识要点"><a href="#知识要点" class="headerlink" title="知识要点"></a>知识要点</h2><p>1、3种静态路由选择策略具体算法：泛射路由选择、固定路由选择、随机路由选择。</p>
+<p>2、3种动态路由选择策略具体算法：独立路由选择、集中路由选择、分布路由选择。</p>
+<p>3、224.0.0.5代表的是组播地址。</p>
+<p>4、802.3以太网可传送的帧长度为1500个字节。</p>
+<p>5、一个计算机网络的三个组成部分：通信子网、通信协议以及若干主机。</p>
+<p>6、</p>
+<p>数据报服务特征：不需要建立连接；采用全网地址；要求路由选择；数据报不一定按序达到目的节点；易于平衡网络流量</p>
+<p>虚电路服务特征：建立连接；路由选择；按顺序传送分组；可靠性较高。</p>
+<p>7、路由器采用存储转发技术进行路由转发，在每个节点都要接受、存储、检错、纠错和转发大量的数据信息，并且路由表建表、改表和查表产生节点延迟。</p>
+<p>8、网络互联指相互连接的计算机网络组成大型的计算机网络，使得处于不同地理位置的计算机进行通信，促成了当今的信息世界。</p>
+<p>存在问题：</p>
+<p>不同的寻址方案，不同的最大分组长度；不同的网络介入机制；不同的超时控制；不同的差错控制方法；不同的状态报告方法；不同的路由选择技术；不同的用户接入控制；不同的服务；不同的管理和控制方式。</p>
+<p>9、MTU：IP层下面数据链路层所限定的帧格式中数据字段的最大长度。它与IP数据报首部中的总长度字段有关。</p>
+<p>10、推荐的子网掩码为连续的1和连续的0.</p>
+<p>11、RIP协议处于UDP协议的上层，RIP所接收到的路由信息否封装在UDP的数据报中；OSPF的位置位于网络层，由于交换的信息较大，应使报文长度短，采用IP；BGP要在不同的自治系统之间交换路由信息，保证可靠传输，选择TCP。</p>
+<p>BGP不用周期性地与相邻路由器进行路由信息交换：</p>
+<p>(1)、由于因特网规模导致自治系统之间的路由选择非常困难。</p>
+<p>(2)、自治系统之间路由选择寻找最佳路由不现实。</p>
+<p>(3)、自治系统之间路由选择考虑有关策略。</p>
+<p>12、路由表更新规则：</p>
+<p>无新信息，不改变</p>
+<p>同一个项目相同下一跳，更新</p>
+<p>新的项目，添加</p>
+<p>不同下一跳，距离更短，更新</p>
+<p>不同下一跳，距离一样，不改变。</p>
+<p>13、隧道技术：当多播数据报在传输数据中遇到不允许多播路由器的网络，路由器对多播数据报进行再次封装进行传输。通过隧道后经路由器剥去收取回复多播数据报，对多个站进行转发。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/07/25/%E7%BD%91%E7%BB%9C%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/07/29/%E4%BC%A0%E8%BE%93%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2022
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
