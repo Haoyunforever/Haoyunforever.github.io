@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>应用层知识要点 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-应用层知识要点"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  应用层知识要点
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-date">
+  <time datetime="2022-07-19T16:00:00.000Z" itemprop="datePublished">2022-07-20</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%AE%A1%E7%BD%91/">计网</a> / <a class="article-category-link" href="/categories/%E8%AE%A1%E7%BD%91/TCP-IP/">TCP/IP</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">5.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">18 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="应用层知识要点"><a href="#应用层知识要点" class="headerlink" title="应用层知识要点"></a>应用层知识要点</h1><p>规定应用进程通信遵循规定。</p>
+<h2 id="域名系统DNS"><a href="#域名系统DNS" class="headerlink" title="域名系统DNS"></a>域名系统DNS</h2><p>因特网采用层次树状结构的命名方法，任何一个连接在因特网上的主机或路由器都有其结构名称，域名。便于记忆，对IP地址进行映射。默认端口53，多数情况下为UDP进行传输。</p>
+<p>结构： .三级域名.二级域名.顶级域名。</p>
+<p>顶级域名：国家顶级域名(cn.us.uk)、通用顶级域名(com.net.org.edu.gov.mil.int)、基础结构域名(arpa)</p>
+<p><strong>域名服务器</strong>：负责不同的区域节点。</p>
+<p>根域名服务器：知道所有的顶级域名服务器的域名以及IP地址。共有13个不同的根域名服务器。</p>
+<p>顶级域名服务器：管理在该顶级域名服务器注册的二级域名，在DNS查询请求时给出相应映射。</p>
+<p>权限域名服务器：负责一个区域范围内的域名服务器。</p>
+<p>本地域名服务器：主机发出DNS请求时，会首先到本地域名服务器去查询。</p>
+<p>域名解析过程：(递归+迭代)</p>
+<p>1.用户在浏览器上输入指定域名(<a target="_blank" rel="noopener" href="http://www.sina.com),首先会在浏览器自身缓存中检测是否有对应的映射/">www.sina.com)，首先会在浏览器自身缓存中检测是否有对应的映射</a></p>
+<p>2.若未命中，则检测主机系统中的缓存(hosts文件)，查询域名对应的IP地址。</p>
+<p>3.若未命中，才会去请求本地域名服务器进行解析域名。</p>
+<p>4.若未命中，则请求根域名服务器返回主域名服务器地址。本地域名服务器对主域名服务器地址发出请求，主域名服务器返回查询的域名服务器地址，本地域名服务器向该域名服务器发出请求，返回IP地址和域名的映射关系。</p>
+<p>5.本地域名服务器缓存该映射并将其发送给主机，主机保存在缓存中并进行域名解析。</p>
+<p>注：本地域名服务器替主机向根域名服务器查询是递归查询，本地域名服务器向根域名服务器是迭代查询。</p>
+<p>高速缓存：提高DNS查询效率，减轻根域名服务器负荷和减少在因特网上的DNS查询报文。记录最近查询过的域名。</p>
+<h2 id="文件传送协议"><a href="#文件传送协议" class="headerlink" title="文件传送协议"></a>文件传送协议</h2><p>文件共享协议分为文件传送协议和联机访问(NFS)</p>
+<p>文件传送协议是复制整个文件，获取文件副本，若修改后将其副本传回源节点</p>
+<p>联机访问：对远程主机共享文件的访问，直接对该文件进行操作。</p>
+<h3 id="FTP"><a href="#FTP" class="headerlink" title="FTP"></a>FTP</h3><p>在不同操作系统中传输文件，使用TCP可靠传输服务，减少或消除在不同操作系统中处理文件的不兼容性。</p>
+<p>使用客户-服务器方式，一个服务器进程为多个客户进程提供服务。分为主进程和从属进程(控制和数据传送)，主进程负责接受新请求，从属进程负责单个请求。</p>
+<p>默认端口20&#x2F;21，端口21为实现控制连接，端口20为数据传输。</p>
+<p><strong>工作流程</strong></p>
+<img src="/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220731163215032.png" class title="image-20220731163215032">
+
+<p>FTP服务器首先开放21端口等待客户端连接，客户端与其建立一个与FTP服务器21端口之间的TCP连接，并使用令牌登录进行认证。</p>
+<p>客户端认证成功后，通过控制连接发送命令对文件进行操作。服务器接收到该传输命令后通过端口20与客户端创建一个TCP连接传输文件，反复如此。</p>
+<p><strong>涉及情况：</strong>当客户只对服务器上文件进行添加少数数据，使用FTP并不是最佳的，由于没有使用该文件内容，来回传送文件花费很大时间。使用NFS打开远地文件，在文件某位置开始添加数据，无需复制整个文件，只需将修改和数据传送给服务器即可。</p>
+<p>特点：</p>
+<p>提供交互式访问使得协议更加简单实现和更好控制连接；基于CS模式面向连接，使用TCP可靠运输服务；减少不同操作系统文件的不兼容性。</p>
+<h3 id="TFTP"><a href="#TFTP" class="headerlink" title="TFTP"></a><strong>TFTP</strong></h3><p>客户端熟知端口号69，发送读请求报文或写请求报文给服务器。</p>
+<p>优点：基于CS模式，使用UDP数据包；只支持文件传输不支持交互，TFTP代码占内存小。</p>
+<p>特点：</p>
+<p>每次传送数据PDU有512字节数据</p>
+<p>每个数据块从编号1开始</p>
+<p>支持ASCLL码或二进制传送</p>
+<p>仅对文件机进行读或写</p>
+<p>工作与停止等待协议相同</p>
+<h2 id="远程终端协议-TELNET"><a href="#远程终端协议-TELNET" class="headerlink" title="远程终端协议(TELNET)"></a>远程终端协议(TELNET)</h2><p>通过TCP连接到另一个主机，将用户的击键命令转换为<strong>NVT</strong>格式进行传输并返回执行数据。默认熟知端口为23.</p>
+<p><strong>NVT(网络虚拟终端)</strong>:使用8位一个字节，在运转时使用7位ASCLL码传送数据，高位置为1时用作控制命令。如CR-LF回车换行符作为行结束控制符。</p>
+<h2 id="万维网-WWW-务器程序发出请求，服务器返回客户需要的万维网文档。"><a href="#万维网-WWW-务器程序发出请求，服务器返回客户需要的万维网文档。" class="headerlink" title="万维网(WWW) 务器程序发出请求，服务器返回客户需要的万维网文档。"></a>万维网(WWW) 务器程序发出请求，服务器返回客户需要的万维网文档。</h2><p>万维网使用链接从一个站点访问到另一个站点，超文本是万维网的基础。</p>
+<p>解决问题：</p>
+<p>1、标志分布整个因特网上的万维网文档？</p>
+<p>每一个文档在整个因特网的范围内具有唯一的标识符URL，用统一资源定位符URL来标识万维网上的各种文档。</p>
+<p>2、实现万维网上超链接？</p>
+<p>使用超文本协议HTTP进行传输，HTTPS协议使用证书验证。</p>
+<p>3、如何使各种万维网文档在计算机上显示出来？</p>
+<p>使用超文本标记语言html使得万维网中某页面的某处链接到任何一个万维网页面。</p>
+<p>4、如何方便的找到所需的信息、</p>
+<p>使用各种搜索引擎工具。</p>
+<p><strong>统一资源定位符(URL)：</strong>对因特网上资源的位置和访问方法的表示。</p>
+<p>格式：&lt;协议&gt;:&#x2F;&#x2F;&lt;主机&gt;:&lt;端口&gt;&#x2F;&lt;路径&gt;</p>
+<p><strong>HTTP</strong></p>
+<p>定义万维网客户端向万维网服务器请求万维网文档，以及服务器如何返回文档给客户端。</p>
+<p>HTTP本身是无连接的，在TCP连接建立后直接传送HTTP报文；HTTP是无状态的支持大量并发HTTP请求；</p>
+<p>HTTP&#x2F;1.1持续连接方式：非流水线方式(客户收到响应后发送请求)和流水线方式(一个接一个请求)</p>
+<p><strong>CGI</strong>：通用网关接口。定义动态文档如何创建，输入数据应如何提供给应用程序以及输出程序应如何使用。</p>
+<p><strong>信息检索系统</strong></p>
+<p>全文搜索引擎：通过爬虫在因特网的各网站上收集信息，按照一定的规则建立数据库。根据用户查询条件匹配的相关记录在数据库中进行查询获取相关页面。谷歌、百度。</p>
+<p>分类目录搜索：利用各网站向搜索引擎提交的网站关键信息将符合网站信息的网页输入到对应目录的数据库中。分类目录查询结果不是具体页面，是被收录网站主页的URL网址。如雅虎、新浪、搜狐、网易等</p>
+<p>博客倾向于表达，微博倾向于社交，轻博则是结合两者。</p>
+<h2 id="电子邮件协议"><a href="#电子邮件协议" class="headerlink" title="电子邮件协议"></a>电子邮件协议</h2><p>格式：收信人邮箱名@邮箱所在主机域名</p>
+<p>收信人邮箱名：用户自定义的字符串标识符，在邮箱所在计算机中必须唯一存在的。</p>
+<p>邮箱所在主机域名：因特网唯一存在的</p>
+<p>发送邮件协议：SMTP</p>
+<p>读取邮件协议：POP3和IMAP</p>
+<p><strong>简单邮件传送协议(SMTP)</strong></p>
+<p>规定两个SMTP进程之间进行交换信息。MIME通用因特网邮件扩充指定邮件的数据类型。</p>
+<p>通信过程：</p>
+<p>连接建立阶段：</p>
+<p>1.用户代理将邮件发送到邮件服务器的邮件缓存，当SMTP客户端每隔一定时间对邮件缓存扫描一次，如发现有邮件，就使用SMTP的熟知端口号25与接收方的邮件服务器的SMTP服务器建立TCP连接。</p>
+<p>2.接收方SMTP服务器发出“220 Service ready”告诉客户端它已经准备好接收邮件。若服务器未就绪，它就发送代码421（服务器不可用）。</p>
+<p>3.客户发送HELO报文，并使用它的域名地址标志自己。目的是：用来把客户的域名通知服务器，值得注意的是， 在TCP的连接建立阶段，发送方和接收方都是通过它们的IP地址来告诉对方的 。（HELO报文是最初的，用户名和密码都不加密。现在改为EHLO，用户名和密码都进行base64编码发送）</p>
+<p>4.服务器响应代码250（请求命令完成）或根据情况的其他一些代码。</p>
+<p>传送阶段：</p>
+<p> 在SMTP客户与服务器之间建立连接后，发件人就可以与一个或多个收件人交换单个的报文了。若收件人超过一个，则下面步骤3和步骤4将重复进行。</p>
+<p>​    1.客户发送MAIL FROM报文介绍报文的发送者。它包括发送人的邮件地址（邮箱名和域名，如house@qq）。这个步骤是必要的：因为可以给服务器在返回差错或报文时的返回邮件地址 。</p>
+<p>​    2.服务器响应代码250（请求命令完成）或其他适当的代码451、452、500。</p>
+<p>​    3.客户发送RCPT（收件人）报文，包括收件人的邮件地址，RCPT命令的作用是 ： 先弄清接收方系统是否已经准备好接收邮件的准备，然后才发送邮件，这样做视为了避免浪费通信资源，不至于发送了很长的邮件以后才知道是因地址错误 。</p>
+<p>​    4.服务器响应代码250或其他适当的代码。</p>
+<p>​    5.客户发送DATA报文对报文的传送进行初始化，DATA命令表示要开始传送邮件的内容了。</p>
+<p>​    6.服务器响应代码”354 Start mail input: end with <CRLF>.<CRLF>“或其他适当的报文（如421 服务器不可用，500 命令无法识别）。</CRLF></CRLF></p>
+<p>​    7.客户用连续的行发送报文的内容。每一行的行结束时输入 <CRLF>.<CRLF> ，即回车换行.回车换行，表示邮件内容结束。</CRLF></CRLF></p>
+<p>​    8.服务器响应代码（250 请求命令完成）或其他适当的代码。</p>
+<p>连接释放。发送完后释放TCP连接。</p>
+<p>连接释放阶段：</p>
+<p>在报文传送成功后，客户就终止连接。包括如下步骤：</p>
+<p>​    1.客户发送QUIT命令。</p>
+<p>​    2.服务器响应221（服务关闭）或其他代码。</p>
+<p>​    在连接终止阶段后，TCP连接必须关闭。</p>
+<p><strong>邮件读取协议</strong></p>
+<p>POP3协议中用户所连接的ISP邮件服务器则运行POP服务器程序，访问邮件服务器下载后才来访问缓存的邮件，读取后删除该邮件。</p>
+<p>IMAP4协议需要登录服务器邮箱才能接收邮箱，未发出删除命令时一直保留在服务器。</p>
+<img src="/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220731200131202.png" class title="image-20220731200131202">
+
+<p><strong>基于万维网的电子邮件</strong></p>
+<p>用户代理为浏览器，在发送邮件到邮件服务器时和从邮件服务器接收邮件时使用HTTP，两个邮件服务器之间使用SMTP。</p>
+<p>如：网易(163)、新浪(sina)、谷歌Gamil</p>
+<p><strong>MIME</strong>(通用因特网邮件扩充)</p>
+<p>SMTP不能传送可执行文件或其他二进制对象。将非ASCLL码数据转换为NVT ASCLL数据再交给SMTP进程进行传送</p>
+<img src="/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220731203204837.png" class title="image-20220731203204837">
+
+
+
+<h2 id="动态主机配置协议-DHCP"><a href="#动态主机配置协议-DHCP" class="headerlink" title="动态主机配置协议(DHCP)"></a><strong>动态主机配置协议(DHCP)</strong></h2><p>自动为主机分配IP地址信息。端口号为67(接收消息)，68(发送消息)。</p>
+<p>每一个网络设置DHCP中继代理，收到主机广播的发现报文后单播中继给DHCP服务器。</p>
+<img src="/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/image-20220801094735745.png" class title="image-20220801094735745">
+
+
+
+<p>工作流程：</p>
+<p>1、主机发现没有设置任何IP地址，通过UDP端口68以广播的方式发送DHCP Discover寻找DHCP服务器，等待时间预设为1s，若没有收到DHCP服务器的回应，则从169.254.0.0&#x2F;16选用地址，每隔5分钟重新广播一次。</p>
+<p>2、DHCP服务器收到客户端发起的DHCP dIscover广播后，把那些没租出去的地址选择空置IP，通过UDP 68端口返回给客户端一个DHCP offer数据包(IP地址、子网掩码、地址租期等信息)。以广播的方式(源IP为DHCP服务器，目的IP为255.255.255.255，目的MAC地址为客户端地址)</p>
+<p>3、广播内的所有主机接收到这个报文后，判断目的MAC地址是否为自己的MAC地址，只有符合的才接收该报文。当客户端收到多台服务器的响应，则一般选择最先到达的。然后以广播的形式发送DHCP Request包(MAC地址、接收的IP地址，DHCP服务器地址)，告诉所有DHCP服务器自己接收哪台DHCP服务器的分配。</p>
+<p>4、当目标DHCP服务器接收到DHCP request包后，广播返回一个DHCP ack包(IP地址、租约等配置信息，客户端MAC地址)表示接收请求。</p>
+<p>5、当客户端接收到DHCP ack广播后，会向网络中发送此IP地址的三次ARP进行冲突检测分配的IP地址是否已被使用。若已使用则向服务器发送DHCP decline数据包拒绝此IP地址租约，并重新发送DHCP Discover报文给服务器；否则就使用该分配IP地址。</p>
+<p><strong>续租情况</strong>：</p>
+<p>当租用期过一半时，客户端向服务器发送DHCP REQUEST要求更新租用期，若服务器响应该请求(同意则返回确定DHCP ACK报文更新租用期；否则返回DHCPNACK停止使用IP地址，重新申请IP地址)，否则当租用期超过87.5%时，客户端重新发送DHCP REQUEST请求。</p>
+<p>DHCP客户随时提前终止服务器提供的租用期，向服务器发送DHCP REALSE报文。</p>
+<h2 id="简单网络管理协议SNMP"><a href="#简单网络管理协议SNMP" class="headerlink" title="简单网络管理协议SNMP"></a>简单网络管理协议SNMP</h2><p>SNMP协议就是管理程序和代理程序按CS方式工作通信协议。管理程序运行SNMP客户端，代理程序运行SNMP服务端。</p>
+<h3 id="网络管理"><a href="#网络管理" class="headerlink" title="网络管理"></a>网络管理</h3><p><strong>网络管理模型主要构件：</strong></p>
+<p> 管理站：所在部门网络允许中心NOC，整个网络管理系统的核心，控制所有被管设备。关键构件是管理程序&#x2F;进程。</p>
+<p>被管设备：主机、路由器、打印机等。每一个被管设备又许多被管对象(网络元素)</p>
+<p>网络管理代理程序：被管设备与管理站之间的通信进程。</p>
+<p><strong>SNMP网络管理组成：</strong></p>
+<p>SMI定义规则，MIB对变量进行说明，SNMP完成网关动作。</p>
+<p>SNMP本身：定义管理站和代理之间所交换的分组格式</p>
+<p>管理信息结构SMI：定义命名对象和定义对象类型的通用规则。</p>
+<p>管理信息库MIB：在被管理实体中创建命名对象，并规定其类型。</p>
+<p>SNMP按照SMI定义的规则，存储、改变和解释MIB说明的对象值。</p>
+<h3 id="管理信息结构-SMI"><a href="#管理信息结构-SMI" class="headerlink" title="管理信息结构(SMI)"></a>管理信息结构(SMI)</h3><ul>
+<li>被管对象应如何命名</li>
+<li>用来存储被管对象的数据类型有哪些</li>
+<li>在网络上传送的管理数据应如何编码</li>
+</ul>
+<p>管理对象使用对象命名树。</p>
+<p>使用基本的抽象语法记法1来定义数据类型，增加一些新定义。分为简单类型和结构化类型(sequence和sequence of)</p>
+<p>使用基本编码规则BER进行数据编码。</p>
+<h3 id="管理信息库-MIB"><a href="#管理信息库-MIB" class="headerlink" title="管理信息库(MIB)"></a>管理信息库(MIB)</h3><p>被管对象可供管理程序读写的控制和状态信息构成的信息存储器。</p>
+<h3 id="SNMP协议数据单元和报文"><a href="#SNMP协议数据单元和报文" class="headerlink" title="SNMP协议数据单元和报文"></a>SNMP协议数据单元和报文</h3><p>两种基本管理功能：读和写</p>
+<ul>
+<li>读：用Get报文检测各被管对象的状态</li>
+<li>写：用Set报文来改变被管对象的状态</li>
+</ul>
+<h2 id="应用进程跨越网络通信"><a href="#应用进程跨越网络通信" class="headerlink" title="应用进程跨越网络通信"></a>应用进程跨越网络通信</h2><p><strong>系统调用</strong>：在应用程序和操作系统之间传递控制权。通过应用编程接口(api)定义标准函数得到操作系统服务。</p>
+<p>可供TCP&#x2F;ip使用的接口API：套接字接口、Winodws Socket、TLI。</p>
+<p>当应用进程需要使用网络进行通信时，首先发出Socket系统调用，请求操作系统创建套接字为其分配系统资源(存储器空间、CPU时间、网络带宽等)，这些系统资源称为套接字描述符。</p>
+<p><strong>常用系统调用</strong></p>
+<p>连接建立阶段：客户端调用bind绑定本机地址和端口号和connect与远地服务器建立连接，服务端除了bind还需调用listen接受客户请求和调用accept创建从属服务器使用新套接字与客户连接。</p>
+<p>数据传送阶段：客户和服务器调用send接口发送数据，调用recv接口接受数据。</p>
+<p>连接释放阶段：客户和服务器调用close接口释放连接和撤销套接字。</p>
+<h2 id="主要题型"><a href="#主要题型" class="headerlink" title="主要题型"></a>主要题型</h2><p>1、为了使服务器能够响应并发出请求，在服务器实现中通常采取重复服务器方案和并发服务器方案。</p>
+<p>2、TCP&#x2F;IP上进行域名解析分为递归解析和迭代解析。</p>
+<p>3、保证高速缓冲区中域名-IP地址映射关系有效性：</p>
+<p>解析器报告缓冲信息时注明“非权威性”</p>
+<p>对高速缓冲区的每一个映射关系指定最大生存周期</p>
+<p>4、FTAM是一个用于传输、访问和管理开放系统中文件的信息标准</p>
+<p>5、局域网从介质访问控制协议角度划分为共享局域网和介质交换局域网。</p>
+<p>6、网络运行中心对网络及其设备管理的三种方式是基于SNMP的代理&#x2F;服务器方式、本地终端方式和telnet命令。</p>
+<p>7、博客是Blog、微博是Microblog、轻博是Light Blogging。</p>
+<p>8、解析器是用于查询DNS服务器将主机名称解析为IP地址</p>
+<p>9、提供一台备份服务器，以防主名称服务器失效，提供了在和平衡降低主名称服务器上的载荷量。</p>
+<p>10、FTP和TFTP服务区别。</p>
+<p>FTP是一个面向会话的文件传输协议，在建立连接之前需要进行用户确认。</p>
+<p>TFTP是一个简单的复制文件使用程序，来回复制远程计算机的文件，不提供任何用户身份确认。</p>
+<p>11、管理信息库(MIB)是代表某个设备或服务的一套可管理对象的数据库。在SNMP中，每台主机的MIB必须使用精确的组织结构定义可管理对象。</p>
+<p>12、虚拟终端NVT：在客户端和服务端之间建立数据表示和解释进行传送。8bit数据，7位数据加上1位标志组成，当标志位为1时表示为NVT命令。</p>
+<p>13、 </p>
+<p>电子邮件系统组成部分：用户代理、邮件服务器以及使用协议。</p>
+<p>UA是指用户与电子邮件系统的接口。用户通过用户代理接收和发送邮件到邮件服务器。由于某些计算机没有足够的存储器来允许邮件服务器程序在后台运行或者没有足够的CPU能力来运行邮件服务器程序。让用户的PC运行邮件服务器程序显然很不现实。</p>
+<p>14、</p>
+<p>域名结构：由标号序列组成，各标号之间用点隔开：…三级域名.二级域名.顶级域名</p>
+<p>电话号码：国家号(中国 +86)、区号、本机号。</p>
+<p>15、</p>
+<p>quoted-printable编码适用于所有可打印的ASCLL码，除”&#x3D;&#x3D;”外。</p>
+<p>Base64编码适用于任意的二进制文件。将二进制代码划分为24bit长的单元，将每一个24bit单元划分为4个6bit组，每一个6bit组按照一定方法转换为ASCLL码。</p>
+<p>Base64增加了开销，当传送数据大部分为ASCLL码时，最好采用quote-printable编码。</p>
+<p>16、</p>
+<p>网络元素：网络中的被管设备，网元。</p>
+<p>被管对象：网络元素中设备的硬件和软件部分</p>
+<p>管理信息库：网络中所有被管对象集合的数据结构</p>
+<p>管理进程：管理站中管理程序运行会创建多个管理进程</p>
+<p>代理进程：被管设备中都要运行网络管理</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/07/20/%E5%BA%94%E7%94%A8%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C-%E5%BA%94%E7%94%A8%E5%B1%82/" rel="tag">-计算机网络 -应用层</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/07/20/%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            数据链路层知识要点
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/07/20/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">网络安全知识要点</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2023
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
