@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>C语言代码逆向基础-函数的识别 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-C语言代码逆向基础-函数的识别"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  C语言代码逆向基础-函数的识别
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/" class="article-date">
+  <time datetime="2023-03-06T12:14:28.000Z" itemprop="datePublished">2023-03-06</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/C-C/">C/C++</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/C-C/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">test</span><span class="params">(<span class="keyword">char</span>* szStr, <span class="keyword">int</span> nNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s,%d \r\n&quot;</span>, szStr, nNum);</span><br><span class="line">	MessageBox(<span class="literal">NULL</span>, szStr, <span class="literal">NULL</span>, MB_OK);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>, nNum);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用IDA打开其编译文件下生成的DEGUB文件夹下生成的可执行文件exe进行逆向分析</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102359476.png" class title="image-20230306102359476">
+
+<h2 id="函数的逆向分析"><a href="#函数的逆向分析" class="headerlink" title="函数的逆向分析"></a>函数的逆向分析</h2><p>IDA识别出跳转到main()函数的跳表项，切换到文本视图，可以找到main()的跳表项</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102811711.png" class title="image-20230306102811711">
+
+
+
+<p>但并不是每个程序都能被IDA识别跳转到main()函数的跳表项，我们选择exports窗口，这里显示的是程序的入口函数，可以看到start,这是有编译器插入的函数。是编译后的启动函数。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230305181647077.png" class title="image-20230305181647077">
+
+
+
+<p>点击可以看到mainCRTStartup代码，<strong>在C语言中main()不是程序运行的第一个函数，而是程序员编写程序时的第一个函数，main()函数是由启动函数来调用的</strong>。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102216789.png" class title="image-20230306102216789">
+
+<p>从反汇编代码中可以看到，启动函数从004011D0地址处开始，通过调用一系列启动所需工作后(GetVersion()函数、GetCommandLineA()函数等)，在004012B4处调用了_main.</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306103124003.png" class title="image-20230306103124003">
+
+
+
+<p>在VC中，启动函数会依次调用GetVersion()、GetCommandLineA()、GetEnvironmentStringA()等函数这以明显特征，在调用完GetEnviro nmentStringA()函数后有三个PUSH操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:004012A0                 mov     edx, envp</span><br><span class="line">.text:004012A6                 push    edx             ; envp</span><br><span class="line">.text:004012A7                 mov     eax, argv</span><br><span class="line">.text:004012AC                 push    eax             ; argv</span><br><span class="line">.text:004012AD                 mov     ecx, argc</span><br><span class="line">.text:004012B3                 push    ecx             ; argc</span><br><span class="line">.text:004012B4                 call    _main</span><br></pre></td></tr></table></figure>
+
+<p>该反汇编代码对应的C代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> WPRFLAG</span></span><br><span class="line">​             __winitenv = _wenviron;</span><br><span class="line">              mainret = wmain(_argc,_wargv,_wenviron);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span> </span></span><br><span class="line">              __initenv = _environ;</span><br><span class="line">              mainret = main(_argc,_grav,_environ);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">​                          </span><br></pre></td></tr></table></figure>
+
+<p>可以看到调用Main()函数时有三个参数，在三个PUSH操作后第一个CALL就是_main的函数地址。在004012C3地址处指令为 _exit,在判断程序是由VC6编译的，找到 _exit的调用，向上找到call指令就为 _main所对应的地址</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306104856179.png" class title="image-20230306104856179">
+
+
+
+<p>双击反汇编的_main进入main函数的跳表，通过特征我们可以看到对sub_40100A、printf函数的调用。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306105349403.png" class title="image-20230306105349403">
+
+<p>函数入口部分地址如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.text:004010A0                 push    ebp</span><br><span class="line">.text:004010A1                 mov     ebp, esp</span><br><span class="line">.text:004010A3                 sub     esp, 44h</span><br><span class="line">.text:004010A6                 push    ebx</span><br><span class="line">.text:004010A7                 push    esi</span><br><span class="line">.text:004010A8                 push    edi</span><br><span class="line">.text:004010A9                 lea     edi, [ebp+var_44]</span><br><span class="line">.text:004010AC                 mov     ecx, 11h</span><br><span class="line">.text:004010B1                 mov     eax, 0CCCCCCCCh</span><br><span class="line">.text:004010B6                 rep stosd</span><br></pre></td></tr></table></figure>
+
+<p>大多数入口处都为push ebp&#x2F; mov ebp,esp &#x2F; sub esp,XXX的形式，完成了保存栈，并开辟当前函数的栈空间。push ebx&#x2F;esi&#x2F;edi是用来保存几个关键寄存器的值，以便函数返回后几个寄存器的值还能继续使用，lea  edi, [ebp+var_44]到rep stosd的指令是将开辟的内存空间全部初始化为0XCC(int 3,调用3号断点产生软件中断)，方便调试。上面代码固定形式，唯一改变的是sub esp,xxx指令，在VC6下使用Debug编译，若当前没有变量则为40h,有一个指令为44h,以此类推，函数编译时总是预留了40h字节的空间。</p>
+<p>函数出口代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.text:004010DD                 pop     edi</span><br><span class="line">.text:004010DE                 pop     esi</span><br><span class="line">.text:004010DF                 pop     ebx</span><br><span class="line">.text:004010E0                 add     esp, 44h</span><br><span class="line">.text:004010E3                 cmp     ebp, esp</span><br><span class="line">.text:004010E5                 call    __chkesp</span><br><span class="line">.text:004010EA                 mov     esp, ebp</span><br><span class="line">.text:004010EC                 pop     ebp</span><br><span class="line">.text:004010ED                 retn</span><br><span class="line">.text:004010ED _main_0         endp</span><br></pre></td></tr></table></figure>
+
+<p>与入口代码相同，出口代码也是固定格式，使用pop指令将入口保存的关键寄存器值进行恢复，并且恢复esp指针的值，将临时开辟的栈空间释放掉，可以观察到开辟空间使用sub指令，释放空间使用add指令，由此判断栈的方向是由高向低地址沿伸的，然后使用retn返回上层函数。其中__chkesp函数是检测栈是否平衡，否则给出错误提示。</p>
+<p>前面的函数入口代码和出口代码在每个函数中都是类似的，我们再来看下剩余的反汇编代码，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">.text:004010B8                 push    6               ; int</span><br><span class="line">.text:004010BA                 push    offset Text     ; &quot;hello&quot;</span><br><span class="line">.text:004010BF                 call    sub_40100A</span><br><span class="line">.text:004010C4                 add     esp, 8</span><br><span class="line">.text:004010C7                 mov     [ebp+var_4], eax</span><br><span class="line">.text:004010CA                 mov     eax, [ebp+var_4]</span><br><span class="line">.text:004010CD                 push    eax</span><br><span class="line">.text:004010CE                 push    offset aD       ; &quot;%d \r\n&quot;</span><br><span class="line">.text:004010D3                 call    _printf</span><br><span class="line">.text:004010D8                 add     esp, 8</span><br><span class="line">.text:004010DB                 xor     eax, eax</span><br></pre></td></tr></table></figure>
+
+<p>首先从push 6开始到mov [ebp+var_4],eax这一串指令是主函数对test函数的调用。在VC中，默认使用cddel函数对于参数的传递依靠栈内存依次从右往左送入栈中。在C代码中，我们对test()函数的调用形式如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br></pre></td></tr></table></figure>
+
+<p>所以第一个指令是PUSH 6，然后才是PUSH offset.接下来的add esp,8指令是将esp恢复到调用前的值，这里的8是将前面的PUSH操作释放内存空间。</p>
+<p>函数返回值一般保存在eax寄存器中，mov [ebp+var_4],eax将test函数返回值保存在在[ebp+var_4]中，相当于C语言中的nNum变量。xor eax,eax指令将eax进行清零，即main()函数返回值为0。</p>
+<p>接下来，我们来看下test函数，test函数跳表如下：</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306114357641.png" class title="image-20230306114357641">
+
+<p>除去入口和出口代码，中间的代码主要为printf()函数和MessageBoxA()函数的反汇编代码。</p>
+<p>调用printf()函数的反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:00401038                 mov     eax, [ebp+arg_4]</span><br><span class="line">.text:0040103B                 push    eax</span><br><span class="line">.text:0040103C                 mov     ecx, [ebp+lpText]</span><br><span class="line">.text:0040103F                 push    ecx</span><br><span class="line">.text:00401040                 push    offset Format   ; &quot;%s,%d \r\n&quot;</span><br><span class="line">.text:00401045                 call    _printf</span><br><span class="line">.text:0040104A                 add     esp, 0Ch</span><br></pre></td></tr></table></figure>
+
+<p>调用MessageBoxA()函数的反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:0040104F                 push    0               ; uType</span><br><span class="line">.text:00401051                 push    0               ; lpCaption</span><br><span class="line">.text:00401053                 mov     edx, [ebp+lpText]</span><br><span class="line">.text:00401056                 push    edx             ; lpText</span><br><span class="line">.text:00401057                 push    0               ; hWnd</span><br><span class="line">.text:00401059                 call    ds:MessageBoxA</span><br></pre></td></tr></table></figure>
+
+<p>其中两个代码中间还有个add esp,oCh，是将esp恢复到函数调用前的值。而MessageBoxA()函数为Windows系统下的API函数，使用stdcall调用约定，参数的平栈是在API函数里面进行的。</p>
+<p>这两个函数调用指令也存在区别，由于printf()函数是属于C语言的静态库，在连接时会将其代码二进制文件中，而MessageBoxA函数是在user32.dll这个动态连接库中，只保留了其入口地址，没有具体代码连接，而其代码在数据节中，使用”ds:”前缀</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在逆向分析函数时</p>
+<ul>
+<li>首先确定函数起始位置，通常由IDA自动识别</li>
+<li>掌握函数的调用约定和确定函数的参数个数，通过平栈的方式和平栈时对esp操作的值来进行判断</li>
+<li>最后观察函数的返回值，通常关注esp的值，可以确定返回值的类型，然后进一步考虑函数调用方下一步的操作。</li>
+</ul>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-C%E8%AF%AD%E8%A8%80/" rel="tag">-逆向 -C语言</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            C语言代码逆向基础--分支结构
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/07/29/%E4%BC%A0%E8%BE%93%E5%B1%82%E7%9F%A5%E8%AF%86%E8%A6%81%E7%82%B9/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2023
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

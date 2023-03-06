@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>C语言代码逆向基础--分支结构 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-C语言代码逆向基础--分支结构"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  C语言代码逆向基础--分支结构
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/" class="article-date">
+  <time datetime="2023-03-06T12:14:28.000Z" itemprop="datePublished">2023-03-06</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/C-C/">C/C++</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/C-C/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="C语言代码逆向基础–分支结构"><a href="#C语言代码逆向基础–分支结构" class="headerlink" title="C语言代码逆向基础–分支结构"></a>C语言代码逆向基础–分支结构</h1><p>C语言中有两种分支结构，if…else…结构和switch…case…default…结构</p>
+<h2 id="if-x2F-else结构分支"><a href="#if-x2F-else结构分支" class="headerlink" title="if&#x2F;else结构分支"></a>if&#x2F;else结构分支</h2><p>写一个简单的C语言例子，代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> a=<span class="number">0</span>,b=<span class="number">1</span>,c=<span class="number">2</span>;</span><br><span class="line">  <span class="keyword">if</span>(a&gt;b)</span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,a);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span>(b&lt;=c)</span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,b);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,c);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用VC对其进行编译，使用IDA打开DeBUG文件夹下的可执行文件，IDA自动识别main函数。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306161200268.png" class title="image-20230306161200268">
+
+
+
+<p>我们来看关键的反汇编代码，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+var_4], 0</span><br><span class="line">.text:0040102F                 mov     [ebp+var_8], 1</span><br><span class="line">.text:00401036                 mov     [ebp+var_C], 2</span><br></pre></td></tr></table></figure>
+
+<p>以上三行反汇编代码为对定义变量的初始化，其余反汇编代码可以分为三部分来观察，前两段代码都有<strong>cmp&#x2F;jxx&#x2F;printf &#x2F;jmp</strong>这些指令特征，这就是if…else…的特征所在。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306161702543.png" class title="image-20230306161702543">
+
+<p>观察IDA绘制的反汇编流程图</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306162145599.png" class title="image-20230306162145599">
+
+<p>在反汇编中，C语言代码中”&gt;”对应的是jle(小于等于则跳转),”&lt;&#x3D;”在反汇编中对应的是jg(大于则跳转)，反汇编代码与C语言中比较是相反的。只有当jxx指令没有发生跳转，才执行jxx到jmp之间的指令，否则会进行跳转。</p>
+<p>简单阐述一下上图：</p>
+<p>C语言的if判断反汇编代码，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">jle     short loc_401058</span><br><span class="line">.text:00401045                 mov     ecx, [ebp+var_4]</span><br><span class="line">.text:00401048                 push    ecx</span><br><span class="line">.text:00401049                 push    offset Format   ; &quot;%d \r\n&quot;</span><br><span class="line">.text:0040104E                 call    _printf</span><br><span class="line">.text:00401053                 add     esp, 8</span><br><span class="line">.text:00401056                 jmp     short loc_401084</span><br></pre></td></tr></table></figure>
+
+<p>这里如果jle(小于等于)符合条件，则跳转到loc_401058，执行else if判断语句，若不符合则执行jle到jmp之间的指令，并最后跳转到401084地址，代表这判断结束，程序结束。</p>
+<p>else if判断反汇编代码，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:0040105E                 jg      short loc_401073</span><br><span class="line">.text:00401060                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401063                 push    eax</span><br><span class="line">.text:00401064                 push    offset Format   ; &quot;%d \r\n&quot;</span><br><span class="line">.text:00401069                 call    _printf</span><br><span class="line">.text:0040106E                 add     esp, 8</span><br><span class="line">.text:00401071                 jmp     short loc_401084</span><br></pre></td></tr></table></figure>
+
+<p>如果jg(大于)符合条件，则跳转到401073地址处执行else语句，否则就执行其语句，最后依然跳转到401084地址，退出程序。</p>
+<h3 id="结构小结"><a href="#结构小结" class="headerlink" title="结构小结"></a>结构小结</h3><p>if…else…结构与反汇编代码的对应结构如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">; 初始化变量</span><br><span class="line">mov xxxx,xxxx</span><br><span class="line">mov xxxx,xxxx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">_if:</span><br><span class="line">    ;比较跳转</span><br><span class="line">    cmp xxxx,xxxx</span><br><span class="line">    jxx _else_if</span><br><span class="line">    ;一系列指令（不符合执行一系列指令，符合即调转else_if）</span><br><span class="line">    ......</span><br><span class="line">    jmp _if_else结束位置</span><br><span class="line">_else_if:</span><br><span class="line">    ; 比较跳转</span><br><span class="line">    mov xxx,xxx</span><br><span class="line">    cmp xxx,xxx</span><br><span class="line">    jxx _else（不符合执行一系列指令，符合即调转_else）</span><br><span class="line">    .....</span><br><span class="line">    jmp _if_else结束位置</span><br><span class="line">_else:</span><br><span class="line">    ;一系列指令</span><br><span class="line">    ......</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="switch结构分支"><a href="#switch结构分支" class="headerlink" title="switch结构分支"></a>switch结构分支</h2><p>编写个简单的Switch结构分支</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">int</span> nNum=<span class="number">0</span>;</span><br><span class="line">   <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;nNum);</span><br><span class="line">   <span class="keyword">switch</span>(nNum)</span><br><span class="line">   &#123;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;1 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;2 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;3 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;4 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">default</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;default \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接来看下关键代码，如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306170007355.png" class title="image-20230306170007355">
+
+<p>Switch流程分支图如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306170109505.png" class title="image-20230306170109505">
+
+<p>观察可以得到左边的四个分支为case分支，右边那个为default部分。</p>
+<p>我们先来看下scanf()函数部分反汇编代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+var_4], 0</span><br><span class="line">.text:0040102F                 lea     eax, [ebp+var_4]</span><br><span class="line">.text:00401032                 push    eax</span><br><span class="line">.text:00401033                 push    offset aD       ; &quot;%d&quot;</span><br><span class="line">.text:00401038                 call    _scanf</span><br><span class="line">.text:0040103D                 add     esp, 8</span><br></pre></td></tr></table></figure>
+
+<p>这里的var_4就是nNum变量，首先使用mov为nNum变量赋值，然后将其地址送入ecx寄存器，然后通过调用scanf()函数,nNum接受用户输入，函数调用完后将esp恢复到调用前</p>
+<p>接受用户输入后，就进入了Switch()分支的部分，反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.text:00401040                 mov     ecx, [ebp+var_4]</span><br><span class="line">.text:00401043                 mov     [ebp+var_8], ecx</span><br><span class="line">.text:00401046                 mov     edx, [ebp+var_8]</span><br><span class="line">.text:00401049                 sub     edx, 1          ; switch 4 cases</span><br><span class="line">.text:0040104C                 mov     [ebp+var_8], edx</span><br><span class="line">.text:0040104F                 cmp     [ebp+var_8], 3</span><br><span class="line">.text:00401053                 ja      short def_401058 ; jumptable 00401058 default case</span><br><span class="line">.text:00401055                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401058                 jmp     ds:jpt_401058[eax*4] ; switch jump</span><br></pre></td></tr></table></figure>
+
+<p>从00401040到00401053地址之间的代码是为了对nNum变量进行判断，若nNum-1的值大于3，则跳转到401058地址(default语句)，如不符合则执行Case语句。这就是流程图被分为两个部分的原因。</p>
+<p>接下来我们来看看要执行的case分支，代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.text:00401055                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401058                 jmp     ds:jpt_401058[eax*4] ; switch jump</span><br></pre></td></tr></table></figure>
+
+<p>将var_8的值传递给eax寄存器，然后跳转jpt_401058[eax* 4],像是一个数组，数组下标由eax寄存器进行寻址。</p>
+<p>jpt_401058处的内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">04010BB jpt_401058      dd offset loc_40105F    ; DATA XREF: _main_0+48↑r</span><br><span class="line">.text:004010BB                 dd offset loc_40106E    ; jump table for switch statement</span><br><span class="line">.text:004010BB                 dd offset loc_40107D</span><br><span class="line">.text:004010BB                 dd offset loc_40108C</span><br><span class="line">.text:004010CB                 align 40h</span><br></pre></td></tr></table></figure>
+
+<p>其内容为4个连续的标号地址，为40105F、40106E、40107D、40108C，分别对应4个Case的代码，通过var_8中对应的值进行访问。</p>
+<h3 id="结构小结-1"><a href="#结构小结-1" class="headerlink" title="结构小结"></a>结构小结</h3><p>Switch结构分支通过一次比较就可分为case和default两个流程，在case分支中，通过将传入变量的值为跳转数组下标来访问对应case子分支的执行语句。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-C%E8%AF%AD%E8%A8%80/" rel="tag">-逆向 -C语言</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            C语言代码逆向基础--循环结构
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">C语言代码逆向基础-函数的识别</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2023
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

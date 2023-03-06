@@ -10200,4 +10200,237 @@
         <tag>-web漏洞 -java开发框架</tag>
       </tags>
   </entry>
+  <entry>
+    <title>C语言代码逆向基础--循环结构</title>
+    <url>/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础–循环结构"><a href="#C语言代码逆向基础–循环结构" class="headerlink" title="C语言代码逆向基础–循环结构"></a>C语言代码逆向基础–循环结构</h1><p>C语言循环结构有for循环、while循环、do循环和goto。</p>
+<h2 id="for循环"><a href="#for循环" class="headerlink" title="for循环"></a>for循环</h2><p>编写个简单的1-100累加和代码</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum = <span class="number">0</span>,nSum = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span>(nNum=<span class="number">1</span>;nNum&lt;=<span class="number">100</span>;nNum++)</span><br><span class="line">	&#123;</span><br><span class="line">		nSum += nNum;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;nSum = %d \r\n&quot;</span>,nSum);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其反汇编代码如下，可以分为三个部分，第一部分为初始化部分，第二部分为修改循环变量的部分，第三部分为比较循环条件和循环体的部分。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/image-20230306181014018.png" class title="image-20230306181014018">
+
+
+
+<p>第一部分反汇编代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+nNum], 0</span><br><span class="line">.text:0040102F                 mov     [ebp+nSum], 0</span><br><span class="line">.text:00401036                 mov     [ebp+nNum], 1</span><br><span class="line">.text:0040103D                 jmp     short loc_401048</span><br></pre></td></tr></table></figure>
+
+<p>对nNum和nSum变量进行初始化，然后跳转到401048地址，其为循环部分判断条件，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401048 loc_401048:                             ; CODE XREF: _main_0+2D↑j</span><br><span class="line">.text:00401048                 cmp     [ebp+nNum], 64h ; &#x27;d&#x27;</span><br><span class="line">.text:0040104C                 jg      short loc_401059</span><br><span class="line">.text:0040104E                 mov     ecx, [ebp+nSum]</span><br><span class="line">.text:00401051                 add     ecx, [ebp+nNum]</span><br><span class="line">.text:00401054                 mov     [ebp+nSum], ecx</span><br><span class="line">.text:00401057                 jmp     short loc_40103F</span><br></pre></td></tr></table></figure>
+
+<p>将nNum与100进行比较，jg指令(大于则跳转)不跳转，执行下面一系列指令，执行nSum+&#x3D;nNum得到nSum值，然后跳转到40103F地址执行相关指令，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:0040103F loc_40103F:                             ; CODE XREF: _main_0+47↓j</span><br><span class="line">.text:0040103F                 mov     eax, [ebp+nNum]</span><br><span class="line">.text:00401042                 add     eax, 1</span><br><span class="line">.text:00401045                 mov     [ebp+nNum], eax</span><br></pre></td></tr></table></figure>
+
+<p>将nNum变量加1操作，然后再执行上面的比较代码，直到jg跳转到401059地址处的指令，输出nSum的值，结束程序。</p>
+<h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">;初始化变量</span><br><span class="line">mov xxx,xxx</span><br><span class="line"></span><br><span class="line">LOC_STEP:</span><br><span class="line">             ;修改循环变量</span><br><span class="line">LOC_CMP：</span><br><span class="line">             ;循环变量的判断</span><br><span class="line">             jxx LOC_ENDFO(符合则跳转到LOC_ENDFOR，否则执行循环体)</span><br><span class="line">             ;循环体</span><br><span class="line">             jmp LOC_STEP</span><br><span class="line">LOC_ENDFOR:</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Do…while循环"><a href="#Do…while循环" class="headerlink" title="Do…while循环"></a>Do…while循环</h2><p>do…while循环体总是会被多执行一次。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum=<span class="number">1</span>,nSum=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">do</span></span><br><span class="line">	&#123;</span><br><span class="line">		nSum+=nNum;</span><br><span class="line">		nNum++;</span><br><span class="line">	&#125;<span class="keyword">while</span>(nNum&lt;=<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;nSum=%d \r\n&quot;</span>,nSum);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其反汇编代码如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/image-20230306194206227.png" class title="image-20230306194206227">
+
+<p>观察下IDA生成的流程图</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/image-20230306194315142.png" class title="image-20230306194315142">
+
+<p>反汇编关键代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+nNum], 1</span><br><span class="line">.text:0040102F                 mov     [ebp+nSum], 0</span><br><span class="line">.text:00401036</span><br><span class="line">.text:00401036 loc_401036:                             ; CODE XREF: _main_0+3C↓j</span><br><span class="line">.text:00401036                 mov     eax, [ebp+nSum]</span><br><span class="line">.text:00401039                 add     eax, [ebp+nNum]</span><br><span class="line">.text:0040103C                 mov     [ebp+nSum], eax</span><br><span class="line">.text:0040103F                 mov     ecx, [ebp+nNum]</span><br><span class="line">.text:00401042                 add     ecx, 1</span><br><span class="line">.text:00401045                 mov     [ebp+nNum], ecx</span><br><span class="line">.text:00401048                 cmp     [ebp+nNum], 64h ; &#x27;d&#x27;</span><br><span class="line">.text:0040104C                 jle     short loc_401036</span><br><span class="line">.text:0040104E                 mov     edx, [ebp+nSum]</span><br></pre></td></tr></table></figure>
+
+<p>先对变量nNum和nSum进行初始化，然后执行nSum+&#x3D;nNum得到nSum的值，并且将nNum的值加1，然后jle指令(小于等于)与100进行比较，符合则跳转到401036地址处执行循环体，否则就输出nSum的值并退出程序。</p>
+<h3 id="结构-1"><a href="#结构-1" class="headerlink" title="结构"></a>结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">;初始化变量</span><br><span class="line">LOC_DO：</span><br><span class="line">       ;执行循环体</span><br><span class="line">       ;修改循环变量</span><br><span class="line">       cmp xxx,xxx ;循环变量的比较</span><br><span class="line">       jxx LOC_DO(符合即再次执行循环体，否则跳出循环)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="While结构"><a href="#While结构" class="headerlink" title="While结构"></a>While结构</h2><p>while循环和do循环之间的区别是再进入循环体之前要先进行一次条件判断；而do循环是先执行循环体再进行判断，会导致多执行一次循环体。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum=<span class="number">1</span>,nSum=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>(nNum&lt;=<span class="number">100</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		nSum+=nNum;</span><br><span class="line">		nNum++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;nSum=%d \r\n&quot;</span>,nSum);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其反汇编关键代码如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/image-20230306195837136.png" class title="image-20230306195837136">
+
+<p>生成流程图如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%BE%AA%E7%8E%AF%E7%BB%93%E6%9E%84/image-20230306195931794.png" class title="image-20230306195931794">
+
+
+
+<p>反汇编关键代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+nNum], 1</span><br><span class="line">.text:0040102F                 mov     [ebp+nSum], 0</span><br><span class="line">.text:00401036</span><br><span class="line">.text:00401036 loc_401036:                             ; CODE XREF: _main_0+3E↓j</span><br><span class="line">.text:00401036                 cmp     [ebp+nNum], 64h ; &#x27;d&#x27;</span><br><span class="line">.text:0040103A                 jg      short loc_401050</span><br><span class="line">.text:0040103C                 mov     eax, [ebp+nSum]</span><br><span class="line">.text:0040103F                 add     eax, [ebp+nNum]</span><br><span class="line">.text:00401042                 mov     [ebp+nSum], eax</span><br><span class="line">.text:00401045                 mov     ecx, [ebp+nNum]</span><br><span class="line">.text:00401048                 add     ecx, 1</span><br><span class="line">.text:0040104B                 mov     [ebp+nNum], ecx</span><br><span class="line">.text:0040104E                 jmp     short loc_401036</span><br><span class="line">.text:00401050 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:00401050</span><br><span class="line">.text:00401050 loc_401050:                             ; CODE XREF: _main_0+2A↑j</span><br><span class="line">.text:00401050                 mov     edx, [ebp+nSum]</span><br></pre></td></tr></table></figure>
+
+<p>前面对两个变量进行初始化，与do循环的区别是先进行判断比较，使用cmp指令将nNum和100进行比较，jg(大于)指令符合的话就跳转到401050地址的输出nSum值，否则就执行循环体。</p>
+<h3 id="结构-2"><a href="#结构-2" class="headerlink" title="结构"></a>结构</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">;初始化变量</span><br><span class="line"></span><br><span class="line">LOC_WHILE：</span><br><span class="line">         cmp xxx,xxx;比较循环变量</span><br><span class="line">         jxx LOC_WHILEEND</span><br><span class="line">         ;循环体</span><br><span class="line">         jmp LOC_WHILE</span><br><span class="line">LOC_SHILEEND:</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>在这三种循环结构中，循环效率从高到低排序：DO&gt;while&gt;for</strong></p>
+]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言代码逆向基础--分支结构</title>
+    <url>/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础–分支结构"><a href="#C语言代码逆向基础–分支结构" class="headerlink" title="C语言代码逆向基础–分支结构"></a>C语言代码逆向基础–分支结构</h1><p>C语言中有两种分支结构，if…else…结构和switch…case…default…结构</p>
+<h2 id="if-x2F-else结构分支"><a href="#if-x2F-else结构分支" class="headerlink" title="if&#x2F;else结构分支"></a>if&#x2F;else结构分支</h2><p>写一个简单的C语言例子，代码如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> a=<span class="number">0</span>,b=<span class="number">1</span>,c=<span class="number">2</span>;</span><br><span class="line">  <span class="keyword">if</span>(a&gt;b)</span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,a);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span>(b&lt;=c)</span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,b);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">	  <span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,c);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用VC对其进行编译，使用IDA打开DeBUG文件夹下的可执行文件，IDA自动识别main函数。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306161200268.png" class title="image-20230306161200268">
+
+
+
+<p>我们来看关键的反汇编代码，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+var_4], 0</span><br><span class="line">.text:0040102F                 mov     [ebp+var_8], 1</span><br><span class="line">.text:00401036                 mov     [ebp+var_C], 2</span><br></pre></td></tr></table></figure>
+
+<p>以上三行反汇编代码为对定义变量的初始化，其余反汇编代码可以分为三部分来观察，前两段代码都有<strong>cmp&#x2F;jxx&#x2F;printf &#x2F;jmp</strong>这些指令特征，这就是if…else…的特征所在。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306161702543.png" class title="image-20230306161702543">
+
+<p>观察IDA绘制的反汇编流程图</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306162145599.png" class title="image-20230306162145599">
+
+<p>在反汇编中，C语言代码中”&gt;”对应的是jle(小于等于则跳转),”&lt;&#x3D;”在反汇编中对应的是jg(大于则跳转)，反汇编代码与C语言中比较是相反的。只有当jxx指令没有发生跳转，才执行jxx到jmp之间的指令，否则会进行跳转。</p>
+<p>简单阐述一下上图：</p>
+<p>C语言的if判断反汇编代码，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">jle     short loc_401058</span><br><span class="line">.text:00401045                 mov     ecx, [ebp+var_4]</span><br><span class="line">.text:00401048                 push    ecx</span><br><span class="line">.text:00401049                 push    offset Format   ; &quot;%d \r\n&quot;</span><br><span class="line">.text:0040104E                 call    _printf</span><br><span class="line">.text:00401053                 add     esp, 8</span><br><span class="line">.text:00401056                 jmp     short loc_401084</span><br></pre></td></tr></table></figure>
+
+<p>这里如果jle(小于等于)符合条件，则跳转到loc_401058，执行else if判断语句，若不符合则执行jle到jmp之间的指令，并最后跳转到401084地址，代表这判断结束，程序结束。</p>
+<p>else if判断反汇编代码，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:0040105E                 jg      short loc_401073</span><br><span class="line">.text:00401060                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401063                 push    eax</span><br><span class="line">.text:00401064                 push    offset Format   ; &quot;%d \r\n&quot;</span><br><span class="line">.text:00401069                 call    _printf</span><br><span class="line">.text:0040106E                 add     esp, 8</span><br><span class="line">.text:00401071                 jmp     short loc_401084</span><br></pre></td></tr></table></figure>
+
+<p>如果jg(大于)符合条件，则跳转到401073地址处执行else语句，否则就执行其语句，最后依然跳转到401084地址，退出程序。</p>
+<h3 id="结构小结"><a href="#结构小结" class="headerlink" title="结构小结"></a>结构小结</h3><p>if…else…结构与反汇编代码的对应结构如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">; 初始化变量</span><br><span class="line">mov xxxx,xxxx</span><br><span class="line">mov xxxx,xxxx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">_if:</span><br><span class="line">    ;比较跳转</span><br><span class="line">    cmp xxxx,xxxx</span><br><span class="line">    jxx _else_if</span><br><span class="line">    ;一系列指令（不符合执行一系列指令，符合即调转else_if）</span><br><span class="line">    ......</span><br><span class="line">    jmp _if_else结束位置</span><br><span class="line">_else_if:</span><br><span class="line">    ; 比较跳转</span><br><span class="line">    mov xxx,xxx</span><br><span class="line">    cmp xxx,xxx</span><br><span class="line">    jxx _else（不符合执行一系列指令，符合即调转_else）</span><br><span class="line">    .....</span><br><span class="line">    jmp _if_else结束位置</span><br><span class="line">_else:</span><br><span class="line">    ;一系列指令</span><br><span class="line">    ......</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="switch结构分支"><a href="#switch结构分支" class="headerlink" title="switch结构分支"></a>switch结构分支</h2><p>编写个简单的Switch结构分支</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">int</span> nNum=<span class="number">0</span>;</span><br><span class="line">   <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;nNum);</span><br><span class="line">   <span class="keyword">switch</span>(nNum)</span><br><span class="line">   &#123;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;1 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;2 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;3 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">case</span> <span class="number">4</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;4 \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   <span class="keyword">default</span>:</span><br><span class="line">	   &#123;</span><br><span class="line">		   <span class="built_in">printf</span>(<span class="string">&quot;default \r\n&quot;</span>);</span><br><span class="line">		   <span class="keyword">break</span>;</span><br><span class="line">	   &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接来看下关键代码，如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306170007355.png" class title="image-20230306170007355">
+
+<p>Switch流程分支图如下</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80--%E5%88%86%E6%94%AF%E7%BB%93%E6%9E%84/image-20230306170109505.png" class title="image-20230306170109505">
+
+<p>观察可以得到左边的四个分支为case分支，右边那个为default部分。</p>
+<p>我们先来看下scanf()函数部分反汇编代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 mov     [ebp+var_4], 0</span><br><span class="line">.text:0040102F                 lea     eax, [ebp+var_4]</span><br><span class="line">.text:00401032                 push    eax</span><br><span class="line">.text:00401033                 push    offset aD       ; &quot;%d&quot;</span><br><span class="line">.text:00401038                 call    _scanf</span><br><span class="line">.text:0040103D                 add     esp, 8</span><br></pre></td></tr></table></figure>
+
+<p>这里的var_4就是nNum变量，首先使用mov为nNum变量赋值，然后将其地址送入ecx寄存器，然后通过调用scanf()函数,nNum接受用户输入，函数调用完后将esp恢复到调用前</p>
+<p>接受用户输入后，就进入了Switch()分支的部分，反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401040                 mov     ecx, [ebp+var_4]</span><br><span class="line">.text:00401043                 mov     [ebp+var_8], ecx</span><br><span class="line">.text:00401046                 mov     edx, [ebp+var_8]</span><br><span class="line">.text:00401049                 sub     edx, 1          ; switch 4 cases</span><br><span class="line">.text:0040104C                 mov     [ebp+var_8], edx</span><br><span class="line">.text:0040104F                 cmp     [ebp+var_8], 3</span><br><span class="line">.text:00401053                 ja      short def_401058 ; jumptable 00401058 default case</span><br><span class="line">.text:00401055                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401058                 jmp     ds:jpt_401058[eax*4] ; switch jump</span><br></pre></td></tr></table></figure>
+
+<p>从00401040到00401053地址之间的代码是为了对nNum变量进行判断，若nNum-1的值大于3，则跳转到401058地址(default语句)，如不符合则执行Case语句。这就是流程图被分为两个部分的原因。</p>
+<p>接下来我们来看看要执行的case分支，代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401055                 mov     eax, [ebp+var_8]</span><br><span class="line">.text:00401058                 jmp     ds:jpt_401058[eax*4] ; switch jump</span><br></pre></td></tr></table></figure>
+
+<p>将var_8的值传递给eax寄存器，然后跳转jpt_401058[eax* 4],像是一个数组，数组下标由eax寄存器进行寻址。</p>
+<p>jpt_401058处的内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">04010BB jpt_401058      dd offset loc_40105F    ; DATA XREF: _main_0+48↑r</span><br><span class="line">.text:004010BB                 dd offset loc_40106E    ; jump table for switch statement</span><br><span class="line">.text:004010BB                 dd offset loc_40107D</span><br><span class="line">.text:004010BB                 dd offset loc_40108C</span><br><span class="line">.text:004010CB                 align 40h</span><br></pre></td></tr></table></figure>
+
+<p>其内容为4个连续的标号地址，为40105F、40106E、40107D、40108C，分别对应4个Case的代码，通过var_8中对应的值进行访问。</p>
+<h3 id="结构小结-1"><a href="#结构小结-1" class="headerlink" title="结构小结"></a>结构小结</h3><p>Switch结构分支通过一次比较就可分为case和default两个流程，在case分支中，通过将传入变量的值为跳转数组下标来访问对应case子分支的执行语句。</p>
+]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言代码逆向基础-函数的识别</title>
+    <url>/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">test</span><span class="params">(<span class="keyword">char</span>* szStr, <span class="keyword">int</span> nNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s,%d \r\n&quot;</span>, szStr, nNum);</span><br><span class="line">	MessageBox(<span class="literal">NULL</span>, szStr, <span class="literal">NULL</span>, MB_OK);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>, nNum);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>使用IDA打开其编译文件下生成的DEGUB文件夹下生成的可执行文件exe进行逆向分析</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102359476.png" class title="image-20230306102359476">
+
+<h2 id="函数的逆向分析"><a href="#函数的逆向分析" class="headerlink" title="函数的逆向分析"></a>函数的逆向分析</h2><p>IDA识别出跳转到main()函数的跳表项，切换到文本视图，可以找到main()的跳表项</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102811711.png" class title="image-20230306102811711">
+
+
+
+<p>但并不是每个程序都能被IDA识别跳转到main()函数的跳表项，我们选择exports窗口，这里显示的是程序的入口函数，可以看到start,这是有编译器插入的函数。是编译后的启动函数。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230305181647077.png" class title="image-20230305181647077">
+
+
+
+<p>点击可以看到mainCRTStartup代码，<strong>在C语言中main()不是程序运行的第一个函数，而是程序员编写程序时的第一个函数，main()函数是由启动函数来调用的</strong>。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306102216789.png" class title="image-20230306102216789">
+
+<p>从反汇编代码中可以看到，启动函数从004011D0地址处开始，通过调用一系列启动所需工作后(GetVersion()函数、GetCommandLineA()函数等)，在004012B4处调用了_main.</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306103124003.png" class title="image-20230306103124003">
+
+
+
+<p>在VC中，启动函数会依次调用GetVersion()、GetCommandLineA()、GetEnvironmentStringA()等函数这以明显特征，在调用完GetEnviro nmentStringA()函数后有三个PUSH操作</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:004012A0                 mov     edx, envp</span><br><span class="line">.text:004012A6                 push    edx             ; envp</span><br><span class="line">.text:004012A7                 mov     eax, argv</span><br><span class="line">.text:004012AC                 push    eax             ; argv</span><br><span class="line">.text:004012AD                 mov     ecx, argc</span><br><span class="line">.text:004012B3                 push    ecx             ; argc</span><br><span class="line">.text:004012B4                 call    _main</span><br></pre></td></tr></table></figure>
+
+<p>该反汇编代码对应的C代码如下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> WPRFLAG</span></span><br><span class="line">​             __winitenv = _wenviron;</span><br><span class="line">              mainret = wmain(_argc,_wargv,_wenviron);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span> </span></span><br><span class="line">              __initenv = _environ;</span><br><span class="line">              mainret = main(_argc,_grav,_environ);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">​                          </span><br></pre></td></tr></table></figure>
+
+<p>可以看到调用Main()函数时有三个参数，在三个PUSH操作后第一个CALL就是_main的函数地址。在004012C3地址处指令为 _exit,在判断程序是由VC6编译的，找到 _exit的调用，向上找到call指令就为 _main所对应的地址</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306104856179.png" class title="image-20230306104856179">
+
+
+
+<p>双击反汇编的_main进入main函数的跳表，通过特征我们可以看到对sub_40100A、printf函数的调用。</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306105349403.png" class title="image-20230306105349403">
+
+<p>函数入口部分地址如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:004010A0                 push    ebp</span><br><span class="line">.text:004010A1                 mov     ebp, esp</span><br><span class="line">.text:004010A3                 sub     esp, 44h</span><br><span class="line">.text:004010A6                 push    ebx</span><br><span class="line">.text:004010A7                 push    esi</span><br><span class="line">.text:004010A8                 push    edi</span><br><span class="line">.text:004010A9                 lea     edi, [ebp+var_44]</span><br><span class="line">.text:004010AC                 mov     ecx, 11h</span><br><span class="line">.text:004010B1                 mov     eax, 0CCCCCCCCh</span><br><span class="line">.text:004010B6                 rep stosd</span><br></pre></td></tr></table></figure>
+
+<p>大多数入口处都为push ebp&#x2F; mov ebp,esp &#x2F; sub esp,XXX的形式，完成了保存栈，并开辟当前函数的栈空间。push ebx&#x2F;esi&#x2F;edi是用来保存几个关键寄存器的值，以便函数返回后几个寄存器的值还能继续使用，lea  edi, [ebp+var_44]到rep stosd的指令是将开辟的内存空间全部初始化为0XCC(int 3,调用3号断点产生软件中断)，方便调试。上面代码固定形式，唯一改变的是sub esp,xxx指令，在VC6下使用Debug编译，若当前没有变量则为40h,有一个指令为44h,以此类推，函数编译时总是预留了40h字节的空间。</p>
+<p>函数出口代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:004010DD                 pop     edi</span><br><span class="line">.text:004010DE                 pop     esi</span><br><span class="line">.text:004010DF                 pop     ebx</span><br><span class="line">.text:004010E0                 add     esp, 44h</span><br><span class="line">.text:004010E3                 cmp     ebp, esp</span><br><span class="line">.text:004010E5                 call    __chkesp</span><br><span class="line">.text:004010EA                 mov     esp, ebp</span><br><span class="line">.text:004010EC                 pop     ebp</span><br><span class="line">.text:004010ED                 retn</span><br><span class="line">.text:004010ED _main_0         endp</span><br></pre></td></tr></table></figure>
+
+<p>与入口代码相同，出口代码也是固定格式，使用pop指令将入口保存的关键寄存器值进行恢复，并且恢复esp指针的值，将临时开辟的栈空间释放掉，可以观察到开辟空间使用sub指令，释放空间使用add指令，由此判断栈的方向是由高向低地址沿伸的，然后使用retn返回上层函数。其中__chkesp函数是检测栈是否平衡，否则给出错误提示。</p>
+<p>前面的函数入口代码和出口代码在每个函数中都是类似的，我们再来看下剩余的反汇编代码，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:004010B8                 push    6               ; int</span><br><span class="line">.text:004010BA                 push    offset Text     ; &quot;hello&quot;</span><br><span class="line">.text:004010BF                 call    sub_40100A</span><br><span class="line">.text:004010C4                 add     esp, 8</span><br><span class="line">.text:004010C7                 mov     [ebp+var_4], eax</span><br><span class="line">.text:004010CA                 mov     eax, [ebp+var_4]</span><br><span class="line">.text:004010CD                 push    eax</span><br><span class="line">.text:004010CE                 push    offset aD       ; &quot;%d \r\n&quot;</span><br><span class="line">.text:004010D3                 call    _printf</span><br><span class="line">.text:004010D8                 add     esp, 8</span><br><span class="line">.text:004010DB                 xor     eax, eax</span><br></pre></td></tr></table></figure>
+
+<p>首先从push 6开始到mov [ebp+var_4],eax这一串指令是主函数对test函数的调用。在VC中，默认使用cddel函数对于参数的传递依靠栈内存依次从右往左送入栈中。在C代码中，我们对test()函数的调用形式如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br></pre></td></tr></table></figure>
+
+<p>所以第一个指令是PUSH 6，然后才是PUSH offset.接下来的add esp,8指令是将esp恢复到调用前的值，这里的8是将前面的PUSH操作释放内存空间。</p>
+<p>函数返回值一般保存在eax寄存器中，mov [ebp+var_4],eax将test函数返回值保存在在[ebp+var_4]中，相当于C语言中的nNum变量。xor eax,eax指令将eax进行清零，即main()函数返回值为0。</p>
+<p>接下来，我们来看下test函数，test函数跳表如下：</p>
+<img src="/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/image-20230306114357641.png" class title="image-20230306114357641">
+
+<p>除去入口和出口代码，中间的代码主要为printf()函数和MessageBoxA()函数的反汇编代码。</p>
+<p>调用printf()函数的反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401038                 mov     eax, [ebp+arg_4]</span><br><span class="line">.text:0040103B                 push    eax</span><br><span class="line">.text:0040103C                 mov     ecx, [ebp+lpText]</span><br><span class="line">.text:0040103F                 push    ecx</span><br><span class="line">.text:00401040                 push    offset Format   ; &quot;%s,%d \r\n&quot;</span><br><span class="line">.text:00401045                 call    _printf</span><br><span class="line">.text:0040104A                 add     esp, 0Ch</span><br></pre></td></tr></table></figure>
+
+<p>调用MessageBoxA()函数的反汇编代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:0040104F                 push    0               ; uType</span><br><span class="line">.text:00401051                 push    0               ; lpCaption</span><br><span class="line">.text:00401053                 mov     edx, [ebp+lpText]</span><br><span class="line">.text:00401056                 push    edx             ; lpText</span><br><span class="line">.text:00401057                 push    0               ; hWnd</span><br><span class="line">.text:00401059                 call    ds:MessageBoxA</span><br></pre></td></tr></table></figure>
+
+<p>其中两个代码中间还有个add esp,oCh，是将esp恢复到函数调用前的值。而MessageBoxA()函数为Windows系统下的API函数，使用stdcall调用约定，参数的平栈是在API函数里面进行的。</p>
+<p>这两个函数调用指令也存在区别，由于printf()函数是属于C语言的静态库，在连接时会将其代码二进制文件中，而MessageBoxA函数是在user32.dll这个动态连接库中，只保留了其入口地址，没有具体代码连接，而其代码在数据节中，使用”ds:”前缀</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在逆向分析函数时</p>
+<ul>
+<li>首先确定函数起始位置，通常由IDA自动识别</li>
+<li>掌握函数的调用约定和确定函数的参数个数，通过平栈的方式和平栈时对esp操作的值来进行判断</li>
+<li>最后观察函数的返回值，通常关注esp的值，可以确定返回值的类型，然后进一步考虑函数调用方下一步的操作。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
 </search>
