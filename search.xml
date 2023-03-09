@@ -10356,7 +10356,10 @@
   <entry>
     <title>C语言代码逆向基础-函数的识别</title>
     <url>/2023/03/06/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%87%BD%E6%95%B0%E7%9A%84%E8%AF%86%E5%88%AB/</url>
-    <content><![CDATA[<h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
+    <content><![CDATA[<h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><p>当函数执行时，程序流转会转到函数体的实现地址处，只有遇到return或者”}”符号才返回到下一跳语句的地址处，并且很多高级语言在传递参数时会执行将实参复制给形参这一操作。下面我们来看看函数的具体操作。</p>
+<h2 id="函数工作原理"><a href="#函数工作原理" class="headerlink" title="函数工作原理"></a>函数工作原理</h2><h3 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h3><p>栈在内存中是一块特殊的存储空间，存储原则是“先进后出”。汇编指令通常使用PUSH和POP指令对栈空间执行数据压入和数据出栈操作。使用esp(栈顶寄存器)和ebp(栈底寄存器)每4个字节的栈空间保存一个数据，并且栈通常是由高地址向低地址延伸。</p>
+<p><strong>栈平衡</strong>：在进入某个函数实现时，一般会预先保存栈底指针ebp，以便函数退出后还原到以前的栈顶。退出函数后会将ebp和esp进行对比，检测当前栈帧是否正确关闭，若不平衡则调用_chkesp函数弹窗提示错误。</p>
+<h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">test</span><span class="params">(<span class="keyword">char</span>* szStr, <span class="keyword">int</span> nNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s,%d \r\n&quot;</span>, szStr, nNum);</span><br><span class="line">	MessageBox(<span class="literal">NULL</span>, szStr, <span class="literal">NULL</span>, MB_OK);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>, nNum);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
@@ -10430,6 +10433,250 @@
 <li>掌握函数的调用约定和确定函数的参数个数，通过平栈的方式和平栈时对esp操作的值来进行判断</li>
 <li>最后观察函数的返回值，通常关注esp的值，可以确定返回值的类型，然后进一步考虑函数调用方下一步的操作。</li>
 </ul>
+<p><strong>启动函数</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">GetVersion(): 获取当前运行平台的版本号</span><br><span class="line">_heap_init(): 用于初始化堆空间，使用heapcreate申请堆空间，申请空间由_heap_init_传递的参数决定，_sbh_heap_init()用于初始化堆结构信息</span><br><span class="line">GetCommandLineA(): 获取命令行参数信息的首地址</span><br><span class="line">_crtGetenvironmentStringA(): 获取环境变量信息的首地址</span><br><span class="line">_setargv(): 将获取的命令行参数进行分析，将分离出的参数个数保存在全局变量_argc中，将命令行参数首地址存放在全局变量_argv中</span><br><span class="line">_setenvp(): 获取环境变量信息的首地址，将环境变量首地址放在全局变量env中</span><br><span class="line"></span><br><span class="line">_argc、_argv、env这三个全局变量作为参数</span><br><span class="line"></span><br><span class="line">_cinit(): 用于全局数据和浮点寄存器的</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>调用流程</strong></p>
+<ul>
+<li><p>参数传递 。</p>
+<p>通过栈或者寄存器方式传递参数</p>
+</li>
+<li><p>函数调用，返回地址压栈。</p>
+<p>使用call指令调用参数，将返回地址压入栈中</p>
+</li>
+<li><p>保存栈底。</p>
+<p>使用栈底空间保存调用方式的栈底寄存器ebp</p>
+</li>
+<li><p>申请栈空间和保存寄存器环境。</p>
+<p>根据函数内局部变量的大小抬高栈顶让出对应的栈空间，并且将修改的寄存器保存在栈内</p>
+</li>
+<li><p>函数实现代码</p>
+</li>
+</ul>
+<p>​       函数实现过程的代码</p>
+<ul>
+<li><p>还原环境</p>
+<p>还原栈中保存的寄存器信息</p>
+</li>
+<li><p>平衡栈空间</p>
+<p>平衡局部变量使用的栈空间</p>
+</li>
+<li><p>ret返回，结束函数调用</p>
+<p>在栈顶取出保存的返回地址，更新EIP</p>
+<p>在非_cdecl调用方式下，平衡参数占用栈空间</p>
+</li>
+<li><p>调整esp，平衡栈顶</p>
+<p>此处为_cdecl特有的方式，用于平衡参数占用的栈顶</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言代码逆向基础-变量在内存中的位置和访问方式</title>
+    <url>/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础-变量在内存中的位置和访问方式"><a href="#C语言代码逆向基础-变量在内存中的位置和访问方式" class="headerlink" title="C语言代码逆向基础-变量在内存中的位置和访问方式"></a>C语言代码逆向基础-变量在内存中的位置和访问方式</h1><p>在程序中，包含全局变量、局部变量和静态变量。全局变量和局部变量的最大区别是生命周期不同，</p>
+<h2 id="全局变量和局部变量的区别"><a href="#全局变量和局部变量的区别" class="headerlink" title="全局变量和局部变量的区别"></a>全局变量和局部变量的区别</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int a=0;</span><br><span class="line">int b=1;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">	int c=3;</span><br><span class="line">	int d=4;</span><br><span class="line">	scanf(&quot;%d,%d&quot;,&amp;c,&amp;d);</span><br><span class="line">	printf(&quot;%d %d\r\n&quot;,c,d);</span><br><span class="line">	scanf(&quot;%d,%d&quot;,&amp;a,&amp;b);</span><br><span class="line">	printf(&quot;%d %d\r\n&quot;,a,b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编关键代码：</p>
+<img src="/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/image-20230308101618149.png" class title="image-20230308101618149">
+
+<p>可以观察得到，全局变量和局部变量的特征：</p>
+<p><strong>全局变量</strong></p>
+<ul>
+<li>所在地址为数据区，生命周期与所在模块一致</li>
+<li>使用立即数间接访问</li>
+<li>先定义变量在低地址，后定义变量在高地址</li>
+</ul>
+<p><strong>局部变量</strong></p>
+<ul>
+<li>所在地区为栈区，生命周期与 所在函数作用域一致</li>
+<li>使用ebp或者esp间接访问</li>
+<li>先定义变量在低地址，后定义变量在高地址</li>
+</ul>
+<h2 id="局部静态变量"><a href="#局部静态变量" class="headerlink" title="局部静态变量"></a>局部静态变量</h2><p>局部静态变量和全局变量都保存在执行文件中的数据区中，且生命周期都相同。如果函数被频繁调用，由于C++语法规定局部静态变量指被初始化一次，那么如何保证编译器每次进入函数体中赋值操作只执行一次？</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">showStatic</span><span class="params">( <span class="keyword">int</span> number)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">int</span> a=number;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>,a);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		showStatic(i);<span class="comment">//循环调用局部静态变量，每次传入不同值</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行程序发现每次输出都为0</p>
+<img src="/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/image-20230308102945748.png" class title="image-20230308102945748">
+
+<p>关键反汇编代码如下：</p>
+<img src="/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/image-20230308103936295.png" class title="image-20230308103936295">
+
+
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">xor     eax, eax</span><br></pre></td></tr></table></figure>
+
+<p>对eax进行异或指令，eax清空。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov     al, byte_42AE5C</span><br></pre></td></tr></table></figure>
+
+<p>取地址42AE5C处1字节数据到al中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">and     eax, 1</span><br><span class="line">test    eax, eax</span><br></pre></td></tr></table></figure>
+
+<p>将eax与数值1做位与运算，eax最终结果只能是0或1</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">jnz     short loc_40104E</span><br><span class="line">mov     cl, byte_42AE5C</span><br><span class="line">or      cl, 1</span><br><span class="line">mov     byte_42AE5C, cl</span><br><span class="line">mov     edx, [ebp+arg_0]</span><br><span class="line">mov     dword_42AE60, edx</span><br></pre></td></tr></table></figure>
+
+<p>比较eax,不等于0则执行跳转，等于0则跳转40104E处；通过位运算将标志中的以为数据置1，以此来判断是否已经被初始化。</p>
+<h2 id="堆变量"><a href="#堆变量" class="headerlink" title="堆变量"></a>堆变量</h2><p>使用malloc与new实现堆空间的申请，返回的数据便是申请的堆堆空间地址，使用free和delete完成堆空间的释放。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> * pCharMalloc = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">10</span>);</span><br><span class="line">	<span class="keyword">char</span> * pCharNew = <span class="keyword">new</span> <span class="keyword">char</span>[<span class="number">10</span>];</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(pCharMalloc != <span class="literal">NULL</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">delete</span> [] pCharNew;</span><br><span class="line">		pCharNew = <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>(pCharMalloc != <span class="literal">NULL</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">free</span>(pCharMalloc);</span><br><span class="line">		pCharMalloc = <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>申请内存空间反汇编关键代码如下：</p>
+<img src="/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/image-20230308125551446.png" class title="image-20230308125551446">
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.text:00401028                 push    0Ah             ; Size</span><br><span class="line">.text:0040102A                 call    _malloc</span><br><span class="line">.text:0040102F                 add     esp, 4</span><br></pre></td></tr></table></figure>
+
+<p>先使用push指令开辟0Ah字节(10字节)，然后调用Malloc函数，在平衡esp指针；new指令也是先使用push指令申请空间，然后再调用函数，最后平衡指针。</p>
+<p>释放内存空间反汇编代码如下：</p>
+<img src="/2023/03/08/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E5%8F%98%E9%87%8F%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E4%BD%8D%E7%BD%AE%E5%92%8C%E8%AE%BF%E9%97%AE%E6%96%B9%E5%BC%8F/image-20230308130640408.png" class title="image-20230308130640408">]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言代码逆向基础-数组和指针的寻址</title>
+    <url>/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础-数组和指针的寻址"><a href="#C语言代码逆向基础-数组和指针的寻址" class="headerlink" title="C语言代码逆向基础-数组和指针的寻址"></a>C语言代码逆向基础-数组和指针的寻址</h1><p> 数组和指针都是针对地址操作。数组是相同数据类型的数据集合，以线性连续存储在内存中，而指针是一个保存地址值的4字节变量。在使用中，数组名是一个地址常量值，保存数组首元素地址不可修改，以此为基地址访问其他元素；而指针是个变量，只要修改指针中所保存的地址数据就可以随意访问。</p>
+<h2 id="数组在函数内"><a href="#数组在函数内" class="headerlink" title="数组在函数内"></a>数组在函数内</h2><p>在函数内定义数组时，该数组为局部变量</p>
+<p>数组与局部变量对比如下：</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308210325286.png" class title="image-20230308210325286">
+
+<p>可以观察到数组数据在内存中连续且类型都一致</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308210610587.png" class title="image-20230308210610587">
+
+<p>这里var_14为常量-14，执行“ebp+var_14”后访问的地址最小，以此地址为数组的首地址，数组地址是从低地址向高地址延伸。</p>
+<p><strong>字符串初始化为字符数组</strong></p>
+<p>就是复制字符串的过程，使用寄存器每次复制4字节的数据，字符串规定最后一个数据使用0来作为字符串结束符。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308212638598.png" class title="image-20230308212638598">
+
+<p>其反汇编代码如下：</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308211516702.png" class title="image-20230308211516702">
+
+<p>这里使用了eax,ecx,edx三个寄存器，将常量字符串分为3段共12个字节，分为三个寄存器来进行保存实现中间传递。</p>
+<p>当字符串不为4的倍数时如何进行传递，请看下面反汇编代码</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308212717939.png" class title="image-20230308212717939">
+
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308213221776.png" class title="image-20230308213221776">
+
+<p>这里的字符串为11字节，不为4的倍数。其中前八个字节数据复制过程没有变化，最后三个字节被分割为两部分，先使用dx复制两字节的数据，在使用al复制一个字节数据。</p>
+<h2 id="数组作为参数"><a href="#数组作为参数" class="headerlink" title="数组作为参数"></a>数组作为参数</h2><p>当数组作为参数进行传递时，数组所占内存大小通常大于4字节。 </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show</span><span class="params">(<span class="keyword">char</span> a[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">strcpy</span>(a,<span class="string">&quot;Hello World&quot;</span>);</span><br><span class="line">	<span class="built_in">printf</span>(a);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> b[<span class="number">20</span>]=&#123;<span class="number">0</span>&#125;;</span><br><span class="line">	show(b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main()函数关键反汇编代码如下</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308221841271.png" class title="image-20230308221841271">
+
+<p>先对数组进行初始化为0，将数组首地址作为参数调用show函数。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230308222455518.png" class title="image-20230308222455518">
+
+<p>在show函数中，取常量“Hello World”首地址和函数参数首地址压入栈中作为strcpy函数的参数，然后add esp 8指令用来平衡栈。</p>
+<p>可以观察到当数组作为函数形参时，函数参数保存的是数组的首地址，是一个指针变量。使用sizeof(数组名)可以获取数组的大小，而对指针或者形参中保存的数组名使用sizeof只能得到当前平台的指针长度，32位环境下指针长度位4字节。应当使用**strlen()**函数获取字符串长度。</p>
+<h2 id="数组作为返回值"><a href="#数组作为返回值" class="headerlink" title="数组作为返回值"></a>数组作为返回值</h2><p>数组作为返回值和数组作为函数参数大同小异，都是将数组首地址以指针方式进行传递。而两者也有不同，当数组作为函数参数时，其定义的作用域必然在函数调用之前就已经存在；但数组作为局部变量数据时，当退出函数时需平衡栈，产生了稳定性问题。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">char* show()</span><br><span class="line">&#123;</span><br><span class="line">	char buff[] = &#123;&quot;Hello World&quot;&#125;;</span><br><span class="line">	return buff;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	printf(&quot;%s \r\n&quot;,show());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>show函数关键反汇编代码如下，使用eax、ecx、edx三个寄存器传递对字符串数组初始化字符串，最后使用eax保存数组首地址作为函数返回值。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309083657878.png" class title="image-20230309083657878">
+
+<p>main函数关键反汇编代码如下，由于eax保存数组首地址将其压入栈中，最后栈平衡。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309084218952.png" class title="image-20230309084218952">
+
+<p>由于数组buff为局部变量，其地址是栈空间中的某段内存空间，其中的数据会在作用域切换时被新数据替换，因此返回地址随时会产生错误。要想避免该错误，可以使用全局数组、静态数组或者上层函数中定义的局部数组。</p>
+<p><strong>使用全局数组</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int a[5] = &#123;1,2,3,4,5&#125;;</span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	int* pint = a;</span><br><span class="line">	do&#123;</span><br><span class="line">		printf(&quot;%d \r\n&quot;,*pint);</span><br><span class="line">		pint++;</span><br><span class="line">	&#125;while(pint&lt;a+5);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编关键代码如下</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309090735648.png" class title="image-20230309090735648">
+
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309091149378.png" class title="image-20230309091149378">
+
+<p>循环体中使用”cmp     [ebp+var_4], offset unk_42B63C”与常量值相比，这里常量地址为0042B63C，而数组首地址为42B628，所以常量地址正是全局数据的结尾地址。</p>
+<h2 id="下标寻址和指针寻址"><a href="#下标寻址和指针寻址" class="headerlink" title="下标寻址和指针寻址"></a>下标寻址和指针寻址</h2><p>访问数组有两种方式：下标寻址和通过指针寻址。指针寻址的方式不但没有下标寻址方式便利，效率也比下标寻址低，我们来看下两者区别。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> * a = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">char</span> buff [] = <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line">	a=buff;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%c\r\n&quot;</span>,*a);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%c\r\n&quot;</span>,buff[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编关键代码如下</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309094749811.png" class title="image-20230309094749811">
+
+<p>首先对指针变量var_4进行初始化，将”Hello World”子符串传递给buff数组，使用edx获取数组首地址，取出指针变量中保存的地址数据，使用movsx指令对地址实现间接访问其他的数据；而下标寻址则是直接将数组首地址的数据传给edx压入栈中。指针寻址需要经过2次寻址才能得到目标数据，而下标寻址只需1次寻址就可以得到，由此可以得出结论，下标寻址比指针寻址操作效率高。</p>
+<p>但是使用下标寻址的话，需要注意越界访问的错误。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> a[<span class="number">4</span>] = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>&#125;;</span><br><span class="line">	<span class="keyword">int</span> number = <span class="number">5</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d\r\n&quot;</span>,a[<span class="number">-1</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于vc++6.0没有对数组下标进行访问检查，程序运行结果为5</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309101704956.png" class title="image-20230309101704956">
+
+<p>运行结果为什么为5呢？我们来看下其反汇编关键代码</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309101921611.png" class title="image-20230309101921611">
+
+<p>可以从反汇编代码中看到此时a[-1]的地址为ebp-14h，这正是number变量所在的地址，根据局部变量定义，人为将变量定义在数组之下，从而造成负数下标的越界访问。</p>
+<h2 id="存放指针类型数据的数组"><a href="#存放指针类型数据的数组" class="headerlink" title="存放指针类型数据的数组"></a>存放指针类型数据的数组</h2><p>存放指针类型数据的数组就是数组中各数据元素都是由相同类型的指针组成的。对指针数组的数据访问需要对其进行间接访问。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> * a[<span class="number">3</span>] = &#123;<span class="string">&quot;Hello &quot;</span>,<span class="string">&quot;World &quot;</span>,<span class="string">&quot;! \r\n&quot;</span>&#125;;</span><br><span class="line">	<span class="keyword">int</span> i=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span>(;i&lt;<span class="number">3</span>;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(a[i]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编关键代码为</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309145007008.png" class title="image-20230309145007008">
+
+<p>指针数组中存储这每个字符串的首地址，二维字符数组存储着每个字符的字符数据。</p>
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>函数指针是用来保存函数指针首地址的指针变量。定义如下：返回值类型  (* 函数指针变量名称) (参数信息)</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">show</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;show\r\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in"><span class="keyword">void</span></span> (*a)()=&amp;show;</span><br><span class="line">	<span class="built_in">a</span>();</span><br><span class="line">	<span class="built_in">show</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>反汇编关键代码如下</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E6%95%B0%E7%BB%84%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%AF%BB%E5%9D%80/image-20230309151147156.png" class title="image-20230309151147156">
+
+<p>其过程是将show函数地址入口取出保存在指针变量a中，然后再调用a保存的地址，与函数直接调用需要间接调用。</p>
+]]></content>
+      <categories>
+        <category>逆向分析</category>
+        <category>C/C++</category>
+        <category>基础知识</category>
+      </categories>
+      <tags>
+        <tag>-逆向 -C语言</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C语言代码逆向基础-结构体与类</title>
+    <url>/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E7%B1%BB/</url>
+    <content><![CDATA[<h1 id="C语言代码逆向基础-结构体与类"><a href="#C语言代码逆向基础-结构体与类" class="headerlink" title="C语言代码逆向基础-结构体与类"></a>C语言代码逆向基础-结构体与类</h1><h2 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h2><p>对象中先定义的数据成员再低地址处，后定义的数据成员再高地址处。</p>
+<p>一般情况下，对象长度&#x3D;sizeof(数据成员1)+…+sizeof(数据成员)</p>
+<p>但仍有三种情况：空类、内存对齐、静态数据成员</p>
+<p><strong>空类</strong></p>
+<p>空类中没有任何成员数据，但需要实例化，所以为1字节</p>
+<p><strong>内存对齐</strong></p>
+<p>数据成员是根据再类或结构体中的顺序来一次申请内存空间的，由于数据类型不同，占用内存空间不同，实际对齐值q&#x3D;min(M,N),M为数据成员长度，N为指定对齐值，其成员地址安排再q的倍数上。VC++6.0默认对齐值为8。</p>
+<p><strong>静态数据成员</strong></p>
+<p>与静态局部变量类似，存放的位置和全局变量一致。再作用域之外不可见，同类对象将共同享用静态数据成员的空间。</p>
+<h2 id="this指针"><a href="#this指针" class="headerlink" title="this指针"></a>this指针</h2><p>this属于指针变量，再32位环境下占4字节，保存的是数据地址信息。  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">setnumber</span><span class="params">(<span class="keyword">int</span> number)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		nint = number;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">int</span> nint;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	test a;</span><br><span class="line">	a.<span class="built_in">setnumber</span>(<span class="number">5</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;test: %d \r\n&quot;</span>,a.nint);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main()反汇编关键代码如下，取出test的首地址存入ecx，然后调用setnumber()中m_nint的数据存入eax中。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E7%B1%BB/image-20230309171602636.png" class title="image-20230309171602636">
+
+<p>setnumber()函数关键反汇编代码如下，这里的eax保存的是对象的首地址，即this指针，然后将地址传递给[ebp-4]地址处，取出地址保存在eax中，取出参数中的数据保存再ecx中，最后将ecx的数据保存再对象首地址，即对nint进行赋值。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E7%B1%BB/image-20230309172149471.png" class title="image-20230309172149471">
+
+<p>在成员函数中访问数据成员通过this指针间接访问的。this指针关键点是在函数过程中使用了ecx作为第一个参数，在ecx中保存对象首地址。</p>
+<h2 id="对象作为函数参数"><a href="#对象作为函数参数" class="headerlink" title="对象作为函数参数"></a>对象作为函数参数</h2><p>对象作为函数的参数时，先将对象中的所有数据进行备份，然后将复制的数据作为形参传递到调用函数中使用。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">int</span> none;</span><br><span class="line">	<span class="keyword">int</span> ntwo;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">setnumber</span><span class="params">(test a)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;%d %d\r\n&quot;</span>,a.none,a.ntwo);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	test b;</span><br><span class="line">	b.none=<span class="number">1</span>;</span><br><span class="line">	b.ntwo=<span class="number">2</span>;</span><br><span class="line">	<span class="built_in">setnumber</span>(b);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main()关键代码如下</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E7%B1%BB/image-20230309175444193.png" class title="image-20230309175444193">
+
+<p>将对象的两个成员变量一次压栈(按照先定义的数据成员最后压栈，后定义的数据先压栈)，他们除了数据相同外，与对象中的两个数据成员没有关系。</p>
+<h2 id="对象作为返回值"><a href="#对象作为返回值" class="headerlink" title="对象作为返回值"></a>对象作为返回值</h2><p>对象作为返回值时，进入函数之前将申请返回对象使用的栈空间，在退出函数时，将返回对象中的数据复制到临时的栈空间中，以这个临时栈空间的首地址作为返回值。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">int</span> number;</span><br><span class="line">	<span class="keyword">int</span> array[<span class="number">5</span>];</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function">test <span class="title">gettest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	test a;</span><br><span class="line">	a.number = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		a.array[i] = i+<span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	test b;</span><br><span class="line">	b = <span class="built_in">gettest</span>();</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d %d %d\r\n&quot;</span>,b.number,b.array[<span class="number">0</span>],b.array[<span class="number">4</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取返回对象的栈空间首地址，然后将对象的首地址压入栈中，用于保存返回对象的数据。</p>
+<img src="/2023/03/09/C%E8%AF%AD%E8%A8%80%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80-%E7%BB%93%E6%9E%84%E4%BD%93%E4%B8%8E%E7%B1%BB/image-20230309210026570.png" class title="image-20230309210026570">
+
+<p>在函数调用结束后进行了数据复制，将局部对象的数据复制到这个返回对象的空间中，再将这个返回的对象复制给目标对象。</p>
 ]]></content>
       <categories>
         <category>逆向分析</category>

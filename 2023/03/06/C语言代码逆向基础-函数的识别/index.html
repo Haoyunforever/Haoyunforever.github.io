@@ -89,7 +89,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">1.7k</span>
+            <span class="post-count">2.4k</span>
         </span>
     </span>
 
@@ -98,7 +98,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">7 分钟</span>
+            <span class="post-count">9 分钟</span>
         </span>
     </span>
 </div>
@@ -113,7 +113,10 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
+  <h1 id="C语言代码逆向基础-函数的识别"><a href="#C语言代码逆向基础-函数的识别" class="headerlink" title="C语言代码逆向基础-函数的识别"></a>C语言代码逆向基础-函数的识别</h1><p>当函数执行时，程序流转会转到函数体的实现地址处，只有遇到return或者”}”符号才返回到下一跳语句的地址处，并且很多高级语言在传递参数时会执行将实参复制给形参这一操作。下面我们来看看函数的具体操作。</p>
+<h2 id="函数工作原理"><a href="#函数工作原理" class="headerlink" title="函数工作原理"></a>函数工作原理</h2><h3 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h3><p>栈在内存中是一块特殊的存储空间，存储原则是“先进后出”。汇编指令通常使用PUSH和POP指令对栈空间执行数据压入和数据出栈操作。使用esp(栈顶寄存器)和ebp(栈底寄存器)每4个字节的栈空间保存一个数据，并且栈通常是由高地址向低地址延伸。</p>
+<p><strong>栈平衡</strong>：在进入某个函数实现时，一般会预先保存栈底指针ebp，以便函数退出后还原到以前的栈顶。退出函数后会将ebp和esp进行对比，检测当前栈帧是否正确关闭，若不平衡则调用_chkesp函数弹窗提示错误。</p>
+<h2 id="简单C语言函数调用程序"><a href="#简单C语言函数调用程序" class="headerlink" title="简单C语言函数调用程序"></a>简单C语言函数调用程序</h2><p>方便介绍关于函数的识别，首先写一个简单的C语言程序，并通过编译软件进行编译</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">test</span><span class="params">(<span class="keyword">char</span>* szStr, <span class="keyword">int</span> nNum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%s,%d \r\n&quot;</span>, szStr, nNum);</span><br><span class="line">	MessageBox(<span class="literal">NULL</span>, szStr, <span class="literal">NULL</span>, MB_OK);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> nNum = test(<span class="string">&quot;hello&quot;</span>, <span class="number">6</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;%d \r\n&quot;</span>, nNum);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
@@ -186,6 +189,42 @@
 <li>首先确定函数起始位置，通常由IDA自动识别</li>
 <li>掌握函数的调用约定和确定函数的参数个数，通过平栈的方式和平栈时对esp操作的值来进行判断</li>
 <li>最后观察函数的返回值，通常关注esp的值，可以确定返回值的类型，然后进一步考虑函数调用方下一步的操作。</li>
+</ul>
+<p><strong>启动函数</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GetVersion(): 获取当前运行平台的版本号</span><br><span class="line">_heap_init(): 用于初始化堆空间，使用heapcreate申请堆空间，申请空间由_heap_init_传递的参数决定，_sbh_heap_init()用于初始化堆结构信息</span><br><span class="line">GetCommandLineA(): 获取命令行参数信息的首地址</span><br><span class="line">_crtGetenvironmentStringA(): 获取环境变量信息的首地址</span><br><span class="line">_setargv(): 将获取的命令行参数进行分析，将分离出的参数个数保存在全局变量_argc中，将命令行参数首地址存放在全局变量_argv中</span><br><span class="line">_setenvp(): 获取环境变量信息的首地址，将环境变量首地址放在全局变量env中</span><br><span class="line"></span><br><span class="line">_argc、_argv、env这三个全局变量作为参数</span><br><span class="line"></span><br><span class="line">_cinit(): 用于全局数据和浮点寄存器的</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>调用流程</strong></p>
+<ul>
+<li><p>参数传递 。</p>
+<p>通过栈或者寄存器方式传递参数</p>
+</li>
+<li><p>函数调用，返回地址压栈。</p>
+<p>使用call指令调用参数，将返回地址压入栈中</p>
+</li>
+<li><p>保存栈底。</p>
+<p>使用栈底空间保存调用方式的栈底寄存器ebp</p>
+</li>
+<li><p>申请栈空间和保存寄存器环境。</p>
+<p>根据函数内局部变量的大小抬高栈顶让出对应的栈空间，并且将修改的寄存器保存在栈内</p>
+</li>
+<li><p>函数实现代码</p>
+</li>
+</ul>
+<p>​       函数实现过程的代码</p>
+<ul>
+<li><p>还原环境</p>
+<p>还原栈中保存的寄存器信息</p>
+</li>
+<li><p>平衡栈空间</p>
+<p>平衡局部变量使用的栈空间</p>
+</li>
+<li><p>ret返回，结束函数调用</p>
+<p>在栈顶取出保存的返回地址，更新EIP</p>
+<p>在非_cdecl调用方式下，平衡参数占用栈空间</p>
+</li>
+<li><p>调整esp，平衡栈顶</p>
+<p>此处为_cdecl特有的方式，用于平衡参数占用的栈顶</p>
+</li>
 </ul>
  
       <!-- reward -->
