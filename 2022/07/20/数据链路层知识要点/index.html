@@ -114,7 +114,7 @@
     <div class="article-entry" itemprop="articleBody">
        
   <h1 id="数据链路层"><a href="#数据链路层" class="headerlink" title="数据链路层"></a><strong>数据链路层</strong></h1><p>信道类型：点对点信道(PPP)、广播信道</p>
-<h2 id="三个基本问题"><a href="#三个基本问题" class="headerlink" title="三个基本问题"></a>三个基本问题</h2><p><strong>封装成帧：</strong>将上层的IP数据报分组前后添加首部和尾部构成一个数据帧。帧定界(首尾部)。<br><strong>透明传输：</strong>发送端数据链路层在”SOH”,”EOT”的前面插入一个转义字符”ESC”，接收端的数据链路层在将数据发送到网络层之前删除插入的转义字符。<br><strong>差错检测：</strong>在数据后面添加的冗余码(FCS),使用循环冗余检验方法(CRC)进行帧差错检测。</p>
+<h2 id="三个基本问题"><a href="#三个基本问题" class="headerlink" title="三个基本问题"></a>三个基本问题</h2><p><strong>封装成帧：</strong>将上层的IP数据报分组前后添加首部和尾部构成一个数据帧。帧定界(首尾部)。<br><strong>透明传输：</strong>使用字节填充和比特填充使得PDU里面不包含帧定界符。发送端数据链路层在”SOH”,”EOT”的前面插入一个转义字符”ESC”，接收端的数据链路层在将数据发送到网络层之前删除插入的转义字符。<br><strong>差错检测：</strong>在数据后面添加的冗余码(FCS),使用循环冗余检验方法(CRC)进行帧差错检测。</p>
 <p>冗余码计算：在数据(k位)后面添加n个0(根据生成多项式最高项数决定)，使用(k+n)位的数除以(n+1)位的除数P进行除法得到商Q和余数R(n位)，把余数R作为冗余码添加在数据M后面进行发送。即发送的数据是：2nM+R。</p>
 <p>CRC原理：在发送端时将分组数据后面添加n位冗余码一起发送。接受端对得到帧数进行检验，若余数R&#x3D;0则帧无差错，否则有差错。</p>
 <p>差错控制基本方式：检错反馈&#x2F;重发、 前向纠错方式、混合法。</p>
@@ -447,7 +447,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2021-2023
+        2021-2024
         <i class="ri-heart-fill heart_icon"></i> John Doe
       </li>
     </ul>

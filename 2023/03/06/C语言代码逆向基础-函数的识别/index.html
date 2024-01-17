@@ -142,7 +142,7 @@
 
 
 
-<p>在VC中，启动函数会依次调用GetVersion()、GetCommandLineA()、GetEnvironmentStringA()等函数这以明显特征，在调用完GetEnviro nmentStringA()函数后有三个PUSH操作</p>
+<p>在VC中，启动函数会依次调用GetVersion()、GetCommandLineA()、GetEnvironmentStringA()等函数这一明显特征，在调用完GetEnviro nmentStringA()函数后有三个PUSH操作</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:004012A0                 mov     edx, envp</span><br><span class="line">.text:004012A6                 push    edx             ; envp</span><br><span class="line">.text:004012A7                 mov     eax, argv</span><br><span class="line">.text:004012AC                 push    eax             ; argv</span><br><span class="line">.text:004012AD                 mov     ecx, argc</span><br><span class="line">.text:004012B3                 push    ecx             ; argc</span><br><span class="line">.text:004012B4                 call    _main</span><br></pre></td></tr></table></figure>
 
 <p>该反汇编代码对应的C代码如下</p>
@@ -385,7 +385,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2021-2023
+        2021-2024
         <i class="ri-heart-fill heart_icon"></i> John Doe
       </li>
     </ul>

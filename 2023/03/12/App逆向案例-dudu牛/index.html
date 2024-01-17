@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>App逆向案例-dudu牛 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-App逆向案例-dudu牛"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  App逆向案例-dudu牛
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/" class="article-date">
+  <time datetime="2023-03-12T12:14:28.000Z" itemprop="datePublished">2023-03-12</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android%EF%BC%8C%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90/">android，案例分析</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">15 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="App逆向案例-dudu牛"><a href="#App逆向案例-dudu牛" class="headerlink" title="App逆向案例-dudu牛"></a>App逆向案例-dudu牛</h1><p>在模拟器中安装该app后，首先运行app熟悉页面及其功能，下图为登录页面</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805205630380.png" class title="image-20230805205630380">
+
+<h2 id="登录接口"><a href="#登录接口" class="headerlink" title="登录接口"></a>登录接口</h2><h3 id="抓包分析"><a href="#抓包分析" class="headerlink" title="抓包分析"></a>抓包分析</h3><p>我们先使用Charles对该app抓取http请求数据包</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805205944464.png" class title="image-20230805205944464">
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805210051600.png" class title="image-20230805210051600">
+
+<p>可以看到该登录接口请求包中的”Encrypt”参数和相应包都是进行了加密处理，多次更改登录信息发现参数变化，我们来分析下该接口的加密处理。</p>
+<h3 id="脱壳处理"><a href="#脱壳处理" class="headerlink" title="脱壳处理"></a>脱壳处理</h3><p>我们使用jadx工具对该apk包进行反编译分析，可以看到该包做了混淆处理，无法有效阅读代码，并且里面的”qihoo.util”可以初步判断使用的360加固</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805210921059.png" class title="image-20230805210921059">
+
+<p>我们也可以使用查壳工具来判断出使用的360加固</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805211043033.png" class title="image-20230805211043033">
+
+
+
+<p>接下来我们就需要去对其进行脱壳处理得到原代码，这里使用frida-dexdump搭配frida进行脱壳。首先启动安装在模拟器上的frida server</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805213013676.png" class title="image-20230805213013676">
+
+
+
+<p>然后在命令行窗口上使用frida-dexdum得到程序脱壳后的dex文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">frida-dexdump -FU</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805215250546.png" class title="image-20230805215250546">
+
+<p>可以看到嘟嘟牛在线有四个dex文件，这些为脱壳后的dex文件</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805215443609.png" class title="image-20230805215443609">
+
+
+
+<p>同样使用BlackDex32在模拟器上对嘟嘟牛在线进行脱壳处理得到脱壳后文件</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805223957452.png" class title="image-20230805223957452">
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230805224239726.png" class title="image-20230805224239726">
+
+
+
+<h3 id="反编译分析"><a href="#反编译分析" class="headerlink" title="反编译分析"></a>反编译分析</h3><p>我们使用jadx-gui对脱壳后的dex文件进行反编译，如下图所示</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806163959325.png" class title="image-20230806163959325">
+
+
+
+<p>搜索文本”Encrypt”作为关键字字符串进行查询，由于该字符串是在登录接口http报文中涵盖的字符串，所以可以判断出源代码位于com.dodonew.online.http.JsonRequest类中存在addRequestMap方法中有该字符串</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806164406705.png" class title="image-20230806164406705">
+
+
+
+<p>跟进该函数进一步分析逻辑关系</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806165022759.png" class title="image-20230806165022759">
+
+
+
+<p>该函数中值得注意的是定义了一个encrypt字符串变量，这就是生成的Encrypt字符串，入口点定位正确</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">String time = System.currentTimeMillis() + DeviceConfig.f7371b;</span><br><span class="line">        <span class="keyword">if</span> (addMap == <span class="keyword">null</span>) &#123;</span><br><span class="line">            addMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        &#125;</span><br><span class="line">        addMap.put(<span class="string">&quot;timeStamp&quot;</span>, time);</span><br><span class="line">String encrypt = RequestUtil.encodeDesMap(RequestUtil.paraMap(addMap, Config.BASE_APPEND, <span class="string">&quot;sign&quot;</span>), <span class="keyword">this</span>.desKey, <span class="keyword">this</span>.desIV);</span><br><span class="line">        JSONObject obj = <span class="keyword">new</span> JSONObject();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>先获取系统时间戳，将其添加进addmap中，随后调用RequestUtil.paraMap将addMap和Config.BASE_APPEND作为参数。可以看到BASE_APPEND为一固定值字符串 “sdlkjsdljf0j2fsjk”</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806170631248.png" class title="image-20230806170631248">
+
+
+
+<p>我们跟进RequestUtil.paraMap函数进一步分析</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806171558085.png" class title="image-20230806171558085">
+
+<p>该函数先将addMap中的键提取出来，然后定义一个List集合用来存放键值信息，使用sort()对该list进行排序。将排序后的键值按序保存在builder中，最后添加 “sdlkjsdljf0j2fsjk”这一字符串，对builder进行计算md5值保存在sign这一字符串中。</p>
+<h3 id="还原加密"><a href="#还原加密" class="headerlink" title="还原加密"></a>还原加密</h3><p>上面初步分析了对字符串计算md5值，接下来我们来分析判断对哪些值进行md5计算。 </p>
+<p>下面编写一个Frida脚本记录java类的操作，获取com.dodonew.online.util.utils类的对象，然后返回其计算md5值后的字符串信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">function main() &#123;</span><br><span class="line"></span><br><span class="line">    Java.perform(function () &#123;</span><br><span class="line"></span><br><span class="line">        var Utils = Java.use(&quot;com.dodonew.online.util.Utils&quot;);</span><br><span class="line"></span><br><span class="line">        Utils[&quot;md5&quot;].implementation = function (string) &#123;</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;md5 is called&#x27; + &#x27;, &#x27; + &#x27;string: &#x27; + string);</span><br><span class="line"></span><br><span class="line">            var ret = this.md5(string);</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;md5 ret value is &#x27; + ret);</span><br><span class="line"></span><br><span class="line">            return ret;</span><br><span class="line"></span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">setImmediate(main)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>将其保存为test.js文件，使用frida命令运行启动脚本</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">frida -U -l test.js -f com.dodonew.online</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806182031706.png" class title="image-20230806182031706">
+
+
+
+<p>等程序运行后，输入手机号码和密码信息点击登录，可看到脚本中返回需要计算md5的参数和计算后的md5值</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806181855554.png" class title="image-20230806181855554">
+
+<p>返回信息如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[SM-G988N::com.dodonew.online ]-&gt; md5 is called, string: equtype=ANDROID&amp;loginImei=Android351564715931416&amp;timeStamp=1691317099396&amp;userPwd=12345&amp;username=18148411953&amp;key=sdlkjsdljf0j2fsjk</span><br><span class="line"></span><br><span class="line">md5 ret value is </span><br><span class="line">7b9841d0d0c5d23c9271200e9f950b32</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们使用在线工具计算字符串md5值正确，对照一致，符合标准md5值算法</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806183100004.png" class title="image-20230806183100004">
+
+
+
+<p>我们继续来看下面的代码，encodeDesMap函数还有this.deskey和this.desIVl两个参数，猜测使用了des算法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String encrypt = RequestUtil.encodeDesMap(RequestUtil.paraMap(addMap, Config.BASE_APPEND, &quot;sign&quot;), this.desKey, this.desIV);</span><br></pre></td></tr></table></figure>
+
+<p>跟进该函数，先调用了DesSecurity函数对deskey和desIV进行操作,再调用了encrypt64函数对加密的数据进行Base64编码</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806212318940.png" class title="image-20230806212318940">
+
+<p>跟进DesSecurity函数，调用InitCipher函数对deskey和desIV进行操作</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806213303747.png" class title="image-20230806213303747">
+
+<p>InitCipher函数中首先对deskey进行md5加密，然后传进去进行DES加密，使用的加密模式是CBC填充方式PKCS5Padding</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806213435064.png" class title="image-20230806213435064">
+
+
+
+<p>我们先找出deskey和desIV参数，下面代码为hook代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">function main() &#123;</span><br><span class="line"></span><br><span class="line">    Java.perform(function () &#123;</span><br><span class="line"></span><br><span class="line">        var RequestUtil = Java.use(&quot;com.dodonew.online.http.RequestUtil&quot;);</span><br><span class="line"></span><br><span class="line">        RequestUtil[&quot;encodeDesMap&quot;].overload(&#x27;java.lang.String&#x27;, &#x27;java.lang.String&#x27;, &#x27;java.lang.String&#x27;).implementation = function (data, desKey, desIV) &#123;</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;encodeDesMap is called&#x27; + &#x27;, &#x27; + &#x27;data: &#x27; + data + &#x27;, &#x27; + &#x27;desKey: &#x27; + desKey + &#x27;, &#x27; + &#x27;desIV: &#x27; + desIV);</span><br><span class="line"></span><br><span class="line">            var ret = this.encodeDesMap(data, desKey, desIV);</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;encodeDesMap ret value is &#x27; + ret);</span><br><span class="line"></span><br><span class="line">            return ret;</span><br><span class="line"></span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">setImmediate(main)</span><br></pre></td></tr></table></figure>
+
+<p>使用frida运行该脚本得到deskey和desiv这两个值65102933和32028092</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> encodeDesMap is called, data: &#123;&quot;equtype&quot;:&quot;ANDROID&quot;,&quot;loginImei&quot;:&quot;Android351564715931416&quot;,&quot;sign&quot;:&quot;4AC813019A9C77EF6498B3221DCCC17F&quot;,&quot;timeStamp&quot;:&quot;1691322190860&quot;,&quot;userPwd&quot;:&quot;12345&quot;,&quot;username&quot;:&quot;18200411953&quot;&#125;, desKey: 65102933, desIV: 32028092</span><br><span class="line"> </span><br><span class="line">encodeDesMap ret value is NIszaqFPos1vd0pFqKlB42Np5itPxaNH//FDsRnlBfgL4lcVxjXii7mUQQsI1NkwwCI4HVgshTMq</span><br><span class="line">i6557JDHstrEdSW11iu/vvUpskEuxayIZPFIFNCu4Botd21NW6//bTU+cPCqMHADoYHmZWF4QshO</span><br><span class="line">SBlYcRIP9PkfH1EZE0gjBqIGmjhZrzr1C7RPND6PYF8q2udN4T9bznMt6Qn9mAf719HDgepvcBCm</span><br><span class="line">m09qHaE=</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806220303535.png" class title="image-20230806220303535">
+
+
+
+<p>了解了整个加密过程，我们编写程序来还原下加密代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pyDes <span class="keyword">import</span> CBC, PAD_PKCS5, des</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> md5</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_md5_mes</span>(<span class="params">mes</span>):</span></span><br><span class="line"></span><br><span class="line">    new_md5 = md5()</span><br><span class="line"></span><br><span class="line">    new_md5.update(mes.encode(encoding=<span class="string">&#x27;utf-8&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> new_md5.hexdigest()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">des_encrypt</span>(<span class="params">data, desKey, desIV</span>):</span></span><br><span class="line"></span><br><span class="line">    key = desKey[:<span class="number">8</span>]  </span><br><span class="line"></span><br><span class="line">    ds = des(key, CBC, desIV, pad=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    en = ds.encrypt(data.encode(), padmode = PAD_PKCS5)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> base64.b64encode(en).decode()</span><br><span class="line"></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"></span><br><span class="line">    desIV = <span class="string">&#x27;32028092&#x27;</span></span><br><span class="line"></span><br><span class="line">    desKey = <span class="built_in">bytes</span>.fromhex(get_md5_mes(<span class="string">&#x27;65102933&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    data = <span class="string">&#x27;&#123;&quot;equtype&quot;:&quot;ANDROID&quot;,&quot;loginImei&quot;:&quot;Android351564715931416&quot;,&quot;sign&quot;:&quot;4AC813019A9C77EF6498B3221DCCC17F&quot;,&quot;timeStamp&quot;:&quot;1691322190860&quot;,&quot;userPwd&quot;:&quot;12345&quot;,&quot;username&quot;:&quot;18200411953&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(des_encrypt(data, desKey, desIV))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230806222914273.png" class title="image-20230806222914273">
+
+<p>可以看到得出的结果刚好符合，还原成功。</p>
+<h3 id="模拟请求"><a href="#模拟请求" class="headerlink" title="模拟请求"></a>模拟请求</h3><p>我们来梳理下整个加密流程</p>
+<ul>
+<li>首先使用md5计算请求签名(equtype、loginImei、timeStamp、userPwd、username、key)保存为sign</li>
+<li>对签名及其他字符串进行des加密</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">取deskey前8字节作为加密密钥</span><br><span class="line">取desIV使用CBC模式PAD_PKCS5进行加密</span><br><span class="line">将机密后的字符串进行Base64编码</span><br></pre></td></tr></table></figure>
+
+
+
+<p>编写的模拟请求如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pyDes <span class="keyword">import</span> CBC, PAD_PKCS5, des</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> hashlib <span class="keyword">import</span> md5</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_md5_mes</span>(<span class="params">mes</span>):</span><span class="comment">#获取字符串的md5值</span></span><br><span class="line"></span><br><span class="line">    new_md5 = md5()</span><br><span class="line"></span><br><span class="line">    new_md5.update(mes.encode(encoding=<span class="string">&#x27;utf-8&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> new_md5.hexdigest()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">des_encrypt</span>(<span class="params">data, desKey, desIV</span>):</span><span class="comment">#DES加密</span></span><br><span class="line"></span><br><span class="line">    key = desKey[:<span class="number">8</span>]  </span><br><span class="line"></span><br><span class="line">    ds = des(key, CBC, desIV, pad=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line">    en = ds.encrypt(data.encode(), padmode=PAD_PKCS5)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> base64.b64encode(en).decode()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_timeStamp</span>():</span><span class="comment">#获取时间戳</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">str</span>(<span class="built_in">int</span>(time.time() * <span class="number">1000</span>))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_sign</span>():</span><span class="comment">#获取请求签名</span></span><br><span class="line"></span><br><span class="line">    s = <span class="string">&#x27;equtype=ANDROID&amp;loginImei=Androidnull&amp;timeStamp=&#x27;</span> + timeStamp + <span class="string">&#x27;&amp;userPwd=admin&amp;username=18148411953&amp;key=sdlkjsdljf0j2fsjk&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> get_md5_mes(s).upper()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_Encrypt</span>():</span><span class="comment">#获取加密后的请求参数</span></span><br><span class="line"></span><br><span class="line">    s = <span class="string">&#x27;&#123;&quot;equtype&quot;:&quot;ANDROID&quot;,&quot;loginImei&quot;:&quot;Androidnull&quot;,&quot;sign&quot;:&quot;&#x27;</span> + get_sign() + <span class="string">&#x27;&quot;,&quot;timeStamp&quot;:&quot;&#x27;</span> + timeStamp + <span class="string">&#x27;&quot;,&quot;userPwd&quot;:&quot;admin&quot;,&quot;username&quot;:&quot;18148411953&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> des_encrypt(s, desKey, desIV)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span>():</span><span class="comment">#构造http request请求</span></span><br><span class="line"></span><br><span class="line">    url = <span class="string">&quot;http://api.dodovip.com/api/user/login&quot;</span></span><br><span class="line"></span><br><span class="line">    header = &#123;</span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;Host&quot;</span>: <span class="string">&quot;api.dodovip.com&quot;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;Cache-Control&quot;</span>: <span class="string">&quot;public, max-age=0&quot;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json; charset=utf-8&#x27;</span>,</span><br><span class="line"></span><br><span class="line">    <span class="string">&#x27;User-Agent&#x27;</span>: <span class="string">&quot;Dalvik/2.1.0 (Linux; U; Android 11; M2012K11AC Build/RQ3A.211001.001)&quot;</span>,</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    data = &#123;</span><br><span class="line"></span><br><span class="line">        <span class="string">&#x27;Encrypt&#x27;</span>: get_Encrypt()</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    res = requests.post(url, headers=header, json=data)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(res.text)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line"></span><br><span class="line">    desIV = <span class="string">&#x27;32028092&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 需转换成 byte 的 hex 值 用 hexstr 来创建 bytes 对象</span></span><br><span class="line"></span><br><span class="line">    desKey = <span class="built_in">bytes</span>.fromhex(get_md5_mes(<span class="string">&#x27;65102933&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    timeStamp = get_timeStamp()</span><br><span class="line"></span><br><span class="line">    login()</span><br></pre></td></tr></table></figure>
+
+<p>可以看到模拟请求的响应报文和app登录接口响应报文中内容一样</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230807105319038.png" class title="image-20230807105319038">
+
+<p>返回数据还是加密的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2v+DC2gq7RuAC8PE5GZz5wH3/y9ZVcWhFwhDY9L19g9iEd075+Q7xwewvfIN0g0ec/NaaF43/S0=</span><br></pre></td></tr></table></figure>
+
+
+
+<p>DES算法是对称加密算法，可以在JsonRequest类中可以看到有个response方法</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230807110119362.png" class title="image-20230807110119362">
+
+<p>注意下面这行代码，其中用到了this.deskey和this.desIV这两个参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">str = RequestUtil.decodeDesJson(str, this.desKey, this.desIV);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面我们来具体看看decodeDesJson方法用到的数据，使用frida编写简单的hook代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">function main() &#123;</span><br><span class="line"></span><br><span class="line">    Java.perform(function () &#123;</span><br><span class="line"></span><br><span class="line">        var RequestUtil = Java.use(&quot;com.dodonew.online.http.RequestUtil&quot;);</span><br><span class="line"></span><br><span class="line">        RequestUtil[&quot;decodeDesJson&quot;].implementation = function (json, desKey, desIV) &#123;</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;decodeDesJson is called&#x27; + &#x27;, &#x27; + &#x27;json: &#x27; + json + &#x27;, &#x27; + &#x27;desKey: &#x27; + desKey + &#x27;, &#x27; + &#x27;desIV: &#x27; + desIV);</span><br><span class="line"></span><br><span class="line">            var ret = this.decodeDesJson(json, desKey, desIV);</span><br><span class="line"></span><br><span class="line">            console.log(&#x27;decodeDesJson ret value is &#x27; + ret);</span><br><span class="line"></span><br><span class="line">            return ret;</span><br><span class="line"></span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">setImmediate(main)</span><br></pre></td></tr></table></figure>
+
+<p>运行该脚本，在登录接口中输入手机号码和密码点击登录，可以看到返回的加密信息和解密后的JSON字符串</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230807111708447.png" class title="image-20230807111708447">
+
+<p>返回信息如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;code&quot;:-1,&quot;message&quot;:&quot;账号或密码错误&quot;,&quot;data&quot;:&#123;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>至此将该app登录接口模拟请求成功，由于该接口未做防撞库，可使用字典对手机号和密码进行爆破</p>
+<h2 id="注册接口"><a href="#注册接口" class="headerlink" title="注册接口"></a>注册接口</h2><p>注册界面如下，有手机号码、登录密码和验证码三个输入参数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230808163005564.png" class title="image-20230808163005564">
+
+<h3 id="抓包分析-1"><a href="#抓包分析-1" class="headerlink" title="抓包分析"></a>抓包分析</h3><p>我们先使用Charles对该app抓取获取验证码http请求数据包，这里使用的测试用例为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">电话号码：18148411953</span><br><span class="line">登录密码：admin</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230808164440532.png" class title="image-20230808164440532">
+
+<p>抓取的请求和响应报文如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST /api/user/regCode HTTP/1.1</span><br><span class="line">Content-Type: application/json; charset=utf-8</span><br><span class="line">User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G988N Build/NRD90M)</span><br><span class="line">Host: api.dodovip.com</span><br><span class="line">Accept-Encoding: gzip</span><br><span class="line">Content-Length: 151</span><br><span class="line">Connection: keep-alive</span><br><span class="line"></span><br><span class="line">&#123;&quot;Encrypt&quot;:&quot;VcoXz6dO\/thZ4\/m4PTyZPX+0J3iLNxRy+URRTGi9\/LI0AUSg\/R6SaZXENfK9uOm8nXrss2dC5Nbi\neItA\/j2wmRE33fd4nCDaFtCJ3Wda8vxfwA8AuGaqLkCt5dJ3bQhU\n&quot;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">respond:</span><br><span class="line">2v+DC2gq7Rs5bcSNXbyEx5NU077kz30XWVKcFfbDbqfwNfIfy/H7WfFaOoMFRieB4vJKmUSdrviL</span><br><span class="line">ucFs2ZbC+89cZLVR2q86OhBJqXwkedVPzhVeu2r3xpKnonbCMovs</span><br></pre></td></tr></table></figure>
+
+
+
+<p>下面为注册时的http请求及其响应报文，测试用例为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">电话号码：18148411953</span><br><span class="line">登录密码：admin</span><br><span class="line">验证码：123456</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230808165018471.png" class title="image-20230808165018471">
+
+<p>抓取的请求和响应报文如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">POST /api/user/activateAccount HTTP/1.1</span><br><span class="line">Content-Type: application/json; charset=utf-8</span><br><span class="line">User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G988N Build/NRD90M)</span><br><span class="line">Host: api.dodovip.com</span><br><span class="line">Accept-Encoding: gzip</span><br><span class="line">Content-Length: 285</span><br><span class="line">Connection: keep-alive</span><br><span class="line"></span><br><span class="line">&#123;&quot;Encrypt&quot;:&quot;NIszaqFPos1vd0pFqKlB42Np5itPxaNH\/\/FDsRnlBfgL4lcVxjXii7mUQQsI1NkwwCI4HVgshTOW\nqpHE8q4N8iEDukVF0C9p4xJVE7Km+zijcNlqK038YX5CRUp5A8oy+UVl7otgB3TAD65sXwkMhCwS\nwY0iPkIY7Cr\/lMsVHISUXF6xAPs+xApDcTW804\/ICXm\/gfrzyecRtMgjtowLUWI6I2Nll12kOQdw\n4dO6FM1wbqY2T72Z\/wh\/4e653Twn\n&quot;&#125;</span><br><span class="line"></span><br><span class="line">respond:</span><br><span class="line">2v+DC2gq7RsNlVI9b1yN862HwQjTZO7NoQVzr8hRlcBfVp8rq9IPMznCRmxEVw9jsS/SHTe8nzCD</span><br><span class="line">gX+C9o0F2w==</span><br></pre></td></tr></table></figure>
+
+<h3 id="反编译分析-1"><a href="#反编译分析-1" class="headerlink" title="反编译分析"></a>反编译分析</h3><p>在jadx中搜索关键字符串”activateAccount”,可查询到RegisterActivity类的register函数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811112444453.png" class title="image-20230811112444453">
+
+<p>值得注意的是onClick这个函数，这个函数使用switch分支来判断获取的按钮id来执行相应的逻辑，btn_get_code按钮为获取验证码，btn_register按钮为注册账号，btn_found_pwd为忘记密码</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811113323987.png" class title="image-20230811113323987">
+
+
+
+<p>首先来看获取验证码btn_get_code这个分支代码，先使用checkMobile函数检查电话号是否符合要求，若符合则调用getCode函数向指定电话发送验证码信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">case C0689R.C0688id.btn_get_code /*2131558565*/:</span><br><span class="line">                String mobile = this.etMobile.getText() + DeviceConfig.f7371b.trim();</span><br><span class="line">                if (checkMobile(mobile)) &#123;</span><br><span class="line">                    getCode(mobile);</span><br><span class="line">                    return;</span><br><span class="line">1</span><br><span class="line">                &#125;</span><br><span class="line">                return;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>注册功能btn_register代码中通过checkInput函数判断用户输入的phone、pwd、code这三个参数，若都符合则调用register函数进行注册</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">case C0689R.C0688id.btn_register /*2131558653*/:</span><br><span class="line">                String phone = this.etMobile.getText() + DeviceConfig.f7371b.trim();</span><br><span class="line">                String pwd = this.etPwd.getText() + DeviceConfig.f7371b.trim();</span><br><span class="line">                String code = this.etCode.getText() + DeviceConfig.f7371b.trim();</span><br><span class="line">                if (checkInput(phone, pwd, code)) &#123;</span><br><span class="line">                    register(phone, pwd, code);</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">                return;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们跟进checkInput函数，首先依次检查电话号码、密码和验证码是否为空，若为空则提示错误</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811130347602.png" class title="image-20230811130347602">
+
+<p>继续跟进register函数，构造para参数属性(moblie、pwd、code、config.equtype、application.devid)，然后调用requestNetwork函数通过”user&#x2F;activateAccount”路由接口进行请求。</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811130737871.png" class title="image-20230811130737871">
+
+<p>继续跟进requestNetwork函数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811131952019.png" class title="image-20230811131952019">
+
+<p>创建JsonRequest对象，当符合指定路由的时候设置用户和手机号码参数调用注册组件，然后调用addRequestMap函数和DodonewOnlineApplication.addRequest函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">his.request.addRequestMap(para);</span><br><span class="line">        DodonewOnlineApplication.addRequest(this.request, this);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里调用的addRequestMap函数和登录接口不同，重载只有一个参数，将useDes设置为真，调用paraMap函数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811135425554.png" class title="image-20230811135425554">
+
+<p>继续跟进paraMap函数，构造addMap2参数(timeStamp、userid、imei),然后调用RequestUtil.encodeDesMap函数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811135552417.png" class title="image-20230811135552417">
+
+<p>下面getCode函数为获取验证码功能，与注册功能不同的是para构造参数只有mobile这一参数</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811192950931.png" class title="image-20230811192950931">
+
+
+
+<p>前面以及对“注册“和”获取验证码“这两个按钮事件进行了分析，接下来我们分析”找回密码”按钮事件，这里直接开启了FindPasswordActivity</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">startActivity(new Intent(this,FindPasswordActivity.class));</span><br></pre></td></tr></table></figure>
+
+<p>跟进FindPasswordActivity类，里面的click函数为重要逻辑代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">switch (this.position) &#123;</span><br><span class="line">            case TTransportException.f7557b /*1*/:</span><br><span class="line">                this.mobile = this.step1.getMobile();</span><br><span class="line">                if (Utils.isMobileNO(this.mobile)) &#123;</span><br><span class="line">                    this.isAgain = false;</span><br><span class="line">                    sendMobileCode(this.mobile);</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">           showToast(&quot;\u8bf7\u8f93\u5165\u6b63\u786e\u7684\u624b\u673a\u53f7.&quot;);</span><br><span class="line">                return;</span><br><span class="line">                //验证手机号并发送验证码</span><br><span class="line">            case TTransportException.f7558c /*2*/:</span><br><span class="line">                String code = this.step2.getCode();</span><br><span class="line">                if (TextUtils.isEmpty(code)) &#123;</span><br><span class="line">                    showToast(&quot;\u8bf7\u8f93\u5165\u9a8c\u8bc1\u7801.&quot;);</span><br><span class="line">                    return;</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    verificationCode(this.mobile, code);</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">                //验证判断信息</span><br><span class="line">            case TTransportException.f7559d /*3*/:</span><br><span class="line">                String newPwd = this.step3.getNewPwd();</span><br><span class="line">                if (TextUtils.isEmpty(newPwd)) &#123;</span><br><span class="line">                    showToast(&quot;\u8bf7\u8f93\u5165\u65b0\u5bc6\u7801&quot;);</span><br><span class="line">                    return;</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    modifyNewPwd(this.mobile, newPwd, this.phoneCode.getToken());</span><br><span class="line">                    return;</span><br><span class="line">                &#125;</span><br><span class="line">                //修改密码</span><br></pre></td></tr></table></figure>
+
+<p>接下来就和登录接口流程是一样的</p>
+<h3 id="还原加密-1"><a href="#还原加密-1" class="headerlink" title="还原加密"></a>还原加密</h3><h4 id="注册功能"><a href="#注册功能" class="headerlink" title="注册功能"></a>注册功能</h4><p>编写js脚本获取输入处理的参数以及经过encodeDesMap函数后的加密数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">encodeDesMap is called, data: &#123;&quot;equtype&quot;:&quot;ANDROID&quot;,&quot;loginImei&quot;:&quot;Android351564715931416&quot;,&quot;mobileCode&quot;:&quot;123456&quot;,&quot;phone&quot;:&quot;18148411953&quot;,&quot;sign&quot;:&quot;DF249AC067B2097E07BDFD4329B95D4B&quot;,&quot;timeStamp&quot;:&quot;1691735134838&quot;,&quot;userPwd&quot;:&quot;admin&quot;&#125;, desKey: 65102933, desIV: 32028092</span><br><span class="line"></span><br><span class="line">encodeDesMap ret value is NIszaqFPos1vd0pFqKlB42Np5itPxaNH//FDsRnlBfgL4lcVxjXii7mUQQsI1NkwwCI4HVgshTOW</span><br><span class="line">qpHE8q4N8iEDukVF0C9p4xJVE7Km+zijcNlqK038YX5CRUp5A8oy+UVl7otgB3QAcgbw2mrGvsUi</span><br><span class="line">kMJr1V+9/Lvs7Bgj8JWrl6vLlvqcknHWaYN4O+pJBSKxY83p40f/SNvHAwGsZvNA0f436GxGDHv7</span><br><span class="line">+o8Z/gt9MsZTK5oyQJy3Ogma7mbW2</span><br></pre></td></tr></table></figure>
+
+
+
+<p>该app的所有http请求加密过程都是同一个加密过程，根据编写加密脚本来验证加密数据，执行结果如下，完全符合</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811152139079.png" class title="image-20230811152139079">
+
+<h4 id="找回密码"><a href="#找回密码" class="headerlink" title="找回密码"></a>找回密码</h4><p>获取验证码时只对手机号码、时间戳和固定的字符串计算md5值</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811195646390.png" class title="image-20230811195646390">
+
+<p>判断验证时对验证码、手机号码、时间戳和固定的字符串计算MD5值</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811195825714.png" class title="image-20230811195825714">
+
+<h3 id="模拟请求-1"><a href="#模拟请求-1" class="headerlink" title="模拟请求"></a>模拟请求</h3><p>模拟请求代码和上面登录接口代码一样，只需修改进行计算md5值的字符串和进行DES加密的字符串即可，这里只对返回信息进行Hook解密</p>
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811163235863.png" class title="image-20230811163235863">
+
+<p>获取验证码返回信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;code&quot;:1,&quot;message&quot;:&quot;验证码已发送&quot;,&quot;data&quot;:&#123;&quot;message&quot;:&quot;验证码已发送&quot;,&quot;code&quot;:1&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<img src="/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/image-20230811163425478.png" class title="image-20230811163425478">
+
+<p>注册返回信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;code&quot;:0,&quot;message&quot;:&quot;验证码错误或者已过期&quot;,&quot;data&quot;:&#123;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2023/03/12/App%E9%80%86%E5%90%91%E6%A1%88%E4%BE%8B-dudu%E7%89%9B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-android/" rel="tag">-逆向 -android</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2023/03/12/%E7%A0%B4%E8%A7%A3%E7%AC%AC%E4%B8%80%E4%B8%AAAndroid%E7%A8%8B%E5%BA%8F/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            破解第一个Android程序
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/03/12/Android%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E6%80%BB%E7%BB%93/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Android常见漏洞总结</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

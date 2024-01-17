@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>GCN之实现论文分类 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-GCN之实现论文分类"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  GCN之实现论文分类
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/" class="article-date">
+  <time datetime="2024-01-17T02:56:28.000Z" itemprop="datePublished">2024-01-17</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a> / <a class="article-category-link" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">13 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="GCN之实现论文分类"><a href="#GCN之实现论文分类" class="headerlink" title="GCN之实现论文分类"></a>GCN之实现论文分类</h1><p>本次实验的目的是将论文进行分类。提供GCN模型训练，利用已经分好类的训练集将论文分为7类</p>
+<h2 id="数据集介绍"><a href="#数据集介绍" class="headerlink" title="数据集介绍"></a>数据集介绍</h2><p>选用的是GCN常用的Cora数据集，实验的目标就是通过对构造出来的两层GCN模型进行训练，实现对数据集样本节点的分类</p>
+<p>Cora数据集由关于机器学习方面的论文组成。 这些论文分为以下七个类别之一：</p>
+<p>1.基于案例</p>
+<p>2.遗传算法</p>
+<p>3.神经网络</p>
+<p>4.概率方法</p>
+<p>5.强化学习</p>
+<p>6.规则学习</p>
+<p>7.理论</p>
+<p>这些论文都是经过筛选的，在最终的数据集中，每篇论文引用或被至少一篇其他论文引用。整个语料库中有2708篇论文。在词干堵塞和去除词尾后，只剩下1433个唯一的单词。文档频率小于10的所有单词都被删除。即Cora数据集包含2708个顶点, 5429条边,每个顶点包含1433个特征，共有7个类别。</p>
+<p>并且Cora已经把训练集和测试集的数据都划分好了，直接按照文件名读取数据即可，如文件ind.cora.x &#x3D;&gt; 训练实例的特征向量；ind.cora.y &#x3D;&gt; 训练实例的标签，独热编码; ind.cora.tx &#x3D;&gt; 测试实例的特征向量；ind.cora.ty &#x3D;&gt; 测试实例的标签，独热编码</p>
+<h2 id="实现流程"><a href="#实现流程" class="headerlink" title="实现流程"></a>实现流程</h2><p>定义了一个无向图$G(V,E)$,V顶点代表论文，任意两个顶点之间的边代表引用关系。首先通过使用NLP嵌入将论文节点转换为向量，获取所有邻居节点以及自身的特征向量然后使用神经网络返回结果向量。</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231123220133997.png" class title="image-20231123220133997">
+
+<p>两层GCN的例子如下：</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231123220203281.png" class title="image-20231123220203281">
+
+<p>那么两层的GCN就可以在降维的同时，通过层间传播的公式获取到二阶邻居节点的特征：</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231123220342839.png" class title="image-20231123220342839">
+
+<p>在节点分类问题中，输入的邻接矩阵和每个节点的特征中，包含了节点自身以及各节点的特征，通过GCN的卷积层实现降维，聚成几类就降成几维</p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><h3 id="导入包"><a href="#导入包" class="headerlink" title="导入包"></a>导入包</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> itertools</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> os.path <span class="keyword">as</span> osp</span><br><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> namedtuple</span><br><span class="line"><span class="keyword">import</span> warnings</span><br><span class="line">warnings.filterwarnings(<span class="string">&quot;ignore&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> scipy.sparse <span class="keyword">as</span> sp</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"><span class="keyword">import</span> torch.nn.init <span class="keyword">as</span> init</span><br><span class="line"><span class="keyword">import</span> torch.optim <span class="keyword">as</span> optim</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line">%matplotlib inline</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line">Data = namedtuple(<span class="string">&#x27;Data&#x27;</span>, [<span class="string">&#x27;x&#x27;</span>, <span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;adjacency&#x27;</span>,</span><br><span class="line">                           <span class="string">&#x27;train_mask&#x27;</span>, <span class="string">&#x27;val_mask&#x27;</span>, <span class="string">&#x27;test_mask&#x27;</span>])</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tensor_from_numpy</span>(<span class="params">x, device</span>):</span></span><br><span class="line">    <span class="keyword">return</span> torch.from_numpy(x).to(device)</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CoraData</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    filenames = [<span class="string">&quot;ind.cora.&#123;&#125;&quot;</span>.<span class="built_in">format</span>(name) <span class="keyword">for</span> name <span class="keyword">in</span></span><br><span class="line">                 [<span class="string">&#x27;x&#x27;</span>, <span class="string">&#x27;tx&#x27;</span>, <span class="string">&#x27;allx&#x27;</span>, <span class="string">&#x27;y&#x27;</span>, <span class="string">&#x27;ty&#x27;</span>, <span class="string">&#x27;ally&#x27;</span>, <span class="string">&#x27;graph&#x27;</span>, <span class="string">&#x27;test.index&#x27;</span>]] <span class="comment">#训练集和测试集文件名</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, data_root=<span class="string">&quot;data&quot;</span>, rebuild=<span class="literal">False</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;Cora数据，包括数据下载，处理，加载等功能</span></span><br><span class="line"><span class="string">        当数据的缓存文件存在时，将使用缓存文件，否则将下载、进行处理，并缓存到磁盘</span></span><br><span class="line"><span class="string">        处理之后的数据可以通过属性 .data 获得，它将返回一个数据对象，包括如下几部分：</span></span><br><span class="line"><span class="string">            * x: 节点的特征，维度为 2708 * 1433，类型为 np.ndarray</span></span><br><span class="line"><span class="string">            * y: 节点的标签，总共包括7个类别，类型为 np.ndarray</span></span><br><span class="line"><span class="string">            * adjacency: 邻接矩阵，维度为 2708 * 2708，类型为 scipy.sparse.coo.coo_matrix</span></span><br><span class="line"><span class="string">            * train_mask: 训练集掩码向量，维度为 2708，当节点属于训练集时，相应位置为True，否则False</span></span><br><span class="line"><span class="string">            * val_mask: 验证集掩码向量，维度为 2708，当节点属于验证集时，相应位置为True，否则False</span></span><br><span class="line"><span class="string">            * test_mask: 测试集掩码向量，维度为 2708，当节点属于测试集时，相应位置为True，否则False</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">        -------</span></span><br><span class="line"><span class="string">            data_root: string, optional</span></span><br><span class="line"><span class="string">                存放数据的目录，原始数据路径: ../data/cora</span></span><br><span class="line"><span class="string">                缓存数据路径: &#123;data_root&#125;/ch5_cached.pkl</span></span><br><span class="line"><span class="string">            rebuild: boolean, optional</span></span><br><span class="line"><span class="string">                是否需要重新构建数据集，当设为True时，如果存在缓存数据也会重建数据</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self.data_root = data_root <span class="comment">#数据存放的路径</span></span><br><span class="line">        save_file = osp.join(self.data_root, <span class="string">&quot;ch5_cached.pkl&quot;</span>)<span class="comment">#缓存文件路径</span></span><br><span class="line">        <span class="keyword">if</span> osp.exists(save_file) <span class="keyword">and</span> <span class="keyword">not</span> rebuild:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Using Cached file: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(save_file))</span><br><span class="line">            self._data = pickle.load(<span class="built_in">open</span>(save_file, <span class="string">&quot;rb&quot;</span>))</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self._data = self.process_data()</span><br><span class="line">            <span class="keyword">with</span> <span class="built_in">open</span>(save_file, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                pickle.dump(self.data, f)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Cached file: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(save_file))</span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">data</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;返回Data数据对象，包括x, y, adjacency, train_mask, val_mask, test_mask&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> self._data</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_data</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        处理数据，得到节点特征和标签，邻接矩阵，训练集、验证集以及测试集</span></span><br><span class="line"><span class="string">        引用自：https://github.com/rusty1s/pytorch_geometric</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Process data ...&quot;</span>)</span><br><span class="line">        _, tx, allx, y, ty, ally, graph, test_index = [self.read_data(</span><br><span class="line">            osp.join(self.data_root, name)) <span class="keyword">for</span> name <span class="keyword">in</span> self.filenames]</span><br><span class="line">        train_index = np.arange(y.shape[<span class="number">0</span>])</span><br><span class="line">        val_index = np.arange(y.shape[<span class="number">0</span>], y.shape[<span class="number">0</span>] + <span class="number">500</span>)</span><br><span class="line">        sorted_test_index = <span class="built_in">sorted</span>(test_index)</span><br><span class="line"> </span><br><span class="line">        x = np.concatenate((allx, tx), axis=<span class="number">0</span>)                <span class="comment">#节点特征</span></span><br><span class="line">        y = np.concatenate((ally, ty), axis=<span class="number">0</span>).argmax(axis=<span class="number">1</span>) <span class="comment">#标签</span></span><br><span class="line"> </span><br><span class="line">        x[test_index] = x[sorted_test_index]</span><br><span class="line">        y[test_index] = y[sorted_test_index]</span><br><span class="line">        num_nodes = x.shape[<span class="number">0</span>]</span><br><span class="line"> </span><br><span class="line">        train_mask = np.zeros(num_nodes, dtype=np.<span class="built_in">bool</span>) <span class="comment">#训练集</span></span><br><span class="line">        val_mask = np.zeros(num_nodes, dtype=np.<span class="built_in">bool</span>)   <span class="comment">#验证集</span></span><br><span class="line">        test_mask = np.zeros(num_nodes, dtype=np.<span class="built_in">bool</span>)  <span class="comment">#测试集</span></span><br><span class="line">        train_mask[train_index] = <span class="literal">True</span></span><br><span class="line">        val_mask[val_index] = <span class="literal">True</span></span><br><span class="line">        test_mask[test_index] = <span class="literal">True</span></span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        <span class="string">&quot;&quot;&quot;&quot;构建邻接矩阵&quot;&quot;&quot;</span></span><br><span class="line">        adjacency = self.build_adjacency(graph)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Node&#x27;s feature shape: &quot;</span>, x.shape)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Node&#x27;s label shape: &quot;</span>, y.shape)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Adjacency&#x27;s shape: &quot;</span>, adjacency.shape)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Number of training nodes: &quot;</span>, train_mask.<span class="built_in">sum</span>())</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Number of validation nodes: &quot;</span>, val_mask.<span class="built_in">sum</span>())</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Number of test nodes: &quot;</span>, test_mask.<span class="built_in">sum</span>())</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">return</span> Data(x=x, y=y, adjacency=adjacency,</span><br><span class="line">                    train_mask=train_mask, val_mask=val_mask, test_mask=test_mask)</span><br><span class="line"> </span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">build_adjacency</span>(<span class="params">adj_dict</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;根据邻接表创建邻接矩阵&quot;&quot;&quot;</span></span><br><span class="line">        edge_index = []</span><br><span class="line">        num_nodes = <span class="built_in">len</span>(adj_dict)</span><br><span class="line">        <span class="keyword">for</span> src, dst <span class="keyword">in</span> adj_dict.items():</span><br><span class="line">            edge_index.extend([src, v] <span class="keyword">for</span> v <span class="keyword">in</span> dst)</span><br><span class="line">            edge_index.extend([v, src] <span class="keyword">for</span> v <span class="keyword">in</span> dst)</span><br><span class="line">        <span class="comment"># 去除重复的边</span></span><br><span class="line">        edge_index = <span class="built_in">list</span>(k <span class="keyword">for</span> k, _ <span class="keyword">in</span> itertools.groupby(<span class="built_in">sorted</span>(edge_index)))</span><br><span class="line">        edge_index = np.asarray(edge_index)</span><br><span class="line">        adjacency = sp.coo_matrix((np.ones(<span class="built_in">len</span>(edge_index)), </span><br><span class="line">                                   (edge_index[:, <span class="number">0</span>], edge_index[:, <span class="number">1</span>])),</span><br><span class="line">                    shape=(num_nodes, num_nodes), dtype=<span class="string">&quot;float32&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> adjacency</span><br><span class="line"> </span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">read_data</span>(<span class="params">path</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;使用不同的方式读取原始数据以进一步处理&quot;&quot;&quot;</span></span><br><span class="line">        name = osp.basename(path)</span><br><span class="line">        <span class="keyword">if</span> name == <span class="string">&quot;ind.cora.test.index&quot;</span>:</span><br><span class="line">            out = np.genfromtxt(path, dtype=<span class="string">&quot;int64&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span> out</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            out = pickle.load(<span class="built_in">open</span>(path, <span class="string">&quot;rb&quot;</span>), encoding=<span class="string">&quot;latin1&quot;</span>)</span><br><span class="line">            out = out.toarray() <span class="keyword">if</span> <span class="built_in">hasattr</span>(out, <span class="string">&quot;toarray&quot;</span>) <span class="keyword">else</span> out</span><br><span class="line">            <span class="keyword">return</span> out</span><br><span class="line"> </span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">normalization</span>(<span class="params">adjacency</span>):</span>  <span class="comment">#zeng</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;计算 H=D^-0.5 * (A+I) * D^-0.5&quot;&quot;&quot;</span></span><br><span class="line">        adjacency += sp.eye(adjacency.shape[<span class="number">0</span>])    <span class="comment"># 增加自连接</span></span><br><span class="line">        degree = np.array(adjacency.<span class="built_in">sum</span>(<span class="number">1</span>))</span><br><span class="line">        d_hat = sp.diags(np.power(degree, -<span class="number">0.5</span>).flatten())</span><br><span class="line">        <span class="keyword">return</span> d_hat.dot(adjacency).dot(d_hat).tocoo()</span><br></pre></td></tr></table></figure>
+
+<h3 id="图卷积层准备"><a href="#图卷积层准备" class="headerlink" title="图卷积层准备"></a>图卷积层准备</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GraphConvolution</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, input_dim, output_dim, use_bias=<span class="literal">True</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;图卷积：H*X*\theta</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">        ----------</span></span><br><span class="line"><span class="string">            input_dim: int</span></span><br><span class="line"><span class="string">                节点输入特征的维度</span></span><br><span class="line"><span class="string">            output_dim: int</span></span><br><span class="line"><span class="string">                输出特征维度</span></span><br><span class="line"><span class="string">            use_bias : bool, optional</span></span><br><span class="line"><span class="string">                是否使用偏置</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(GraphConvolution, self).__init__()</span><br><span class="line">        self.input_dim = input_dim</span><br><span class="line">        self.output_dim = output_dim</span><br><span class="line">        self.use_bias = use_bias</span><br><span class="line">        self.weight = nn.Parameter(torch.Tensor(input_dim, output_dim))<span class="comment">#将Tensor类型转换为可训练的parametercan&#x27;shu</span></span><br><span class="line">        <span class="keyword">if</span> self.use_bias:</span><br><span class="line">            self.bias = nn.Parameter(torch.Tensor(output_dim))</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.register_parameter(<span class="string">&#x27;bias&#x27;</span>, <span class="literal">None</span>)</span><br><span class="line">        self.reset_parameters() <span class="comment">#初始化w</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">reset_parameters</span>(<span class="params">self</span>):</span></span><br><span class="line">        init.kaiming_uniform_(self.weight) </span><br><span class="line">        <span class="comment">#init.kaiming_uniform_神经网络权重初始化，神经网络要优化一个非常复杂的非线性模型，而且基本没有全局最优解，</span></span><br><span class="line">        <span class="comment">#初始化在其中扮演着非常重要的作用，尤其在没有BN等技术的早期，它直接影响模型能否收敛。</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> self.use_bias:</span><br><span class="line">            init.zeros_(self.bias)</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, adjacency, input_feature</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;邻接矩阵是稀疏矩阵，因此在计算时使用稀疏矩阵乘法</span></span><br><span class="line"><span class="string">    </span></span><br><span class="line"><span class="string">        Args: </span></span><br><span class="line"><span class="string">        -------</span></span><br><span class="line"><span class="string">            adjacency: torch.sparse.FloatTensor</span></span><br><span class="line"><span class="string">                邻接矩阵</span></span><br><span class="line"><span class="string">            input_feature: torch.Tensor</span></span><br><span class="line"><span class="string">                输入特征</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        support = torch.mm(input_feature, self.weight)</span><br><span class="line">        output = torch.sparse.mm(adjacency, support)</span><br><span class="line">        <span class="keyword">if</span> self.use_bias:</span><br><span class="line">            output += self.bias</span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__repr__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.__class__.__name__ + <span class="string">&#x27; (&#x27;</span> \</span><br><span class="line">            + <span class="built_in">str</span>(self.input_dim) + <span class="string">&#x27; -&gt; &#x27;</span> \</span><br><span class="line">            + <span class="built_in">str</span>(self.output_dim) + <span class="string">&#x27;)&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="GCN模型定义"><a href="#GCN模型定义" class="headerlink" title="GCN模型定义"></a>GCN模型定义</h3><p>定义一个两层的GCN卷积模型，其中输入的维度为1433，隐藏层维度设为16，最后一层GCN将输出维度变为类别数7，激活函数使用的是ReLU。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">class GcnNet(nn.Module):</span><br><span class="line">    &quot;&quot;&quot;</span><br><span class="line">    定义一个包含两层GraphConvolution的模型</span><br><span class="line">    &quot;&quot;&quot;</span><br><span class="line">    def __init__(self, input_dim=1433):</span><br><span class="line">        super(GcnNet, self).__init__()</span><br><span class="line">        self.gcn1 = GraphConvolution(input_dim, 16)</span><br><span class="line">        self.gcn2 = GraphConvolution(16, 7)</span><br><span class="line">    </span><br><span class="line">    def forward(self, adjacency, feature):</span><br><span class="line">        h = F.relu(self.gcn1(adjacency, feature))</span><br><span class="line">        logits = self.gcn2(adjacency, h)</span><br><span class="line">        return logits</span><br></pre></td></tr></table></figure>
+
+<h3 id="模型训练"><a href="#模型训练" class="headerlink" title="模型训练"></a>模型训练</h3><p><strong>超参数定义</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">LEARNING_RATE = <span class="number">0.1</span> <span class="comment">#学习率 学习率过小→ →→收敛过慢，学习率过大→ →→错过局部最优；</span></span><br><span class="line">WEIGHT_DACAY = <span class="number">5e-4</span> <span class="comment">#正则化系数 weight_dacay，解决过拟合问题</span></span><br><span class="line">EPOCHS = <span class="number">200</span>        <span class="comment">#完整遍历训练集的次数</span></span><br><span class="line">DEVICE = <span class="string">&quot;cuda&quot;</span> <span class="keyword">if</span> torch.cuda.is_available() <span class="keyword">else</span> <span class="string">&quot;cpu&quot;</span> <span class="comment">#指定设备，如果当前显卡忙于其他工作，可以设置为 DEVICE = &quot;cpu&quot;，使用cpu运行</span></span><br></pre></td></tr></table></figure>
+
+<p>由于最开始不知道边的权重，需要通过模型训练出来合适的权重，即W</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载数据，并转换为torch.Tensor</span></span><br><span class="line">dataset = CoraData().data</span><br><span class="line">node_feature = dataset.x / dataset.x.<span class="built_in">sum</span>(<span class="number">1</span>, keepdims=<span class="literal">True</span>)  <span class="comment"># 归一化数据，使得每一行和为1</span></span><br><span class="line">tensor_x = tensor_from_numpy(node_feature, DEVICE)</span><br><span class="line">tensor_y = tensor_from_numpy(dataset.y, DEVICE)</span><br><span class="line">tensor_train_mask = tensor_from_numpy(dataset.train_mask, DEVICE)</span><br><span class="line">tensor_val_mask = tensor_from_numpy(dataset.val_mask, DEVICE)</span><br><span class="line">tensor_test_mask = tensor_from_numpy(dataset.test_mask, DEVICE)</span><br><span class="line">normalize_adjacency = CoraData.normalization(dataset.adjacency)   <span class="comment"># 规范化邻接矩阵</span></span><br><span class="line"> </span><br><span class="line">num_nodes, input_dim = node_feature.shape</span><br><span class="line">indices = torch.from_numpy(np.asarray([normalize_adjacency.row, </span><br><span class="line">                                       normalize_adjacency.col]).astype(<span class="string">&#x27;int64&#x27;</span>)).long()</span><br><span class="line">values = torch.from_numpy(normalize_adjacency.data.astype(np.float32))</span><br><span class="line">tensor_adjacency = torch.sparse.FloatTensor(indices, values, </span><br><span class="line">                                            (num_nodes, num_nodes)).to(DEVICE)</span><br></pre></td></tr></table></figure>
+
+<p><strong>定义模型</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 模型定义：Model, Loss, Optimizer</span><br><span class="line">model = GcnNet(input_dim).to(DEVICE)</span><br><span class="line">criterion = nn.CrossEntropyLoss().to(DEVICE) #nn.CrossEntropyLoss()函数计算交叉熵损失</span><br><span class="line">optimizer = optim.Adam(model.parameters(), </span><br><span class="line">                       lr=LEARNING_RATE, </span><br><span class="line">                       weight_decay=WEIGHT_DACAY)</span><br></pre></td></tr></table></figure>
+
+<p>在训练过程中通过nn.CrossEntropyLoss()函数计算交叉熵损失</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231124154100838.png" class title="image-20231124154100838">
+
+<p><strong>定义训练和测试函数</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"># 训练主体函数</span><br><span class="line">def train():</span><br><span class="line">    loss_history = []</span><br><span class="line">    val_acc_history = []</span><br><span class="line">    model.train()</span><br><span class="line">    train_y = tensor_y[tensor_train_mask]</span><br><span class="line">    </span><br><span class="line">    for epoch in range(EPOCHS):</span><br><span class="line">        # 共进行200次训练</span><br><span class="line">        logits = model(tensor_adjacency, tensor_x)  # 前向传播</span><br><span class="line">        #其中logits是模型输出，tensor_adjacency, tensor_x分别是邻接矩阵和节点特征。</span><br><span class="line">        </span><br><span class="line">        train_mask_logits = logits[tensor_train_mask]   # 只选择训练节点进行监督</span><br><span class="line">        loss = criterion(train_mask_logits, train_y)    # 计算损失值，目的是优化模型，获得更科学的权重W</span><br><span class="line">        optimizer.zero_grad()</span><br><span class="line">        loss.backward()     # 反向传播计算参数的梯度</span><br><span class="line">        optimizer.step()    # 使用优化方法进行梯度更新</span><br><span class="line">        train_acc, _, _ = test(tensor_train_mask)     # 计算当前模型训练集上的准确率</span><br><span class="line">        val_acc, _, _ = test(tensor_val_mask)     # 计算当前模型在验证集上的准确率</span><br><span class="line">        </span><br><span class="line">        # 记录训练过程中损失值和准确率的变化，用于画图</span><br><span class="line">        loss_history.append(loss.item())</span><br><span class="line">        val_acc_history.append(val_acc.item())</span><br><span class="line">        print(&quot;Epoch &#123;:03d&#125;: Loss &#123;:.4f&#125;, TrainAcc &#123;:.4&#125;, ValAcc &#123;:.4f&#125;&quot;.format(</span><br><span class="line">            epoch, loss.item(), train_acc.item(), val_acc.item()))</span><br><span class="line">    </span><br><span class="line">    return loss_history, val_acc_history</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"># 测试函数</span><br><span class="line">def test(mask):</span><br><span class="line">    model.eval()  # 表示将模型转变为evaluation（测试）模式，这样就可以排除BN和Dropout对测试的干扰</span><br><span class="line">    </span><br><span class="line">    with torch.no_grad():  # 显著减少显存占用</span><br><span class="line">        logits = model(tensor_adjacency, tensor_x) #(N,16)-&gt;(N,7) N节点数</span><br><span class="line">        test_mask_logits = logits[mask]  # 矩阵形状和mask一样</span><br><span class="line">        </span><br><span class="line">        predict_y = test_mask_logits.max(1)[1]  # 返回每一行的最大值中索引（返回最大元素在各行的列索引）</span><br><span class="line">        accuarcy = torch.eq(predict_y, tensor_y[mask]).float().mean()</span><br><span class="line">    return accuarcy, test_mask_logits.cpu().numpy(), tensor_y[mask].cpu().numpy()</span><br></pre></td></tr></table></figure>
+
+<p>使用上面代码进行模型训练，并对其进行日志输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">loss, val_acc = train()</span><br><span class="line">test_acc, test_logits, test_label = test(tensor_test_mask)</span><br><span class="line">print(&quot;Test accuarcy: &quot;, test_acc.item())#item()返回的是一个浮点型数据，测试集准确率</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231124160734838.png" class title="image-20231124160734838">
+
+<h3 id="可视化"><a href="#可视化" class="headerlink" title="可视化"></a>可视化</h3><p>损失函数用来测度模型的输出值和真实因变量之间的差异</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">def plot_loss_with_acc(loss_history, val_acc_history):</span><br><span class="line">    fig = plt.figure()</span><br><span class="line">    # 坐标系ax1画曲线1</span><br><span class="line">    ax1 = fig.add_subplot(111)  # 指的是将plot界面分成1行1列，此子图占据从左到右从上到下的1位置</span><br><span class="line">    ax1.plot(range(len(loss_history)), loss_history,</span><br><span class="line">             c=np.array([255, 71, 90]) / 255.)  # c为颜色</span><br><span class="line">    plt.ylabel(&#x27;Loss&#x27;)</span><br><span class="line">    </span><br><span class="line">    # 坐标系ax2画曲线2</span><br><span class="line">    ax2 = fig.add_subplot(111, sharex=ax1, frameon=False)  # 其本质就是添加坐标系，设置共享ax1的x轴，ax2背景透明</span><br><span class="line">    ax2.plot(range(len(val_acc_history)), val_acc_history,</span><br><span class="line">             c=np.array([79, 179, 255]) / 255.)</span><br><span class="line">    ax2.yaxis.tick_right()  # 开启右边的y坐标</span><br><span class="line">    </span><br><span class="line">    ax2.yaxis.set_label_position(&quot;right&quot;)</span><br><span class="line">    plt.ylabel(&#x27;ValAcc&#x27;)</span><br><span class="line">    </span><br><span class="line">    plt.xlabel(&#x27;Epoch&#x27;)</span><br><span class="line">    plt.title(&#x27;Training Loss &amp; Validation Accuracy&#x27;)</span><br><span class="line">    plt.show()</span><br><span class="line"> </span><br><span class="line">plot_loss_with_acc(loss, val_acc)</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231124161125193.png" class title="image-20231124161125193">
+
+<p><strong>红线代表的损失值随着训练次数的增加越来越小，蓝线代表的模型准确率越来越高</strong></p>
+<p>将最后一层得到的输出进行TSNE降维，将多维数据映射到人类观察的多个维度中，得到如下图的分类结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">from sklearn.manifold import TSNE</span><br><span class="line">tsne = TSNE()</span><br><span class="line">out = tsne.fit_transform(test_logits)</span><br><span class="line">fig = plt.figure()</span><br><span class="line">for i in range(7):</span><br><span class="line">    indices = test_label == i</span><br><span class="line">    x, y = out[indices].T</span><br><span class="line">    plt.scatter(x, y, label=str(i))</span><br><span class="line">plt.legend()</span><br></pre></td></tr></table></figure>
+
+<p>绘制测试数据的TSNE降维图</p>
+<img src="/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/image-20231124162914882.png" class title="image-20231124162914882">
+
+<p>可以看到成功将论文集划分为鲜明的7类</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/01/17/GCN%E4%B9%8B%E5%AE%9E%E7%8E%B0%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GCN-%E8%AE%BA%E6%96%87%E5%88%86%E7%B1%BB/" rel="tag">-GCN -论文分类</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2024/01/17/%E5%9B%BE%E5%B5%8C%E5%85%A5%E6%A8%A1%E5%9E%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">图嵌入模型</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
