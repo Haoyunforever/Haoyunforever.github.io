@@ -96,13 +96,13 @@
       <article class="archive-article archive-type-post">
   <div class="archive-article-inner">
     <header class="archive-article-header">
-      <a href="/2023/03/12/Dalvik%E5%AD%97%E8%8A%82%E7%A0%81/" class="archive-article-date">
+      <a href="/2023/03/12/Xposed%E6%A8%A1%E5%9D%97%E7%BC%96%E5%86%99/" class="archive-article-date">
   <time datetime="2023-03-12T12:14:28.000Z" itemprop="datePublished">03/12</time>
 </a>
        
 <h2 itemprop="name">
-  <a class="archive-article-title" href="/2023/03/12/Dalvik%E5%AD%97%E8%8A%82%E7%A0%81/"
-    >App逆向案例-dudu牛</a> 
+  <a class="archive-article-title" href="/2023/03/12/Xposed%E6%A8%A1%E5%9D%97%E7%BC%96%E5%86%99/"
+    >Xposed模块编写</a> 
 </h2>
  
 
@@ -110,34 +110,7 @@
     
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/">android</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
-  </div>
-
-    
-    
-  </div>
-</article>
-      
-  
-  
-      <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2023/03/12/smali%E6%96%87%E4%BB%B6%E7%AE%80%E8%A7%A3/" class="archive-article-date">
-  <time datetime="2023-03-12T12:14:28.000Z" itemprop="datePublished">03/12</time>
-</a>
-       
-<h2 itemprop="name">
-  <a class="archive-article-title" href="/2023/03/12/smali%E6%96%87%E4%BB%B6%E7%AE%80%E8%A7%A3/"
-    >smali文件简解</a> 
-</h2>
- 
-
-    </header>
-    
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/">android</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/android/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/Android/">Android</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/Android/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">基础知识</a>
   </div>
 
     
@@ -472,6 +445,55 @@
         let $icon = $($btn.find('i'));
         $icon.removeClass('ri-file-copy-2-line');
         $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>      $icon.addClass('ri-time-line');
         let $span = $($btn.find('span'));
         $span[0].innerText = 'COPY FAILED';
         
