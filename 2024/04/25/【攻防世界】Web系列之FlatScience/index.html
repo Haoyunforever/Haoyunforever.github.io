@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>【攻防世界】Web系列之FlatScience |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-【攻防世界】Web系列之FlatScience"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  【攻防世界】Web系列之FlatScience
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/" class="article-date">
+  <time datetime="2024-04-25T01:56:28.000Z" itemprop="datePublished">2024-04-25</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CTF/">CTF</a> / <a class="article-category-link" href="/categories/CTF/Web/">Web</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">6 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="【攻防世界】Web系列之FlatScience"><a href="#【攻防世界】Web系列之FlatScience" class="headerlink" title="【攻防世界】Web系列之FlatScience"></a>【攻防世界】Web系列之FlatScience</h1><h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>访问靶场页面如下，可以点击获得不同文章</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425103842331.png" class title="image-20240425103842331">
+
+<p>获得多个pdf文章</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425103858399.png" class title="image-20240425103858399">
+
+<p>根据目前提示消息无法得出有利思路，使用目录扫描爆破存在路径，有一个robots.txt</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104047189.png" class title="image-20240425104047189">
+
+<p>访问robots.txt，得到两个连接&#x2F;login.php和&#x2F;admin.php</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104121841.png" class title="image-20240425104121841">
+
+<p>依次访问&#x2F;login.php和&#x2F;admin.php两个登录页面</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104233308.png" class title="image-20240425104233308">
+
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104255218.png" class title="image-20240425104255218">
+
+<p>经过对这两个页面源代码的观察和基本测试，得到下面的线索</p>
+<ul>
+<li>login.php的debug模式开启</li>
+</ul>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104546247.png" class title="image-20240425104546247">
+
+<ul>
+<li>admin.php提示不能绕过</li>
+</ul>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104559325.png" class title="image-20240425104559325">
+
+<p>首先访问下login.php的debug页面，如下</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425104636986.png" class title="image-20240425104636986">
+
+<p>得到的源代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">ob_start();</span><br><span class="line">?&gt;</span><br><span class="line">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;</span><br><span class="line"></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;style&gt;</span><br><span class="line">blockquote &#123; background: #eeeeee; &#125;</span><br><span class="line">h1 &#123; border-bottom: solid black 2px; &#125;</span><br><span class="line">h2 &#123; border-bottom: solid black 1px; &#125;</span><br><span class="line">.comment &#123; color: darkgreen; &#125;</span><br><span class="line">&lt;/style&gt;</span><br><span class="line"></span><br><span class="line">&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=iso-8859-1&quot;&gt;</span><br><span class="line">&lt;title&gt;Login&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;div align=right class=lastmod&gt;</span><br><span class="line">Last Modified: Fri Mar  31:33:7 UTC 1337</span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;Login&lt;/h1&gt;</span><br><span class="line"></span><br><span class="line">Login Page, do not try to hax here plox!&lt;br&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;form method=&quot;post&quot;&gt;</span><br><span class="line">  ID:&lt;br&gt;</span><br><span class="line">  &lt;input type=&quot;text&quot; name=&quot;usr&quot;&gt;</span><br><span class="line">  &lt;br&gt;</span><br><span class="line">  Password:&lt;br&gt; </span><br><span class="line">  &lt;input type=&quot;text&quot; name=&quot;pw&quot;&gt;</span><br><span class="line">  &lt;br&gt;&lt;br&gt;</span><br><span class="line">  &lt;input type=&quot;submit&quot; value=&quot;Submit&quot;&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line"></span><br><span class="line">&lt;?php</span><br><span class="line">if(isset($_POST[&#x27;usr&#x27;]) &amp;&amp; isset($_POST[&#x27;pw&#x27;]))&#123;</span><br><span class="line">        $user = $_POST[&#x27;usr&#x27;];</span><br><span class="line">        $pass = $_POST[&#x27;pw&#x27;];</span><br><span class="line"></span><br><span class="line">        $db = new SQLite3(&#x27;../fancy.db&#x27;);</span><br><span class="line">        </span><br><span class="line">        $res = $db-&gt;query(&quot;SELECT id,name from Users where name=&#x27;&quot;.$user.&quot;&#x27; and password=&#x27;&quot;.sha1($pass.&quot;Salz!&quot;).&quot;&#x27;&quot;);</span><br><span class="line">    if($res)&#123;</span><br><span class="line">        $row = $res-&gt;fetchArray();</span><br><span class="line">    &#125;</span><br><span class="line">    else&#123;</span><br><span class="line">        echo &quot;&lt;br&gt;Some Error occourred!&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if(isset($row[&#x27;id&#x27;]))&#123;</span><br><span class="line">            setcookie(&#x27;name&#x27;,&#x27; &#x27;.$row[&#x27;name&#x27;], time() + 60, &#x27;/&#x27;);</span><br><span class="line">            header(&quot;Location: /&quot;);</span><br><span class="line">            die();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">if(isset($_GET[&#x27;debug&#x27;]))</span><br><span class="line">highlight_file(&#x27;login.php&#x27;);</span><br><span class="line">?&gt;</span><br><span class="line">&lt;!-- TODO: Remove ?debug-Parameter! --&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;hr noshade&gt;</span><br><span class="line">&lt;address&gt;Flux Horst (Flux dot Horst at rub dot flux)&lt;/address&gt;</span><br><span class="line">&lt;/body&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在上述代码中，可以看到下面的数据库查询语句有明显的注入漏洞，直接将post请求中的usr参数拼接到查询语句中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$res = $db-&gt;query(&quot;SELECT id,name from Users where name=&#x27;&quot;.$user.&quot;&#x27; and password=&#x27;&quot;.sha1($pass.&quot;Salz!&quot;).&quot;&#x27;&quot;);这句</span><br></pre></td></tr></table></figure>
+
+<p>那么，我们就需要对user这个参数进行SQL注入，如下测试是否有回显报错信息</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425105121689.png" class title="image-20240425105121689">
+
+<p>接下来测试查询字段，如下可得到查询字段为2</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425105604034.png" class title="image-20240425105604034">
+
+<p>下面查询回显字段，可以看到联合查询的2在响应报文中的Set-Cookie字段中，第二个字段为回显字段</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425105813950.png" class title="image-20240425105813950">
+
+<p>查询目标数据库信息，使用sqlite_version()，得到数据库版本为3.0.10.2</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425110803993.png" class title="image-20240425110803993">
+
+<h2 id="解题"><a href="#解题" class="headerlink" title="解题"></a>解题</h2><h3 id="tip"><a href="#tip" class="headerlink" title="tip"></a>tip</h3><p>由于这里的数据库为sqlite3，SQLite 注入的基本操作与 MySQL 注入相似，MySQL 有的 SQLite 基本都有，一个最大的不同就是没有 <code>information_schema</code>，但有sqlite_master表，记录用户创建表时的操作信息。</p>
+<p>下面我们来对sqlite3数据库操作一下，如下图</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425111029661.png" class title="image-20240425111029661">
+
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425111141867.png" class title="image-20240425111141867">
+
+<p>我们可以看到在sqlite_master数据表中有我们创建的student数据表时的sql语句和表名，接下来就可以去进行注入查询</p>
+<h3 id="注入"><a href="#注入" class="headerlink" title="注入"></a>注入</h3><p>查看表名，存在Users,sqlite_autoindex_Users_1</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425111543764.png" class title="image-20240425111543764">
+
+<p>查看创建Users表时的sql语句</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425111738138.png" class title="image-20240425111738138">
+
+<p>获得sql语句如下，在创建Users数据表时，有id、name、password和hint四个字段</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE Users</span><br><span class="line">(id int primary key,</span><br><span class="line">name varchar(255),</span><br><span class="line">password varchar(255),</span><br><span class="line">hint varchar(255))</span><br></pre></td></tr></table></figure>
+
+<p>接下来可依次查询name字段和password字段，得到三组用户及其密码hash值(无法直接爆破出明文)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">admin，  3fab54a50e770d830c0416df817567662a9dc85c；</span><br><span class="line">fritze,  54eae8935c90f467427f05e4ece82cf569f89507；</span><br><span class="line">hansi，   34b0bb7c304949f9ff2fc101eef0f048be10d3bd</span><br></pre></td></tr></table></figure>
+
+<h3 id="爆破"><a href="#爆破" class="headerlink" title="爆破"></a>爆破</h3><p>这时根据首页中的论文想到，可能密码就是其中某个单词，所以想办法获取所有pdf中的单词，然后计算hash值来爆破得到正确的密码</p>
+<ul>
+<li>首先爬取网页中所有的pdf文件并下载到指定目录</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line">re1 = <span class="string">&#x27;[a-fA-F0-9]&#123;32,32&#125;.pdf&#x27;</span></span><br><span class="line">re2 = <span class="string">&#x27;[0-9\/]&#123;2,2&#125;index.html&#x27;</span></span><br><span class="line"></span><br><span class="line">pdf_list = []</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_pdf</span>(<span class="params">url</span>):</span></span><br><span class="line">    <span class="keyword">global</span> pdf_list</span><br><span class="line">    <span class="built_in">print</span>(url)</span><br><span class="line">    req = requests.get(url).text</span><br><span class="line">    re_1 = re.findall(re1, req)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> re_1:</span><br><span class="line">        pdf_url = url + i</span><br><span class="line">        pdf_list.append(pdf_url)</span><br><span class="line">    re_2 = re.findall(re2, req)</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> re_2:</span><br><span class="line">        new_url = url + j[<span class="number">0</span>:<span class="number">2</span>]</span><br><span class="line">        get_pdf(new_url)</span><br><span class="line">    <span class="keyword">return</span> pdf_list</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">pdf_list=get_pdf(<span class="string">&#x27;http://61.147.171.105:51580/&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(pdf_list)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> pdf_list:</span><br><span class="line">    os.system(<span class="string">&#x27;curl &#x27;</span>+<span class="string">&#x27;-O &#x27;</span>+i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>下载得到多个pdf文件</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425124013154.png" class title="image-20240425124013154">
+
+<p>下面就是将pdf转换为txt，在将其中的单词计算sha1值去和<strong>3fab54a50e770d830c0416df817567662a9dc85c</strong>作比较</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> io <span class="keyword">import</span> StringIO</span><br><span class="line"></span><br><span class="line"><span class="comment">#python3</span></span><br><span class="line"><span class="keyword">from</span> pdfminer.pdfpage <span class="keyword">import</span> PDFPage</span><br><span class="line"><span class="keyword">from</span> pdfminer.converter <span class="keyword">import</span> TextConverter</span><br><span class="line"><span class="keyword">from</span> pdfminer.converter <span class="keyword">import</span> PDFPageAggregator</span><br><span class="line"><span class="keyword">from</span> pdfminer.layout <span class="keyword">import</span> LTTextBoxHorizontal, LAParams</span><br><span class="line"><span class="keyword">from</span> pdfminer.pdfinterp <span class="keyword">import</span> PDFResourceManager, PDFPageInterpreter</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> string</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> importlib</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">from</span> urllib.request <span class="keyword">import</span> urlopen</span><br><span class="line"><span class="keyword">from</span> urllib.request <span class="keyword">import</span> Request</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_pdf</span>():</span></span><br><span class="line">    <span class="keyword">return</span> [i <span class="keyword">for</span> i <span class="keyword">in</span> os.listdir(<span class="string">&quot;./&quot;</span>) <span class="keyword">if</span> i.endswith(<span class="string">&quot;pdf&quot;</span>)]</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">convert_pdf_to_txt</span>(<span class="params">path_to_file</span>):</span></span><br><span class="line">    rsrcmgr = PDFResourceManager()</span><br><span class="line">    retstr = StringIO()</span><br><span class="line">    codec = <span class="string">&#x27;utf-8&#x27;</span></span><br><span class="line">    laparams = LAParams()</span><br><span class="line">    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)</span><br><span class="line">    fp = <span class="built_in">open</span>(path_to_file, <span class="string">&#x27;rb&#x27;</span>)</span><br><span class="line">    interpreter = PDFPageInterpreter(rsrcmgr, device)</span><br><span class="line">    password = <span class="string">&quot;&quot;</span></span><br><span class="line">    maxpages = <span class="number">0</span></span><br><span class="line">    caching = <span class="literal">True</span></span><br><span class="line">    pagenos=<span class="built_in">set</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> page <span class="keyword">in</span> PDFPage.get_pages(fp, pagenos, maxpages=maxpages, password=password,caching=caching, check_extractable=<span class="literal">True</span>):</span><br><span class="line">        interpreter.process_page(page)</span><br><span class="line"></span><br><span class="line">    text = retstr.getvalue()</span><br><span class="line"></span><br><span class="line">    fp.close()</span><br><span class="line">    device.close()</span><br><span class="line">    retstr.close()</span><br><span class="line">    <span class="keyword">return</span> text</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_password</span>():</span></span><br><span class="line">    pdf_path = get_pdf()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> pdf_path:</span><br><span class="line">        <span class="built_in">print</span> (<span class="string">&quot;Searching word in &quot;</span> + i)</span><br><span class="line">        pdf_text = convert_pdf_to_txt(<span class="string">&quot;./&quot;</span>+i).split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        <span class="keyword">for</span> word <span class="keyword">in</span> pdf_text:</span><br><span class="line">            sha1_password = hashlib.sha1(word.encode(<span class="string">&#x27;utf-8&#x27;</span>)+<span class="string">&#x27;Salz!&#x27;</span>.encode(<span class="string">&#x27;utf-8&#x27;</span>)).hexdigest()</span><br><span class="line">            <span class="keyword">if</span> (sha1_password == <span class="string">&#x27;3fab54a50e770d830c0416df817567662a9dc85c&#x27;</span>):</span><br><span class="line">                <span class="built_in">print</span> (<span class="string">&quot;Find the password :&quot;</span> + word)</span><br><span class="line">                exit()</span><br><span class="line">            </span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    find_password()</span><br></pre></td></tr></table></figure>
+
+<p>最后得到ThinJerboa</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425124100106.png" class title="image-20240425124100106">
+
+<p>在admin.php中输入password即可得到flag</p>
+<img src="/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/image-20240425112344906.png" class title="image-20240425112344906">
+
+<p>得到flag为<strong>flag{Th3_Fl4t_Earth_Prof_i$_n0T_so_Smart_huh?}</strong></p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/04/25/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Web%E7%B3%BB%E5%88%97%E4%B9%8BFlatScience/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CTF-Web/" rel="tag">-CTF -Web</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/04/27/%E8%93%9D%E6%A1%A5%E6%9D%AFWriteUp/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            (no title)
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/04/18/SCA%E5%AE%89%E5%85%A8%E6%A3%80%E6%B5%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">SCA安全检测</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

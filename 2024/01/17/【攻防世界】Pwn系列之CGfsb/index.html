@@ -89,7 +89,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">861</span>
+            <span class="post-count">862</span>
         </span>
     </span>
 
@@ -124,7 +124,7 @@
 <p>这里我们可以看到**printf(s)**存在格式化字符串漏洞，所以这道题的思路就是：利用格式化字符串漏洞，实现任意地址写，修改pwnme全局变量的值等于8，即可获得flag</p>
 <p><strong>任意地址覆写</strong></p>
 <ul>
-<li>确定格式化字符漏洞受控参数在printf栈中的偏移量n</li>
+<li>确定格式化字符串漏洞受控参数在printf栈中的偏移量n</li>
 <li>确定需要读内存的地址target_address</li>
 <li>将目标地址tar_address写入printf函数栈中的%n$s，最后通过%n写入目标数值即可</li>
 </ul>

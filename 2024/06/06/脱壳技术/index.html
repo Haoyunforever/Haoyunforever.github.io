@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>脱壳技术 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-脱壳技术"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  脱壳技术
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/" class="article-date">
+  <time datetime="2024-06-06T12:14:28.000Z" itemprop="datePublished">2024-06-06</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/">脱壳技术</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">19 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="脱壳技术"><a href="#脱壳技术" class="headerlink" title="脱壳技术"></a>脱壳技术</h1><h2 id="壳"><a href="#壳" class="headerlink" title="壳"></a>壳</h2><p>壳是最早出现的一种专用加密软件技术，分为压缩壳和加密壳</p>
+<p><strong>压缩壳</strong></p>
+<p>对文件进行压缩，减小软件的体积。如<strong>UPX、ASPack和PECompact</strong>等</p>
+<p><strong>加密壳</strong></p>
+<p>比如Armadillo、EXECryptor、Themida、WinLicense</p>
+<p><strong>VMProtect</strong></p>
+<p>将指定的代码进行变形和虚拟化处理后，很好的隐藏代码算法，防止算法被逆向。</p>
+<p><strong>壳的加载过程</strong></p>
+<ol>
+<li>加壳程序在初始化时保存个寄存器值，待执行完毕后恢复寄存器的内容</li>
+<li>获取壳本身需要使用的API地址</li>
+<li>解密原程序各个区块的数据</li>
+<li>IAT的初始化</li>
+<li>重定位项的处理</li>
+<li>Hook API</li>
+<li>跳转到原始入口点OEP</li>
+</ol>
+<h2 id="PE脱壳"><a href="#PE脱壳" class="headerlink" title="PE脱壳"></a>PE脱壳</h2><p>这里对手动脱壳技术进行简单的总结</p>
+<h3 id="寻找OEP"><a href="#寻找OEP" class="headerlink" title="寻找OEP"></a>寻找OEP</h3><p>寻找程序真正的程序入口点“OEP”</p>
+<h4 id="根据跨段指令寻找OEP"><a href="#根据跨段指令寻找OEP" class="headerlink" title="根据跨段指令寻找OEP"></a>根据跨段指令寻找OEP</h4><p>绝大多数PE加壳程序在被加密的程序中加上一个或多个区块，当外壳代码处理完毕后就会跳到程序本身的代码处。所以根据跨段的转移指令就可以找到真正的程序入口点。</p>
+<p>首先使用LordPE打开加壳前的实例，获取其入口点RVA <strong>1130h</strong>，查看区块如图</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606210403973.png" class title="image-20240606210403973">
+
+<p>加壳后，程序的入口点为<strong>0x13000h</strong>，查看区块如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606210533939.png" class title="image-20240606210533939">
+
+<p>可以对比两个区块，发现加壳后多了一个**.pediy**区块，这个区块就是外壳，此时的入口地址就是外壳的地址。当外壳开始加载后，会通过各种方式加载所需的API地址，解密程序各区块中的数据，填充IAT，随后跳到OEP(0x401130h)上执行。</p>
+<p>使用OD打开加壳后的程序，加壳程序入口点代码如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606211726491.png" class title="image-20240606211726491">
+
+<p>进入第二部分，主要工作是还原各区块数据</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606214524204.png" class title="image-20240606214524204">
+
+<p>继续跟踪，到程序准备返回OEP，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">00020270        | 8B85 89020000    | mov eax,dword ptr ss:[ebp+2 | ;取出原来的入口RVA 1130H</span><br><span class="line">00020276        | 0385 51030000    | add eax,dword ptr ss:[ebp+3 | ;加上映像基地址，此处为401130h</span><br><span class="line">0002027C        | 0185 84020000    | add dword ptr ss:[ebp+284],eax | ;将401130放到</span><br><span class="line">00020282        | 61               | popad                       |</span><br><span class="line">00020283        | 68 00000000      | push 0                      |  ;0为OEP</span><br><span class="line">00020288        | C3               | ret                         |</span><br></pre></td></tr></table></figure>
+
+<p>至此外壳代码处理完成，用跨段的转移指令跳转到真正的入口点执行解压后的程序，转移指令如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">00020283        | 68 00000000      | push 0                      |  ;0为OEP</span><br><span class="line">00020288        | C3               | ret                         |</span><br></pre></td></tr></table></figure>
+
+<p>下面为运行时的指令，跳转到401130h</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606220428878.png" class title="image-20240606220428878">
+
+<p>进入0x401130h，可以看到如下代码</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606220553294.png" class title="image-20240606220553294">
+
+<p>此时位于.text</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240606220626700.png" class title="image-20240606220626700">
+
+<p>上述过程中外壳使用了两次跨段转移指令，第一次从.pediy去跳转到外壳的第2部分，第二次是从第2部分跳转到程序本身代码所处的区块，在本例中是.text区块。这就是判断该处为OEP的关键。<strong>就是一步一步进行跟踪，直到到达代码段本身。</strong></p>
+<h4 id="用内存访问断点寻找OEP"><a href="#用内存访问断点寻找OEP" class="headerlink" title="用内存访问断点寻找OEP"></a>用内存访问断点寻找OEP</h4><p>由于前面通过跨段指令寻找EOP，需要手动跟踪到达代码段。OD中可以直接对代码段设置断点，当对代码段设置内存访问断点时，一定会中断在外壳对代码进行读取的那句指令上。</p>
+<p>在内存布局中，对代码段设置内存访问断点</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607125737423.png" class title="image-20240607125737423">
+
+<p>执行程序，使之中断在如下代码处，则OEP为<strong>0x401130</strong></p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607131456144.png" class title="image-20240607131456144">
+
+<p>这个方法的关键是待代码段解压完毕后对代码段设置内存访问断点。</p>
+<h4 id="根据栈平衡原理寻找OEP"><a href="#根据栈平衡原理寻找OEP" class="headerlink" title="根据栈平衡原理寻找OEP"></a>根据栈平衡原理寻找OEP</h4><p>由于加壳程序在初始化时要先保存各寄存器的值，带外壳执行完毕后恢复现场。所以必须遵循栈平衡原理，如下</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">PUSHAD</span>   <span class="comment">;PUSHAD相当于push eax/ebx/ecx/edx/esp/ebp/esi/edi</span></span><br><span class="line"><span class="symbol">......</span>   <span class="comment">;外壳代码</span></span><br><span class="line"><span class="symbol">POPAD</span>    <span class="comment">;POPAD相当于pop  edi/esi/ebp/esp/edx/ecx/ebx/eax</span></span><br><span class="line"><span class="symbol">JMP</span> OEP  :准备跳转到OEP</span><br><span class="line"><span class="symbol">......</span>   :解压后程序的源代码</span><br></pre></td></tr></table></figure>
+
+<p>根据栈平衡对esp设段，很快找到OEP。首先打开该程序，如下进入外壳时使用pushad指令，再进入外壳代码</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607132544608.png" class title="image-20240607132544608">
+
+<p>程序运行之前，寄存器和堆栈数据如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607132951666.png" class title="image-20240607132951666">
+
+<p>执行PUSHAD指令后，各寄存器的值将被压入0019FF54-0019FFCC的栈中</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607134210327.png" class title="image-20240607134210327">
+
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607134308601.png" class title="image-20240607134308601">
+
+<p>此时esp指向<strong>0x0019ff54</strong>，对这个地址设置硬件访问断点，如下图</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607163417314.png" class title="image-20240607163417314">
+
+<p>上述指令调用POPAD来恢复现场，在push &lt;rebpe.sub_401130&gt;这段指令时停下来，发现此时的寄存器值都恢复如上图的值，如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607163705087.png" class title="image-20240607163705087">
+
+<p>当外壳程序执行完成后，遵守栈平衡原理，当其跳转到OEP时，esp的值不会改变，代码如下</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">00401130</span> &lt;rebpe <span class="title">| push ebp                          |</span></span><br><span class="line"><span class="number">00401131</span>        <span class="title">| mov ebp,esp                       |</span></span><br><span class="line"><span class="number">00401133</span>        <span class="title">| push FFFFFFFF                     |</span></span><br></pre></td></tr></table></figure>
+
+<p>入口点第一句指令是”push ebp”，可以对其进行设置硬件写入断点，可方便到达OEP附近。</p>
+<h4 id="根据编译语言特点寻找OEP"><a href="#根据编译语言特点寻找OEP" class="headerlink" title="根据编译语言特点寻找OEP"></a>根据编译语言特点寻找OEP</h4><p>各类语言编译的文件入口点都有自己的特点。例如Visual c++6.0程序来说，默认入口代码有4个版本：WinMainCRTStartup、mainCRTStartup、启动部分有GetCommandLineA(W)、GetVersion、GetStartupInfoA(W)等函数，可以通过这些函数设置断点，来定位程序的OEP。</p>
+<p>下面对GetVersion函数设置断点，在命令行窗口使用<strong>BP GetVersion</strong>设置函数断点</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607165213980.png" class title="image-20240607165213980">
+
+<p>逐步跟踪到GetVersion()下面位置</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607165740942.png" class title="image-20240607165740942">
+
+<p>继续跟踪就来到了OEP附近，如下图所示</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607165953935.png" class title="image-20240607165953935">
+
+<p>如果对常见语言的入口代码比较熟悉，就很容易地完成脱壳修复或定位OEP等工作。</p>
+<h3 id="抓取内存映像"><a href="#抓取内存映像" class="headerlink" title="抓取内存映像"></a>抓取内存映像</h3><p>把内存指定地址的映像文件读出，用文件等形式将其保存下来的过程。一般情况下，当外壳来到OEP时进行Dump是正确的。还有在外壳将压缩的全部代码释放到内存中并初始化一些项目时也可以选择合适的位置进行Dump。</p>
+<p>常见的Dump工具有LordPE、PETools等。这类工具一般利用<strong>Moudule32Next</strong>来获取欲Dump进行的基本信息。这里使用LordPE进行Dump。</p>
+<p>首先勾选完全Dump</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607194605071.png" class title="image-20240607194605071">
+
+<p>然后运行程序选中，抓取文件并保存</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607194815705.png" class title="image-20240607194815705">
+
+<p>这里修改modBaseSize的值，对SizeOfimage进行纠正实现Dump</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607195526477.png" class title="image-20240607195526477">
+
+<p>Dump成功</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607194851209.png" class title="image-20240607194851209">
+
+<h3 id="重建输入表"><a href="#重建输入表" class="headerlink" title="重建输入表"></a>重建输入表</h3><p>破坏源程序的输入表是加密外壳必备的功能。所以脱壳时需要重建IAT，获取未加密的IAT，跟踪加壳程序对IAT的处理过程，修改相关指令，不让外壳指令加密IAT。</p>
+<h4 id="确定IAT地址和大小"><a href="#确定IAT地址和大小" class="headerlink" title="确定IAT地址和大小"></a>确定IAT地址和大小</h4><p>输入表重建的关键就是在于IAT的获取。一般程序的IAT是连续排列的，以一个DWORD字的0作为结束。只要确定IAT的一个点就能获取整个IAT的地址和大小。</p>
+<p>寻找GetVersion函数</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607210742075.png" class title="image-20240607210742075">
+
+<p>可以在数据窗口中看到很多函数地址</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607211215920.png" class title="image-20240607211215920">
+
+<p>这里的GetVersionExA在<strong>0x77431A00</strong></p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607211527417.png" class title="image-20240607211527417">
+
+<p>GetVersion在下面的地址中</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607211903614.png" class title="image-20240607211903614">
+
+<p>IAT是一个连续排列的数据，向上翻屏直到出现”00”找到IAT的起始地址。如上图4050B8H就是IAT的结尾，也就是说起始位置在<strong>405000h</strong>，大小为<strong>B8h</strong>。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607212233208.png" class title="image-20240607212233208">
+
+<p>切换为窗口显示模式，可以清晰看到函数地址</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607212641139.png" class title="image-20240607212641139">
+
+<h4 id="重建输入表-1"><a href="#重建输入表-1" class="headerlink" title="重建输入表"></a>重建输入表</h4><p><strong>根据IAT重建输入表</strong></p>
+<p>可以使用ImportREC等专业的输入表重建工具完成这项工作。这里使用实例Reb_IT.exe进行分析，可以看到如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">004052BE                                   | popad                              |</span><br><span class="line">004052BF                                   | jmp reb_it.401000                  |</span><br></pre></td></tr></table></figure>
+
+<p>这里使用jmp指令后开始进入OEP，OEP地址为401000。随后在004052BF设置断点，中断后运行LordPE将内存数据Dump出来保存。接下来就是重建IAT的过程，我们先来找IAT起始位置和大小，如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607214549903.png" class title="image-20240607214549903">
+
+<p>可以看到上面有两个IAT，因为有两个DLL(kernel32.dll和user32.dll)。这两个IAT以DWORD类型的0隔开。接下来我们在Dump下来的程序中找一块空间用来重建输入表，将DLL名和函数名写入 </p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607215433216.png" class title="image-20240607215433216">
+
+<p>由于是内存映像文件，文件偏移和相对虚拟地址是相等的。然后构造指向函数名地址的IMAGE_THUNK_DATA数组，如下图，每个数组间隔2字节，用0填充</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607215959872.png" class title="image-20240607215959872">
+
+<p>然后根据上面的数组来构建IID数组，用来指向上面的数组地址，从0x2010h开始，大小是28h，如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607220841693.png" class title="image-20240607220841693">
+
+<p>输入表的相对虚拟地址存储在PE文件头的目录表中，为130h。向130h中写入输入表地址为”2010 0000”和”2800 0000”，这里使用LordPE写入</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240607221451584.png" class title="image-20240607221451584">
+
+<p><strong>用ImportREC重建输入表</strong></p>
+<p>需满足以下几个条件：</p>
+<ul>
+<li>目标文件已经被Dump</li>
+<li>目标文件必须正在运行</li>
+<li>已知目标程序的真正的OPE或IAT的偏移量和大小</li>
+</ul>
+<p>首先运行工具，选择rebpe.exe进程</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240608132759205.png" class title="image-20240608132759205">
+
+<p>指定正确的OEP，填写”1130”。此时工具在重建输入表时会用此值修正入口点。随后让其自动检测IAT的偏移量和大小，如下图出现了提示信息，表明OEP发挥了作用。否则就手动填写IAT的RVA和大小。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240608132951796.png" class title="image-20240608132951796">
+
+<p>然后点击获取输入表，分析IAT的结构，得到基本信息。如下得到找到的两个输入表函数</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240608133239230.png" class title="image-20240608133239230">
+
+<p>接着修复已脱壳的程序Dump.exe。点击修复转存文件，选择之前的Dump.exe文件，设置新的RVA为545ch，然后进行修复。我们可以来运行下脱壳后并修复完成的程序</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240608135630450.png" class title="image-20240608135630450">
+
+<h2 id="DLL脱壳"><a href="#DLL脱壳" class="headerlink" title="DLL脱壳"></a>DLL脱壳</h2><p>DLL动态链接库脱壳和EXE文件脱壳差不多，只是多了个基址重定位表。因为外壳很有可能破坏了原始的重定位表，重定位数据对于DLL的动态链接库是必须的，所以需要将原始的重定位表换个形式存储。</p>
+<h2 id="附加数据"><a href="#附加数据" class="headerlink" title="附加数据"></a>附加数据</h2><p>在一些特殊的PE文件中，各个区块的正式数据之后还有一些数据，这些数据不属于任何区块，不能被映射到内存中，这些数据被称为附加数据。</p>
+<p>附加数据的起点是一个区块的末尾，终点是文件的末尾，查看实例overlay.exe，如下图所示最后一个区块的文件偏移值为3800h。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610191457467.png" class title="image-20240610191457467">
+
+<p>使用工具查看目标文件3800h的数据为附加数据</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610191722356.png" class title="image-20240610191722356">
+
+<p>使用PEID查看该程序，显示overlay就表明存在附加数据</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610191900480.png" class title="image-20240610191900480">
+
+<p>该程序使用UPX压缩壳</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610192114551.png" class title="image-20240610192114551">
+
+<p>带有附加数据的文件在脱壳时必须将附加数据粘贴回去，如果文件中有访问附加数据的指针，也要进行修正。</p>
+<p>将程序使用OD打开，定位到OEP处，如下所示</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610192518592.png" class title="image-20240610192518592">
+
+<p>原文件如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610192842045.png" class title="image-20240610192842045">
+
+<p>dump下来的文件如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240610193152472.png" class title="image-20240610193152472">
+
+<p>两者区别不能是Dump下来的文件不能将原来的文字显示出来，由于附加数据没有映射到内存里，抓取的映像文件里也没有附加数据。使用CreateFileA设置断点，程序在如下代码处中断</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">00401040                | push ecx                                   |</span><br><span class="line">00401041                | push 0                                     |</span><br><span class="line">00401043                | call dword ptr ds:[&lt;&amp;GetModuleFileNameA&gt;]  |;取自身文件名</span><br><span class="line">00401049                | push 0                                     |</span><br><span class="line">0040104B                | push 80                                    |</span><br><span class="line">00401050                | push 3                                     |</span><br><span class="line">00401052                | push 0                                     |</span><br><span class="line">00401054                | push 1                                     |</span><br><span class="line">00401056                | push 80000000                              |</span><br><span class="line">0040105B                | lea edx,dword ptr ss:[ebp-104]             |</span><br><span class="line">00401061                | push edx                                   | edx:&quot;D:\\Pen test\\Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">00401062                | call dword ptr ds:[&lt;&amp;CreateFileA&gt;]         |;打开自身</span><br><span class="line">00401068                | mov dword ptr ss:[ebp-11C],eax             | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">0040106E                | cmp dword ptr ss:[ebp-11C],FFFFFFFF        | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">00401075                | jne overlay.40107E                         |</span><br><span class="line">00401077                | xor eax,eax                                |</span><br><span class="line">00401079                | jmp overlay.401158                         |</span><br><span class="line">0040107E                | push 0                                     |</span><br><span class="line">00401080                | mov eax,dword ptr ss:[ebp-11C]             | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">00401086                | push eax                                   |</span><br><span class="line">00401087                | call dword ptr ds:[&lt;&amp;GetFileSize&gt;]         |</span><br><span class="line">0040108D                | mov dword ptr ss:[ebp-118],eax             |</span><br><span class="line">00401093                | cmp dword ptr ss:[ebp-118],FFFFFFFF        |</span><br><span class="line">0040109A                | jne overlay.4010A3                         |</span><br><span class="line">0040109C                | xor eax,eax                                |</span><br><span class="line">0040109E                | jmp overlay.401158                         |</span><br><span class="line">004010A3                | mov ecx,dword ptr ss:[ebp-118]             |</span><br><span class="line">004010A9                | push ecx                                   |</span><br><span class="line">004010AA                | call overlay.401428                        |</span><br><span class="line">004010AF                | add esp,4                                  |</span><br><span class="line">004010B2                | mov dword ptr ss:[ebp-120],eax             |</span><br><span class="line">004010B8                | mov edx,dword ptr ss:[ebp-120]             |</span><br><span class="line">004010BE                | mov dword ptr ss:[ebp-108],edx             |</span><br><span class="line">004010C4                | mov eax,dword ptr ss:[ebp-118]             |</span><br><span class="line">004010CA                | push eax                                   |</span><br><span class="line">004010CB                | push 0                                     |</span><br><span class="line">004010CD                | mov ecx,dword ptr ss:[ebp-108]             |</span><br><span class="line">004010D3                | push ecx                                   |</span><br><span class="line">004010D4                | call overlay.4013D0                        |</span><br><span class="line">004010D9                | add esp,C                                  |</span><br><span class="line">004010DC                | push 0                                     |</span><br><span class="line">004010DE                | push 0                                     |</span><br><span class="line">004010E0                | push 3800                                  |;注意这个值</span><br><span class="line">004010E5                | mov edx,dword ptr ss:[ebp-11C]             | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">004010EB                | push edx                                   | edx:&quot;D:\\Pen test\\Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">004010EC                | call dword ptr ds:[&lt;&amp;SetFilePointer&gt;]      |;移动读写指针</span><br><span class="line">004010F2                | push 0                                     |</span><br><span class="line">004010F4                | lea eax,dword ptr ss:[ebp-114]             |</span><br><span class="line">004010FA                | push eax                                   |</span><br><span class="line">004010FB                | push 100                                   |</span><br><span class="line">00401100                | mov ecx,dword ptr ss:[ebp-108]             |</span><br><span class="line">00401106                | push ecx                                   |</span><br><span class="line">00401107                | mov edx,dword ptr ss:[ebp-11C]             | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">0040110D                | push edx                                   | edx:&quot;D:\\Pen test\\Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">0040110E                | call dword ptr ds:[&lt;&amp;ReadFile&gt;]            |</span><br><span class="line">00401114                | mov dword ptr ss:[ebp-110],eax             |</span><br><span class="line">0040111A                | mov eax,dword ptr ss:[ebp-11C]             | [ebp-11C]:&quot;Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">00401120                | push eax                                   |</span><br><span class="line">00401121                | call dword ptr ds:[&lt;&amp;CloseHandle&gt;]         |</span><br><span class="line">00401127                | mov ecx,dword ptr ss:[ebp-108]             |</span><br><span class="line">0040112D                | push ecx                                   |</span><br><span class="line">0040112E                | mov edx,dword ptr ss:[ebp-10C]             |</span><br><span class="line">00401134                | push edx                                   | edx:&quot;D:\\Pen test\\Reverse\\PEDIY_BOOK4_v2\\PEDIY_BOOK4_v2\\chap16\\16.6 附加数据\\原文件\\overlay.exe&quot;</span><br><span class="line">00401135                | call dword ptr ds:[&lt;&amp;SetWindowTextA&gt;]      |;将附加数据显示到文本框中</span><br></pre></td></tr></table></figure>
+
+<p>当CreateFileA打开一个文件后，文件指针默认指向文件的第一个字节，使用SetFilePointer函数设置指针，指向附加数据，然后用ReadFile函数将附加数据读出。由于脱壳后文件大小发生变化，追加后的附加数据地址已经改变，需要修正SetFilePointer的参数，使其指向附加数据，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">004010DC                | push 0                                     |</span><br><span class="line">004010DE                | push 0                                     |</span><br><span class="line">004010E0                | push E000                                  |</span><br></pre></td></tr></table></figure>
+
+<p>对于带有附加数据的程序，<strong>在抓取内存映像后，必须将附加数据追加到脱壳文件的最后，同时修正读取附加数据的相应指针。</strong></p>
+<h2 id="压缩壳"><a href="#压缩壳" class="headerlink" title="压缩壳"></a>压缩壳</h2><p>压缩壳以减小文件体积为目标，因此生成的IAT都是未加密的，使用Import REC可以轻易重建其输入表，例如ASPack、UPX等。</p>
+<h3 id="UPX外壳"><a href="#UPX外壳" class="headerlink" title="UPX外壳"></a>UPX外壳</h3><p>UPX外壳可以使用UPX自身去除，脱壳命令为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPX -d 文件名</span><br></pre></td></tr></table></figure>
+
+<p>但为了阻止使用UPX自身来脱壳，一些工具例如UPXPR和UPX-Scrambler会对加壳文件进行处理，使得脱壳失败。</p>
+<h4 id="UPXPR保护"><a href="#UPXPR保护" class="headerlink" title="UPXPR保护"></a>UPXPR保护</h4><p>通过修改一些UPX加壳的标志来实现加壳保护机制。只要修复了这些标志，就能使用UPX自身脱壳。</p>
+<p>如下图，直接使用UPX进行脱壳显示脱壳失败，提示文件被保护。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611094940708.png" class title="image-20240611094940708">
+
+<p>查看其区块信息，第一、二字符不是UPX0和UPX1，而是其他字符。所以第一步是去恢复这两个块名。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611095106369.png" class title="image-20240611095106369">
+
+<p>直接在LordPE上面修改块名，修改后块表如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611095313939.png" class title="image-20240611095313939">
+
+<p>查看UPX外壳字节信息，如下字符串信息中会有一个”UPX!”标志信息。UPXPR会将此标志删除，导致不能解压。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611095811256.png" class title="image-20240611095811256">
+
+<p>我们可以看到在”UPX!”后面的4字节均是**”0c 09 ? ?”或者”0d 09 ? ?”<strong>。找到这些关键字节，就可以定位并且恢复UPX标志。”UPX!”字节表示为</strong>“55 50 58 21”**。</p>
+<p>在恢复块表和UPX标志后，在”0c 09 ? ?”之后还有24个字节，任何字节被修改都无法正常解压。使用<strong>UPXFIX_by_DiKeN</strong>工具进行修复。</p>
+<h4 id="手动脱壳"><a href="#手动脱壳" class="headerlink" title="手动脱壳"></a>手动脱壳</h4><p>以EdrLib.dll加UPX壳，对其进行手动UPX脱壳，首先查看区块信息，UPX0的RAWSIZE为0，应该是解压后的数据映射到此区块中。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611100748796.png" class title="image-20240611100748796">
+
+<p>程序入口点在0000E640，基址为00400000</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611101007042.png" class title="image-20240611101007042">
+
+<p>定位到程序入口点，找到OEP为<strong>0040E640</strong></p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611102906775.png" class title="image-20240611102906775">
+
+<h3 id="ASPack外壳"><a href="#ASPack外壳" class="headerlink" title="ASPack外壳"></a>ASPack外壳</h3><p>ASPack外壳运行时，有一段时间将程序完全解密，此时内存映像是加壳前的状态，输入表、重定位表都是完整的。所以ASPack脱壳只要适时抓取内存映像，修正PE头的输入表、重定位表的地址即可。</p>
+<p><strong>寻找OEP</strong></p>
+<p>该DLL的区块表如下，ASPack加壳时没有合并区块，.aspack和.adata是外壳的指向程序和数据，脱壳后可以去除。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611114249055.png" class title="image-20240611114249055">
+
+<p>在外壳代码的第一行中断，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">001FD001 &gt;  60              pushad   ;在此下断点</span><br><span class="line">001FD002    E8 03000000     call    001FD00A</span><br></pre></td></tr></table></figure>
+
+<p>在EdrLib.dll运行装载成功后，关闭loaddll.exe界面，程序会再次中断在入口点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">001FD001 &gt;  60              pushad</span><br><span class="line">001FD002    E8 03000000     call    001FD00A   ;</span><br><span class="line">001FD007  - E9 EB045D45     jmp     457CD4F7</span><br><span class="line">001FD00C    55              push    ebp</span><br><span class="line">001FD00D    C3              retn</span><br><span class="line">001FD00E    E8 01000000     call    001FD014</span><br><span class="line">001FD013    EB 5D           jmp     short 001FD072</span><br><span class="line">001FD015    BB EDFFFFFF     mov     ebx, -13</span><br><span class="line">001FD01A    03DD            add     ebx, ebp</span><br><span class="line">001FD01C    81EB 00D00000   sub     ebx, 0D000</span><br><span class="line">001FD022    83BD 22040000 0&gt;cmp     dword ptr [ebp+422], 0</span><br><span class="line">001FD029    899D 22040000   mov     dword ptr [ebp+422], ebx ;保存当前基址</span><br><span class="line">001FD02F    0F85 65030000   jnz     001FD39A                 ;第二次进入入口处就会跳转</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>由于DLL已被解压，外壳不会再次对DLL文件进行解压缩，所以001FD02F一行将跳过外壳解压代码直接来到OEP处，示例如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">001FD39A    B8 40120000     mov     eax, 1240       ;此处为OEP的RVA</span><br><span class="line">001FD39F    50              push    eax</span><br><span class="line">001FD3A0    0385 22040000   add     eax, dword ptr [ebp+422] </span><br><span class="line">001FD3A6    59              pop     ecx</span><br><span class="line">001FD3A7    0BC9            or      ecx, ecx</span><br><span class="line">001FD3A9    8985 A8030000   mov     dword ptr [ebp+3A8], eax ;将计算出来的OEP放到001FD3BAh处</span><br><span class="line">001FD3AF    61              popad</span><br><span class="line">001FD3B0    75 08           jnz     short 001FD3BA</span><br><span class="line">001FD3B2    B8 01000000     mov     eax, 1</span><br><span class="line">001FD3B7    C2 0C00         retn    0C</span><br><span class="line">001FD3BA    68 40121F00     push    001F1240</span><br><span class="line">001FD3BF    C3              retn    ;跳到OEP处</span><br></pre></td></tr></table></figure>
+
+<p>将EdrLib.dll装载后。基地址不是默认的4000000h，新的基址地址为001FD000H，此时OEP的RVA为1240h。</p>
+<p><strong>解压分析</strong></p>
+<p>由于外壳会向区块中写入数据，可以对区块地址设置内存断点，.text的区块的RVA为1000h，所以真实地址为001f1000h，对此地址设置内存写断点，监控001f1000h处内存数据的变换，解压代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">001FD16F    8B3E            mov     edi, dword ptr [esi]</span><br><span class="line">001FD171    03BD 22040000   add     edi, dword ptr [ebp+422]  ;edi指向区块地址</span><br><span class="line">001FD177    8BB5 52010000   mov     esi, dword ptr [ebp+152]  ;esi指向已还原的数据</span><br><span class="line">001FD17D    C1F9 02         sar     ecx, 2                    ;ecx是区块数据的大小</span><br><span class="line">001FD180    F3:A5           rep     movs dword ptr es:[edi], dword p&gt;</span><br><span class="line">001FD182    8BC8            mov     ecx, eax</span><br><span class="line">001FD184    83E1 03         and     ecx, 3</span><br><span class="line">001FD187    F3:A4           rep     movs byte ptr es:[edi], byte ptr&gt;</span><br><span class="line">001FD189    5E              pop     esi</span><br><span class="line">001FD18A    68 00800000     push    8000                      ;可在此设断点，抓取映像文件</span><br></pre></td></tr></table></figure>
+
+<p>内存中就是完整的源程序，可以使用工具抓取内存中映像保存为dumped.dll。</p>
+<p><strong>输入表</strong></p>
+<p>只需找到输入表的地址即可。根据API函数调用，确定IAT的RVA是7000h-70E4h。因为在dumped.dll文件里输入表是完整存在的，以KERNEL32.dll为突破口，反推IID结构的地址。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611153340079.png" class title="image-20240611153340079">
+
+<p>KERNEL32.dll地址为000077D0h，该地址是IID结构中的Name的值，而name值的形式为去查看在内存中的地址为000076A0h</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611153700200.png" class title="image-20240611153700200">
+
+<p>由于每个IID数组之间有DWORD隔开，所以第一个IID数组的地址为00007694h，存放的IID结构中的name值地址为000076E4，如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611154359087.png" class title="image-20240611154359087">
+
+<p>所以第一个IID数组地址就是输入表的地址，为7694h。</p>
+<p><strong>基址重定位</strong></p>
+<p>ASPack没有破坏重定位表，只需确定重定位表的大小和地址即可。使用十六进制工具查看映像文件，确定重定位表的地址和起始RVA，重定位表一般以”00100000”开始，显示的字符栏中是可见的ASCLL字符。可以判断出首地址为0000c000，大小为000005c0。</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611160020925.png" class title="image-20240611160020925">
+
+
+
+<p><strong>PE文件修正</strong></p>
+<ol>
+<li>LordPE修正OEP</li>
+<li>修正输入表，填写RVA的地址和大小</li>
+<li>修正基质重定位，填写重定位表的地址和大小</li>
+<li>删除无用区块</li>
+</ol>
+<h2 id="加密壳"><a href="#加密壳" class="headerlink" title="加密壳"></a>加密壳</h2><p>以加密保护为主要目的，使用各种反跟踪技术，保护OEP隐藏和IAT加密。</p>
+<p>ASProtect是一款经典的加密壳，下面介绍下其保护技术的一些要点。</p>
+<p><strong>Emulate standard system functions</strong></p>
+<p>将API入口处的一段代码抽出来并放到外壳里执行，从中调用系统API。这样，对API入口地址设置断点的方法将会失效。如下加壳前的API调用语句如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611161018573.png" class title="image-20240611161018573">
+
+<p>加壳后的API调用语句如下</p>
+<img src="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/image-20240611162214568.png" class title="image-20240611162214568">
+
+<p>在调试采用这类方法保护的程序时，将断点设到API函数结尾返回处。</p>
+<p><strong>stolen bytes</strong></p>
+<p>外壳将程序的部分代码变形并搬到外壳段中。</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8A%A0%E5%A3%B3-%E8%84%B1%E5%A3%B3/" rel="tag">-加壳 -脱壳</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Hook技术
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/06/05/DLL%E6%B3%A8%E5%85%A5%E7%AE%80%E4%BB%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">DLL注入简介</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

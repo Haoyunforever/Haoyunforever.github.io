@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>深入浅出angr--angrctf(二) |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-深入浅出angr--angrctf(二)"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  深入浅出angr--angrctf(二)
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/" class="article-date">
+  <time datetime="2024-05-31T12:14:28.000Z" itemprop="datePublished">2024-05-31</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">5.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">27 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="深入浅出angr–angrctf-二"><a href="#深入浅出angr–angrctf-二" class="headerlink" title="深入浅出angr–angrctf(二)"></a>深入浅出angr–angrctf(二)</h1><h2 id="08-angr-constraints"><a href="#08-angr-constraints" class="headerlink" title="08_angr_constraints"></a>08_angr_constraints</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  qmemcpy(&amp;password, <span class="string">&quot;OSIWHBXIFOQVSBZB&quot;</span>, <span class="number">16</span>);</span><br><span class="line">  <span class="built_in">memset</span>(&amp;buffer, <span class="number">0</span>, <span class="number">0x11</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%16s&quot;</span>, &amp;buffer);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">15</span>; ++i )</span><br><span class="line">    *(_BYTE *)(i + <span class="number">134520896</span>) = complex_function(*(<span class="keyword">char</span> *)(i + <span class="number">134520896</span>), <span class="number">15</span> - i);</span><br><span class="line">  <span class="keyword">if</span> ( check_equals_OSIWHBXIFOQVSBZB(&amp;buffer, <span class="number">16</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里比较调用了check_equals_OSIWHBXIFOQVSBZB()函数，代码如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">_BOOL4 __cdecl <span class="title">check_equals_OSIWHBXIFOQVSBZB</span><span class="params">(<span class="keyword">int</span> a1, <span class="keyword">unsigned</span> <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// [esp+8h] [ebp-8h]</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> i; <span class="comment">// [esp+Ch] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  v3 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; a2 &gt; i; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( *(_BYTE *)(i + a1) == *(_BYTE *)(i + <span class="number">134520880</span>) )</span><br><span class="line">      ++v3;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> v3 == a2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码就是将buffer的每一个字节与password的每一个字节作比较，人工很容易就能反推出原来的buffer，但是angr不能，只能一个一个去遍历，总共会有2^16&#x3D;65536种分支，造成路径爆炸，这需要太长时间才能遍历得到结果。</p>
+<p>这个挑战的方法是在<strong>check_equals_OSIWHBXIFOQVSBZB</strong>()之前遍历满足当前的buffer，手动添加约束条件来替代一个一个字节导致的分支，脚本如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">    project = angr.Project(<span class="string">&quot;./08_angr_constraints&quot;</span>)</span><br><span class="line">    start_addr = <span class="number">0x0804863c</span></span><br><span class="line">    init_state = project.factory.blank_state(addr=start_addr)</span><br><span class="line"></span><br><span class="line">    password = claripy.BVS(<span class="string">&quot;password&quot;</span>,<span class="number">16</span>*<span class="number">8</span>)</span><br><span class="line">    init_state.memory.store(<span class="number">0x0804a040</span>,password)</span><br><span class="line"></span><br><span class="line">    simulation = project.factory.simgr(init_state)</span><br><span class="line">    <span class="comment">#符号输入化</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">#当寻找到check_equals()时，停止，自行进行约束判断</span></span><br><span class="line">    check_addr = <span class="number">0x08048683</span></span><br><span class="line">    simulation.explore(find=check_addr)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#给函数进行参数初始化</span></span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">        constrained_parameter_address = <span class="number">0x804a040</span></span><br><span class="line">        constrained_parameter_size_bytes = <span class="number">16</span></span><br><span class="line">        constrained_parameter_bitvector = solution_state.memory.load(</span><br><span class="line">            constrained_parameter_address,</span><br><span class="line">            constrained_parameter_size_bytes</span><br><span class="line">        )</span><br><span class="line">        constrained_parameter_desired_value = <span class="string">&#x27;OSIWHBXIFOQVSBZB&#x27;</span>.encode()</span><br><span class="line">        solution_state.add_constraints(constrained_parameter_bitvector == constrained_parameter_desired_value)</span><br><span class="line">        solution = solution_state.solver.<span class="built_in">eval</span>(password,cast_to=<span class="built_in">bytes</span>).decode()</span><br><span class="line">        <span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&quot;Could not find the solution!&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__==<span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main(sys.argv)</span><br></pre></td></tr></table></figure>
+
+<p>得到原来的值为<strong>ZEVKWROAYILRPZYB</strong></p>
+<p>当然这里也可以使用<strong>Veritesting</strong>快速遍历得到</p>
+<h2 id="09-angr-hooks"><a href="#09-angr-hooks" class="headerlink" title="09_angr_hooks"></a>09_angr_hooks</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  _BOOL4 v3; <span class="comment">// eax</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+8h] [ebp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> j; <span class="comment">// [esp+Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  qmemcpy(password, <span class="string">&quot;OSIWHBXIFOQVSBZB&quot;</span>, <span class="number">16</span>);</span><br><span class="line">  <span class="built_in">memset</span>(buffer, <span class="number">0</span>, <span class="number">0x11</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%16s&quot;</span>, buffer);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">15</span>; ++i )</span><br><span class="line">    *(_BYTE *)(i + <span class="number">134520900</span>) = complex_function(*(<span class="keyword">char</span> *)(i + <span class="number">0x804A044</span>), <span class="number">18</span> - i);</span><br><span class="line">  equals = check_equals_OSIWHBXIFOQVSBZB((<span class="keyword">int</span>)buffer, <span class="number">0x10</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt;= <span class="number">15</span>; ++j )</span><br><span class="line">    *(_BYTE *)(j + <span class="number">134520884</span>) = complex_function(*(<span class="keyword">char</span> *)(j + <span class="number">0x804A034</span>), j + <span class="number">9</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%16s&quot;</span>, buffer);</span><br><span class="line">  v3 = equals &amp;&amp; !<span class="built_in">strncmp</span>(buffer, password, <span class="number">0x10</span>u);</span><br><span class="line">  equals = v3;</span><br><span class="line">  <span class="keyword">if</span> ( v3 )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>和上面一样check_equals_OSIWHBXIFOQVSBZB()造成路径爆炸，所以执行到该函数需要停下，然后进行hook覆写check_equals()添加约束条件来得到其返回值，然后继续进行符号执行。我们来看看hook在官方文档的介绍</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531145511257.png" class title="image-20240531145511257">
+
+<p>hook代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">check_equals_called_address = <span class="number">0x80486ca</span></span><br><span class="line">instruction_to_skip_length = <span class="number">5</span></span><br><span class="line"><span class="meta">  @project.hook(<span class="params">check_equals_called_address,length=instruction_to_skip_length</span>)</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">skip_check_equals_</span>(<span class="params">state</span>):</span></span><br><span class="line">    user_input_buffer_address = <span class="number">0x804a044</span> <span class="comment"># :integer, probably hexadecimal</span></span><br><span class="line">    user_input_buffer_length = <span class="number">16</span></span><br><span class="line"></span><br><span class="line">    user_input_string = state.memory.load(</span><br><span class="line">      user_input_buffer_address,</span><br><span class="line">      user_input_buffer_length</span><br><span class="line">    )</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    check_against_string = <span class="string">&#x27;OSIWHBXIFOQVSBZB&#x27;</span>.encode() <span class="comment"># :string</span></span><br><span class="line"></span><br><span class="line">    state.regs.eax = claripy.If(</span><br><span class="line">      user_input_string == check_against_string, </span><br><span class="line">      claripy.BVV(<span class="number">1</span>, <span class="number">32</span>), </span><br><span class="line">      claripy.BVV(<span class="number">0</span>, <span class="number">32</span>)</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>这里不能使用08那种做法的原因是由于需要进行多次输入，在找到约束条件之后无法再次进行符号执行。</p>
+<p>整体代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">    pro = angr.Project(<span class="string">&quot;./09_angr_hooks&quot;</span>)</span><br><span class="line">    init_state = pro.factory.entry_state()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    check_equal_addr = <span class="number">0x080486ca</span></span><br><span class="line">    instruction_skip_length = <span class="number">5</span></span><br><span class="line"><span class="meta">    @pro.hook(<span class="params">check_equal_addr,length=instruction_skip_length</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">skip_check_equals_</span>(<span class="params">state</span>):</span></span><br><span class="line">        input_buffer_addr = <span class="number">0x0804a044</span></span><br><span class="line">        buffer_length = <span class="number">16</span></span><br><span class="line">        input_buffer_string = state.memory.load(input_buffer_addr,buffer_length)</span><br><span class="line">        check_string = <span class="string">&#x27;OSIWHBXIFOQVSBZB&#x27;</span>.encode()</span><br><span class="line">        state.regs.eax = claripy.If(input_buffer_string==check_string,claripy.BVV(<span class="number">1</span>,<span class="number">32</span>),claripy.BVV(<span class="number">0</span>,<span class="number">32</span>))</span><br><span class="line"></span><br><span class="line">    simulation = pro.factory.simgr(init_state)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">is_successful</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Good Job.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">should_abort</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Try again.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    simulation.explore(find=is_successful, avoid=should_abort)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">        solution = solution_state.posix.dumps(sys.stdin.fileno()).decode()</span><br><span class="line">        <span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__==<span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main(sys.argv)</span><br></pre></td></tr></table></figure>
+
+<p>得到两次的输入为<strong>QREPXOHPJPOQKQLKNOBMULEMGMLNHNIH</strong></p>
+<h2 id="10-angr-simprocedures"><a href="#10-angr-simprocedures" class="headerlink" title="10_angr_simprocedures"></a>10_angr_simprocedures</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+20h] [ebp-28h]</span></span><br><span class="line">  <span class="keyword">char</span> s[<span class="number">17</span>]; <span class="comment">// [esp+2Bh] [ebp-1Dh] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v6; <span class="comment">// [esp+3Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v6 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">memcpy</span>(&amp;password, <span class="string">&quot;OSIWHBXIFOQVSBZB&quot;</span>, <span class="number">0x10</span>u);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="keyword">sizeof</span>(s));</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%16s&quot;</span>, s);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">15</span>; ++i )</span><br><span class="line">    s[i] = complex_function(s[i], <span class="number">18</span> - i);</span><br><span class="line">  <span class="keyword">if</span> ( check_equals_OSIWHBXIFOQVSBZB(s, <span class="number">16</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个看起来和08是相同的，但是这里s是位于堆栈里面的，08是位于bss段的。这里使用<strong>SimProcedure</strong>创建一个类去hook不同的类，与上一个相同格式进行hhok，只是针对hook多个类时方便进行python编程</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">    pro = angr.Project(<span class="string">&quot;./10_angr_simprocedures&quot;</span>)</span><br><span class="line">    init_state = pro.factory.entry_state()</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ReplacementCheckEquals</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self, check_addr, length</span>):</span></span><br><span class="line">            input_buffer_addr = check_addr</span><br><span class="line">            input_buffer_length = length</span><br><span class="line"></span><br><span class="line">            input_buffer_string = self.state.memory.load(input_buffer_addr,input_buffer_length)</span><br><span class="line">            check_against_string = <span class="string">&#x27;OSIWHBXIFOQVSBZB&#x27;</span>.encode()</span><br><span class="line">            <span class="keyword">return</span> claripy.If(input_buffer_string==check_against_string,claripy.BVV(<span class="number">1</span>,<span class="number">32</span>),claripy.BVV(<span class="number">0</span>,<span class="number">32</span>))</span><br><span class="line"></span><br><span class="line">    check_equals_symbol = <span class="string">&#x27;check_equals_OSIWHBXIFOQVSBZB&#x27;</span>  <span class="comment"># :string</span></span><br><span class="line">    pro.hook_symbol(check_equals_symbol, ReplacementCheckEquals())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    simulation = pro.factory.simgr(init_state)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">is_successful</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Good Job.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">should_abort</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Try again.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    simulation.explore(find=is_successful, avoid=should_abort)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">        solution = solution_state.posix.dumps(sys.stdin.fileno()).decode()</span><br><span class="line">        <span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__==<span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main(sys.argv)</span><br></pre></td></tr></table></figure>
+
+<p>得到<strong>MTMDRONBBNSAAMNS</strong></p>
+<blockquote>
+<p>SimProcedure旨在完全替换所挂钩的任何函数，最初用例是替换库函数</p>
+</blockquote>
+<p>我看代码的时候有个疑问就是ReplacementCheckEquals()中并没有指定明确的参数，具体是这么操作的呢？</p>
+<p>SimProcedure运行时将通过调用约定自动从程序状态中提取这些参数(被hook函数的参数)，然后调用run函数，当在run函数中获得的返回也同样被置于被hook函数的返回值，这就是hook的操作。</p>
+<h2 id="11-angr-sim-scanf"><a href="#11-angr-sim-scanf" class="headerlink" title="11_angr_sim_scanf"></a>11_angr_sim_scanf</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+20h] [ebp-28h]</span></span><br><span class="line">  <span class="keyword">char</span> s[<span class="number">20</span>]; <span class="comment">// [esp+28h] [ebp-20h] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v7; <span class="comment">// [esp+3Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v7 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="keyword">sizeof</span>(s));</span><br><span class="line">  qmemcpy(s, <span class="string">&quot;LOGMHXHI&quot;</span>, <span class="number">8</span>);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">7</span>; ++i )</span><br><span class="line">    s[i] = complex_function(s[i], i);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%u %u&quot;</span>, buffer0, buffer1);</span><br><span class="line">  <span class="keyword">if</span> ( !<span class="built_in">strncmp</span>(buffer0, s, <span class="number">4u</span>) &amp;&amp; !<span class="built_in">strncmp</span>(buffer1, &amp;s[<span class="number">4</span>], <span class="number">4u</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这道题是对_isoc99_scanf()使用SimProcedure进行hook</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">    project = angr.Project(<span class="string">&quot;./11_angr_sim_scanf&quot;</span>)</span><br><span class="line">    initial_state = project.factory.entry_state(</span><br><span class="line">        add_options=&#123;angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,</span><br><span class="line">                     angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS&#125;</span><br><span class="line">    )</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Replacementscanf</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self,string,password0_addr,password1_addr</span>):</span></span><br><span class="line">            password0 = claripy.BVS(<span class="string">&#x27;password0&#x27;</span>,<span class="number">32</span>)</span><br><span class="line">            password1 = claripy.BVS(<span class="string">&#x27;password1&#x27;</span>,<span class="number">32</span>)</span><br><span class="line"></span><br><span class="line">            self.state.memory.store(password0_addr, password0, endness=project.arch.memory_endness)</span><br><span class="line">            self.state.memory.store(password1_addr, password1, endness=project.arch.memory_endness)</span><br><span class="line"></span><br><span class="line">            self.state.<span class="built_in">globals</span>[<span class="string">&#x27;solution0&#x27;</span>] = password0</span><br><span class="line">            self.state.<span class="built_in">globals</span>[<span class="string">&#x27;solution1&#x27;</span>] = password1</span><br><span class="line"></span><br><span class="line">    replace_function = <span class="string">&quot;__isoc99_scanf&quot;</span></span><br><span class="line">    project.hook_symbol(replace_function,Replacementscanf())</span><br><span class="line"></span><br><span class="line">    simulation = project.factory.simgr(initial_state)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">is_successful</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Good Job.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">should_abort</span>(<span class="params">state</span>):</span></span><br><span class="line">        stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Try again.&#x27;</span>.encode() <span class="keyword">in</span> stdout_output</span><br><span class="line"></span><br><span class="line">    simulation.explore(find=is_successful, avoid=should_abort)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Grab whatever you set aside in the globals dict.</span></span><br><span class="line">        stored_solutions0 = solution_state.<span class="built_in">globals</span>[<span class="string">&#x27;solution0&#x27;</span>]</span><br><span class="line">        stored_solutions1 = solution_state.<span class="built_in">globals</span>[<span class="string">&#x27;solution1&#x27;</span>]</span><br><span class="line">        solution = <span class="string">f&#x27;<span class="subst">&#123;solution_state.solver.<span class="built_in">eval</span>(stored_solutions0)&#125;</span> <span class="subst">&#123;solution_state.solver.<span class="built_in">eval</span>(stored_solutions1)&#125;</span>&#x27;</span></span><br><span class="line">        <span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到结果为<strong>1447907916 1146768724</strong></p>
+<h2 id="12-angr-veritesting"><a href="#12-angr-veritesting" class="headerlink" title="12_angr_veritesting"></a>12_angr_veritesting</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> v3; <span class="comment">// ebx</span></span><br><span class="line">  <span class="keyword">int</span> v5; <span class="comment">// [esp-14h] [ebp-60h]</span></span><br><span class="line">  <span class="keyword">int</span> v6; <span class="comment">// [esp-10h] [ebp-5Ch]</span></span><br><span class="line">  <span class="keyword">int</span> v7; <span class="comment">// [esp-Ch] [ebp-58h]</span></span><br><span class="line">  <span class="keyword">int</span> v8; <span class="comment">// [esp-8h] [ebp-54h]</span></span><br><span class="line">  <span class="keyword">int</span> v9; <span class="comment">// [esp-4h] [ebp-50h]</span></span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> **v10; <span class="comment">// [esp+0h] [ebp-4Ch]</span></span><br><span class="line">  <span class="keyword">int</span> v11; <span class="comment">// [esp+4h] [ebp-48h]</span></span><br><span class="line">  <span class="keyword">int</span> v12; <span class="comment">// [esp+8h] [ebp-44h]</span></span><br><span class="line">  <span class="keyword">int</span> v13; <span class="comment">// [esp+Ch] [ebp-40h]</span></span><br><span class="line">  <span class="keyword">int</span> v14; <span class="comment">// [esp+10h] [ebp-3Ch]</span></span><br><span class="line">  <span class="keyword">int</span> v15; <span class="comment">// [esp+10h] [ebp-3Ch]</span></span><br><span class="line">  <span class="keyword">int</span> v16; <span class="comment">// [esp+14h] [ebp-38h]</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+14h] [ebp-38h]</span></span><br><span class="line">  <span class="keyword">int</span> v18; <span class="comment">// [esp+18h] [ebp-34h]</span></span><br><span class="line">  _DWORD v19[<span class="number">9</span>]; <span class="comment">// [esp+1Ch] [ebp-30h] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v20; <span class="comment">// [esp+40h] [ebp-Ch]</span></span><br><span class="line">  <span class="keyword">int</span> *v21; <span class="comment">// [esp+44h] [ebp-8h]</span></span><br><span class="line"></span><br><span class="line">  v21 = &amp;argc;</span><br><span class="line">  v10 = argv;</span><br><span class="line">  v20 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">memset</span>((<span class="keyword">char</span> *)v19 + <span class="number">3</span>, <span class="number">0</span>, <span class="number">0x21</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  ((<span class="keyword">void</span> (__stdcall *)(<span class="keyword">const</span> <span class="keyword">char</span> *, <span class="keyword">char</span> *, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">const</span> <span class="keyword">char</span> **, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, <span class="keyword">int</span>, _DWORD))__isoc99_scanf)(</span><br><span class="line">    <span class="string">&quot;%32s&quot;</span>,</span><br><span class="line">    (<span class="keyword">char</span> *)v19 + <span class="number">3</span>,</span><br><span class="line">    v5,</span><br><span class="line">    v6,</span><br><span class="line">    v7,</span><br><span class="line">    v8,</span><br><span class="line">    v9,</span><br><span class="line">    v10,</span><br><span class="line">    v11,</span><br><span class="line">    v12,</span><br><span class="line">    v13,</span><br><span class="line">    v14,</span><br><span class="line">    v16,</span><br><span class="line">    v18,</span><br><span class="line">    v19[<span class="number">0</span>]);</span><br><span class="line">  v15 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">31</span>; ++i )</span><br><span class="line">  &#123;</span><br><span class="line">    v3 = *((<span class="keyword">char</span> *)v19 + i + <span class="number">3</span>);</span><br><span class="line">    <span class="keyword">if</span> ( v3 == complex_function(<span class="number">67</span>, i + <span class="number">232</span>) )</span><br><span class="line">      ++v15;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( v15 != <span class="number">32</span> || (_BYTE)v20 )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据wiki提示如下需要使用veritesting</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># When you construct a simulation manager, you will want to enable Veritesting:</span><br><span class="line"># project.factory.simgr(initial_state, veritesting=True)</span><br></pre></td></tr></table></figure>
+
+<p><strong>什么是veritesting？</strong></p>
+<blockquote>
+<p>从高层面来说，有两种符号执行，一种是动态符号执行（Dynamic Symbolic Execution，简称DSE），另一种是静态符号执行（Static Symbolic Execution，简称SSE）。动态符号执行会去执行程序然后为每一条路径生成一个表达式。而静态符号执行将程序转换为表达式，每个表达式都表示任意条路径的属性。基于路径的DSE在生成表达式上引入了很多的开销，然而生成的表达式很容易求解。而SSE虽然生成表达式容易，但是表达式难求解。veritesting就是在这二者中做权衡，使得能够在引入低开销的同时，生成较易求解的表达式。</p>
+</blockquote>
+<p>如下面例子，有着2^100条执行路径，如果每条路径都使用DES去分析的话，实现是不太现实的。实际上只需要两个测试样例，一个包含75B的字符串和一个没有B的字符串。</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531202647936.png" class title="image-20240531202647936">
+
+<p>Veritest从DSE开始，一旦遇到一些简单的代码，就切换到SSE的模式。简单的代码指的是不含系统调用，间接跳转或者其他很难精确推断的语句。在SSE模式下，首先动态恢复控制流图，找到SSE容易分析的语句和难以分析的语句。然后SSE算法推断出从易分析的节点到难分析节点路径的影响。最后，Veritesting切换回DSE模式去处理静态不好解决的情况。</p>
+<p>由于在上面代码中存在2^32条路径，这里使用Veritest进行遍历</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531203311092.png" class title="image-20240531203311092">
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">import angr</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">def main(argv):</span><br><span class="line">  project = angr.Project(&quot;./12_angr_veritesting&quot;)</span><br><span class="line">  initial_state = project.factory.entry_state(</span><br><span class="line">    add_options = &#123; angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,</span><br><span class="line">                    angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS&#125;</span><br><span class="line">  )</span><br><span class="line">  simulation = project.factory.simgr(initial_state, veritesting=True)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  def is_successful(state):</span><br><span class="line">    stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">    return &#x27;Good Job.&#x27;.encode() in stdout_output  # :boolean</span><br><span class="line">  def should_abort(state):</span><br><span class="line">    stdout_output = state.posix.dumps(sys.stdout.fileno())</span><br><span class="line">    return &#x27;Try again.&#x27;.encode() in stdout_output  # :boolean</span><br><span class="line"></span><br><span class="line">  simulation.explore(find=is_successful, avoid=should_abort)</span><br><span class="line"></span><br><span class="line">  if simulation.found:</span><br><span class="line">    solution_state = simulation.found[0]</span><br><span class="line">    print(solution_state.posix.dumps(sys.stdin.fileno()).decode())</span><br><span class="line">  else:</span><br><span class="line">    raise Exception(&#x27;Could not find the solution&#x27;)</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">  main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到输入为<strong>YNCRGVKZODSHWLAPETIXMBQFUJYNCRGV</strong></p>
+<h2 id="13-angr-static-library"><a href="#13-angr-static-library" class="headerlink" title="13_angr_static_library"></a>13_angr_static_library</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+1Ch] [ebp-3Ch]</span></span><br><span class="line">  <span class="keyword">int</span> j; <span class="comment">// [esp+20h] [ebp-38h]</span></span><br><span class="line">  <span class="keyword">char</span> v6[<span class="number">20</span>]; <span class="comment">// [esp+24h] [ebp-34h] BYREF</span></span><br><span class="line">  <span class="keyword">char</span> v7[<span class="number">20</span>]; <span class="comment">// [esp+38h] [ebp-20h] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v8; <span class="comment">// [esp+4Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v8 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">19</span>; ++i )</span><br><span class="line">    v7[i] = <span class="number">0</span>;</span><br><span class="line">  qmemcpy(v7, <span class="string">&quot;ELZXQOOQ&quot;</span>, <span class="number">8</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  _isoc99_scanf(<span class="string">&quot;%8s&quot;</span>, v6);</span><br><span class="line">  <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt;= <span class="number">7</span>; ++j )</span><br><span class="line">    v6[j] = complex_function(v6[j], j);</span><br><span class="line">  <span class="keyword">if</span> ( j_strcmp_ifunc(v6, v7) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这题和第一题的代码没什么区别，但它是静态编译得来的二进制文件，将所有的库函数都写入二进制文件。angr对于库函数只会分出一条路径，而不关心库函数内部是怎样实现的，库函数内部的分支也不会增加angr路径上的分支数量。</p>
+<p>在默认情况下angr会使用SimProcedures里面的符号函数摘要集替换库函数，本质上是在库函数上设置了Hooking，这些hook 函数高效地模仿库函数对状态的影响，就像我们之前在第8题中做的那样。因此angr不进入库函数内部的原因在于，它实际上执行的是hook函数，而hook函数只模仿了库函数对状态的影响，实际内部的操作并没有实现，因此也就不会产生额外分支。</p>
+<p><strong>Simprocedures是一个两层结构，第一层表示包名，第二层则是函数名</strong></p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531204856869.png" class title="image-20240531204856869">
+
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531204905523.png" class title="image-20240531204905523">
+
+<p>而此题库函数被静态编译进来了，默认启用的符号函数摘要集作用在动态链接库上，因此此时失效了，在该题中调用的库函数都会进入内部并产生相应的分支，这会大大降低angr的效率。此题的目的在于，手动使用符号函数摘要集替换程序中使用到的库函数</p>
+<p>想要获取某个符号函数摘要集中的函数，可以使用下面的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">angr.SIM_PROCEDURES[&#x27;libc&#x27;][&#x27;scanf&#x27;]()</span><br></pre></td></tr></table></figure>
+
+<p>就可以获取libc包中的scanf函数了，它是一个<SimProcedure scanf>与之前第10题中我们创建的class Hook是同一个类。对于这样的hook函数，可以使用以下两种方式将它hook到目标函数上去：</SimProcedure></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">project.hook(address_of_hooked, angr.SIM_PROCEDURES[&#x27;libc&#x27;][&#x27;scanf&#x27;]())</span><br><span class="line"></span><br><span class="line">project.hook_symbol(&#x27;__isoc99_scanf&#x27;,angr.SIM_PROCEDURES[&#x27;libc&#x27;][&#x27;scanf&#x27;]())</span><br></pre></td></tr></table></figure>
+
+<p>一种是传递待hook函数的地址，还有一种是传递函数名。</p>
+<p>此外在进入main函数之前，程序会先调用__libc_start_main，它也是库函数，而在创建状态时，如果使用entry_state()，则初始状态就已经经过了__libc_start_main的调用，所以最好也hook掉这个函数，或者使用blank_state手动从main函数开始。</p>
+<h2 id="14-angr-shared-library"><a href="#14-angr-shared-library" class="headerlink" title="14_angr_shared_library"></a>14_angr_shared_library</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> s[<span class="number">16</span>]; <span class="comment">// [esp+1Ch] [ebp-1Ch] BYREF</span></span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v5; <span class="comment">// [esp+2Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v5 = __readgsdword(<span class="number">0x14</span>u);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="keyword">sizeof</span>(s));</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%8s&quot;</span>, s);</span><br><span class="line">  <span class="keyword">if</span> ( validate(s, <span class="number">8</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这题不是静态编译了，main函数的逻辑也和13题一样，但是用于混淆输入和比较的函数validate是通过动态链接库调用进来的，因此直接逆向查看动态链接库获取validate函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">_BOOL4 __cdecl <span class="title">validate</span><span class="params">(<span class="keyword">char</span> *s1, <span class="keyword">int</span> a2)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> v3; <span class="comment">// al</span></span><br><span class="line">  <span class="keyword">char</span> s2[<span class="number">20</span>]; <span class="comment">// [esp+4h] [ebp-24h] BYREF</span></span><br><span class="line">  <span class="keyword">int</span> j; <span class="comment">// [esp+18h] [ebp-10h]</span></span><br><span class="line">  <span class="keyword">int</span> i; <span class="comment">// [esp+1Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( a2 &lt;= <span class="number">7</span> )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt;= <span class="number">19</span>; ++i )</span><br><span class="line">    s2[i] = <span class="number">0</span>;</span><br><span class="line">  qmemcpy(s2, <span class="string">&quot;THHEYHIA&quot;</span>, <span class="number">8</span>);</span><br><span class="line">  <span class="keyword">for</span> ( j = <span class="number">0</span>; j &lt;= <span class="number">7</span>; ++j )</span><br><span class="line">  &#123;</span><br><span class="line">    v3 = complex_function(s1[j], j);</span><br><span class="line">    s1[j] = v3;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">strcmp</span>(s1, s2) == <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>思路如下：</p>
+<ul>
+<li>模拟validate的函数执行，传递一个符号变量参数</li>
+<li>使用explorer()在validate函数后探索路径</li>
+<li>添加状态约束，使用add_constraints()为状态添加约束项</li>
+</ul>
+<p>模拟函数执行有两种方法，一种方法是使用blank_state()设置起始位置，并通过布置栈压栈操作来向函数传递参数，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">init_state = p.factory.blank_state(addr=validate_addr)</span><br><span class="line"></span><br><span class="line">init_state.regs.ebp = init_state.regs.esp</span><br><span class="line">init_state.stack_push(8)</span><br><span class="line">init_state.stack_push(password_addr)</span><br><span class="line">init_state.stack_push(0)</span><br></pre></td></tr></table></figure>
+
+<p>还有一种方法是，angr提供了更方便的从函数处开始执行的方式</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">init_state = p.factory.call_state(func_addr, param1, param2)</span><br></pre></td></tr></table></figure>
+
+<p>最后还需要注意的一点是，动态链接库在加载时需要重定位，可以在建立项目时用<strong>load_options</strong>设定重定位的基址，就像这样：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">p = angr.Project(path_to_binary,</span><br><span class="line">                 auto_load_libs=<span class="literal">False</span>,</span><br><span class="line">                 load_options=&#123;<span class="string">&#x27;main_opts&#x27;</span>: &#123;</span><br><span class="line">                     <span class="string">&#x27;custom_base_addr&#x27;</span>: base_addr</span><br><span class="line">                 &#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>如果不设立基址，通常angr会默认加载到<strong>0x400000</strong>处，在IDA中看到的各个指令的地址都只是相对地址，需要加上基址才能找到它们.</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531220326735.png" class title="image-20240531220326735">
+
+<p>validate开始相对地址为<strong>0x670</strong>，结束调用地址为<strong>0x0000071C</strong></p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531220726048.png" class title="image-20240531220726048">
+
+<p>将返回值保存在eax中</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240531220927668.png" class title="image-20240531220927668">
+
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">  base = <span class="number">0x4000000</span></span><br><span class="line">  project = angr.Project(<span class="string">&quot;./lib14_angr_shared_library.so&quot;</span>, load_options=&#123;</span><br><span class="line">    <span class="string">&#x27;main_opts&#x27;</span> : &#123;</span><br><span class="line">      <span class="string">&#x27;base_addr&#x27;</span> : base</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  buffer_pointer = claripy.BVV(<span class="number">0x3000000</span>, <span class="number">32</span>)</span><br><span class="line">  validate_function_address = base + <span class="number">0x670</span></span><br><span class="line">  initial_state = project.factory.call_state(</span><br><span class="line">                    validate_function_address,</span><br><span class="line">                    buffer_pointer,</span><br><span class="line">                    claripy.BVV(<span class="number">8</span>, <span class="number">32</span>),</span><br><span class="line">                    add_options = &#123; angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,</span><br><span class="line">                                   angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS&#125;</span><br><span class="line">                  )</span><br><span class="line">  password = claripy.BVS(<span class="string">&#x27;password&#x27;</span>, <span class="number">8</span>*<span class="number">8</span>)</span><br><span class="line">  initial_state.memory.store(buffer_pointer, password)</span><br><span class="line"></span><br><span class="line">  simulation = project.factory.simgr(initial_state)</span><br><span class="line"></span><br><span class="line">  check_constraint_address = base + <span class="number">0x71c</span></span><br><span class="line">  simulation.explore(find=check_constraint_address)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> simulation.found:</span><br><span class="line">    solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    solution_state.add_constraints(solution_state.regs.eax == <span class="number">1</span>)</span><br><span class="line">    solution = solution_state.solver.<span class="built_in">eval</span>(password,cast_to=<span class="built_in">bytes</span>).decode()</span><br><span class="line">    <span class="built_in">print</span>(solution)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">  main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到结果为<strong>TSDLQKW</strong>Z</p>
+<h2 id="15-angr-arbitrary-read"><a href="#15-angr-arbitrary-read" class="headerlink" title="15_angr_arbitrary_read"></a>15_angr_arbitrary_read</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> v4; <span class="comment">// [esp+Ch] [ebp-1Ch] BYREF</span></span><br><span class="line">  <span class="keyword">char</span> *s; <span class="comment">// [esp+1Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  s = try_again;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%u %20s&quot;</span>, &amp;key, &amp;v4);</span><br><span class="line">  <span class="keyword">if</span> ( key == <span class="number">2358019</span> )</span><br><span class="line">    <span class="built_in">puts</span>(s);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(try_again);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码逻辑是当key等于2358019时输出s，否则输出try_again。而s的初始值为try_again，并且这里的输入存在栈溢出可以对s进行覆盖为”Good Job.”。并且该字符串在<strong>0x4f534957</strong>地址处。</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604164225620.png" class title="image-20240604164225620">
+
+<h3 id="pwn"><a href="#pwn" class="headerlink" title="pwn"></a>pwn</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">p = process(&quot;./15_angr_arbitrary_read&quot;)</span><br><span class="line">Good_addr =0x4f534957</span><br><span class="line">payload = b&#x27;2358019&#x27;+b&#x27;a&#x27;*0x10+p32(Good_addr)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>覆盖成功输出</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604165558578.png" class title="image-20240604165558578">
+
+<h3 id="angr"><a href="#angr" class="headerlink" title="angr"></a>angr</h3><p>求解步骤如下：</p>
+<ol>
+<li>使用SimProcedur对输入符号化，并且为了避免路径太多造成的超时需设置限制，指定第二个输入为字符</li>
+<li>要想找到目标状态，需要在puts之前停下来，这里也需要设置约束条件，让参数s等于“God Job.”的地址</li>
+</ol>
+<p>在main函数中，对puts的调用如下</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604170951478.png" class title="image-20240604170951478">
+
+<p>puts()对应的plt地址如下</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604171530784.png" class title="image-20240604171530784">
+
+<p>由于angr是基于一个基本块执行的，这里可以选用<strong>0x08048548</strong>作为开始地址，但s是保存在堆栈中，此时并未调用puts函数保存堆栈，所以选用<strong>0x08048370</strong>作为地址，此时的参数地址保存在esp+4</p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604173748998.png" class title="image-20240604173748998">
+
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">    project = angr.Project(<span class="string">&#x27;./15_angr_arbitrary_read&#x27;</span>)</span><br><span class="line">    initial_state = project.factory.entry_state(</span><br><span class="line">        add_options=&#123;angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,</span><br><span class="line">                     angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS&#125;</span><br><span class="line">    )</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ReplacementScanf</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self, format_string, param0, param1</span>):</span></span><br><span class="line">            scanf0 = claripy.BVS(<span class="string">&#x27;scanf0&#x27;</span>, <span class="number">32</span>)</span><br><span class="line">            scanf1 = claripy.BVS(<span class="string">&#x27;scanf1&#x27;</span>, <span class="number">20</span> * <span class="number">8</span>)</span><br><span class="line">            <span class="keyword">for</span> char <span class="keyword">in</span> scanf1.chop(bits=<span class="number">8</span>):</span><br><span class="line">                self.state.add_constraints(char &gt;= <span class="string">&#x27;A&#x27;</span>.encode(), char &lt;= <span class="string">&#x27;Z&#x27;</span>.encode())</span><br><span class="line">            self.state.memory.store(param0, scanf0, endness=project.arch.memory_endness)</span><br><span class="line">            self.state.memory.store(param1, scanf1)</span><br><span class="line">            self.state.<span class="built_in">globals</span>[<span class="string">&#x27;solutions&#x27;</span>] = (scanf0, scanf1)</span><br><span class="line">    scanf_symbol = <span class="string">&#x27;__isoc99_scanf&#x27;</span>  <span class="comment"># :string</span></span><br><span class="line">    project.hook_symbol(scanf_symbol, ReplacementScanf())</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">check_puts</span>(<span class="params">state</span>):</span></span><br><span class="line">        puts_parameter = state.memory.load(state.regs.esp + <span class="number">4</span>, <span class="number">4</span>, endness=project.arch.memory_endness)</span><br><span class="line">        <span class="keyword">if</span> state.solver.symbolic(puts_parameter):</span><br><span class="line">            good_job_string_address = <span class="number">0x4f534957</span>  <span class="comment"># :integer, probably hexadecimal</span></span><br><span class="line">            is_vulnerable_expression = puts_parameter == good_job_string_address  <span class="comment"># :boolean bitvector expression</span></span><br><span class="line">            <span class="keyword">if</span> state.satisfiable(extra_constraints=(is_vulnerable_expression,)):</span><br><span class="line">                <span class="comment"># Before we return, let&#x27;s add the constraint to the solver for real,</span></span><br><span class="line">                <span class="comment"># instead of just querying whether the constraint _could_ be added.</span></span><br><span class="line">                state.add_constraints(is_vulnerable_expression)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">        <span class="keyword">else</span>:  <span class="comment"># not state.solver.symbolic(???)</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    simulation = project.factory.simgr(initial_state)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># In order to determine if we have found a vulnerable call to &#x27;puts&#x27;,  we need</span></span><br><span class="line">    <span class="comment"># to run the function check_puts (defined above) whenever we reach a &#x27;puts&#x27;</span></span><br><span class="line">    <span class="comment"># call. To do this, we will look for the place where the instruction pointer,</span></span><br><span class="line">    <span class="comment"># state.addr, is equal to the beginning of the puts function.</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">is_successful</span>(<span class="params">state</span>):</span></span><br><span class="line">        <span class="comment"># We are looking for puts. Check that the address is at the (very) beginning</span></span><br><span class="line">        <span class="comment"># of the puts function. Warning: while, in theory, you could look for</span></span><br><span class="line">        <span class="comment"># any address in puts, if you execute any instruction that adjusts the stack</span></span><br><span class="line">        <span class="comment"># pointer, the stack diagram above will be incorrect. Therefore, it is</span></span><br><span class="line">        <span class="comment"># recommended that you check for the very beginning of puts.</span></span><br><span class="line">        <span class="comment"># (!)</span></span><br><span class="line">        puts_address = <span class="number">0x8048370</span></span><br><span class="line">        <span class="keyword">if</span> state.addr == puts_address:</span><br><span class="line">            <span class="comment"># Return True if we determine this call to puts is exploitable.</span></span><br><span class="line">            <span class="keyword">return</span> check_puts(state)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="comment"># We have not yet found a call to puts; we should continue!</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    simulation.explore(find=is_successful)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> simulation.found:</span><br><span class="line">        solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">        (scanf0, scanf1) = solution_state.<span class="built_in">globals</span>[<span class="string">&#x27;solutions&#x27;</span>]</span><br><span class="line">        solution = <span class="built_in">str</span>(solution_state.solver.<span class="built_in">eval</span>(scanf0)) + <span class="string">&#x27; &#x27;</span> + solution_state.solver.<span class="built_in">eval</span>(scanf1,</span><br><span class="line">                                                                                              cast_to=<span class="built_in">bytes</span>).decode()</span><br><span class="line">        <span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到两个参数<strong>2358019 AAAAAAAAAAAAAAAAWISO</strong></p>
+<h2 id="16-angr-arbitrary-write"><a href="#16-angr-arbitrary-write" class="headerlink" title="16_angr_arbitrary_write"></a>16_angr_arbitrary_write</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> s[<span class="number">16</span>]; <span class="comment">// [esp+Ch] [ebp-1Ch] BYREF</span></span><br><span class="line">  <span class="keyword">char</span> *dest; <span class="comment">// [esp+1Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  dest = unimportant_buffer;</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">0</span>, <span class="keyword">sizeof</span>(s));</span><br><span class="line">  <span class="built_in">strncpy</span>(password_buffer, <span class="string">&quot;PASSWORD&quot;</span>, <span class="number">0xC</span>u);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  __isoc99_scanf(<span class="string">&quot;%u %20s&quot;</span>, &amp;key, s);</span><br><span class="line">  <span class="keyword">if</span> ( key == <span class="number">6712341</span> )</span><br><span class="line">    <span class="built_in">strncpy</span>(dest, s, <span class="number">0x10</span>u);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">strncpy</span>(unimportant_buffer, s, <span class="number">0x10</span>u);</span><br><span class="line">  <span class="keyword">if</span> ( !<span class="built_in">strncmp</span>(password_buffer, <span class="string">&quot;NEDVTNOP&quot;</span>, <span class="number">8u</span>) )</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Good Job.&quot;</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要满足两个条件<strong>key &#x3D;&#x3D; 6712341</strong>和**password_buffer&#x3D;&#x3D;”NEDVTNOP”**，所以对</p>
+<p> strncpy()调用时添加上面两个约束条件，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">import angr</span><br><span class="line">import claripy</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">def main(argv):</span><br><span class="line"></span><br><span class="line">  project = angr.Project(&#x27;./16_angr_arbitrary_write&#x27;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  initial_state = project.factory.entry_state(</span><br><span class="line">    add_options = &#123; angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,</span><br><span class="line">                    angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS&#125;</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  class ReplacementScanf(angr.SimProcedure):</span><br><span class="line">    # Hint: scanf(&quot;%u %20s&quot;)</span><br><span class="line">    def run(self, format_string, param0, param1):</span><br><span class="line">      # %u</span><br><span class="line">      scanf0 = claripy.BVS(&#x27;scanf0&#x27;, 32)</span><br><span class="line"></span><br><span class="line">      # %20s</span><br><span class="line">      scanf1 = claripy.BVS(&#x27;scanf1&#x27;, 20*8)</span><br><span class="line"></span><br><span class="line">      for char in scanf1.chop(bits=8):</span><br><span class="line">        self.state.add_constraints(char &gt;= 48, char &lt;= 96)</span><br><span class="line"></span><br><span class="line">      scanf0_address = param0</span><br><span class="line">      self.state.memory.store(scanf0_address, scanf0, endness=project.arch.memory_endness)</span><br><span class="line">      scanf1_address = param1</span><br><span class="line">      self.state.memory.store(scanf1_address, scanf1)</span><br><span class="line"></span><br><span class="line">      self.state.globals[&#x27;solutions&#x27;] = (scanf0, scanf1)</span><br><span class="line"></span><br><span class="line">  scanf_symbol = &#x27;__isoc99_scanf&#x27;  # :string</span><br><span class="line">  project.hook_symbol(scanf_symbol, ReplacementScanf())</span><br><span class="line"></span><br><span class="line">  def check_strncpy(state):</span><br><span class="line">    strncpy_dest = state.memory.load(state.regs.esp + 4, 4, endness=project.arch.memory_endness)</span><br><span class="line">    strncpy_src = state.memory.load(state.regs.esp + 8, 4, endness=project.arch.memory_endness)</span><br><span class="line">    strncpy_len = state.memory.load(state.regs.esp + 12, 4, endness=project.arch.memory_endness)</span><br><span class="line">    src_contents = state.memory.load(strncpy_src, strncpy_len)</span><br><span class="line">    if state.solver.symbolic(src_contents) and state.solver.symbolic(strncpy_dest):</span><br><span class="line">      password_string = &#x27;NEDVTNOP&#x27;.encode() # :string</span><br><span class="line">      buffer_address = 0x4d43523c # :integer, probably in hexadecimal</span><br><span class="line">      does_src_hold_password = src_contents[-1:-64] == password_string</span><br><span class="line">      does_dest_equal_buffer_address = strncpy_dest == buffer_address</span><br><span class="line">      if state.satisfiable(extra_constraints=(does_src_hold_password, does_dest_equal_buffer_address)):</span><br><span class="line">        state.add_constraints(does_src_hold_password, does_dest_equal_buffer_address)</span><br><span class="line">        return True</span><br><span class="line">      else:</span><br><span class="line">        return False</span><br><span class="line">    else: # not state.solver.symbolic(???)</span><br><span class="line">      return False</span><br><span class="line">  simulation = project.factory.simgr(initial_state)</span><br><span class="line"></span><br><span class="line">  def is_successful(state):</span><br><span class="line">    strncpy_address = 0x8048410</span><br><span class="line">    if state.addr == strncpy_address:</span><br><span class="line">      return check_strncpy(state)</span><br><span class="line">    else:</span><br><span class="line">      return False</span><br><span class="line"></span><br><span class="line">  simulation.explore(find=is_successful)</span><br><span class="line">  if simulation.found:</span><br><span class="line">    solution_state = simulation.found[0]</span><br><span class="line"></span><br><span class="line">    scanf0, scanf1 = solution_state.globals[&#x27;solutions&#x27;]</span><br><span class="line">    solution = str(solution_state.solver.eval(scanf0)) + &#x27; &#x27; + solution_state.solver.eval(scanf1, cast_to=bytes).decode()</span><br><span class="line">    print(solution)</span><br><span class="line">  else:</span><br><span class="line">    raise Exception(&#x27;Could not find the solution&#x27;)</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">  main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>6712341 NEDVTNOPP@@@@@@@&lt;RCM</strong></p>
+<h2 id="17-angr-arbitrary-jump"><a href="#17-angr-arbitrary-jump" class="headerlink" title="17_angr_arbitrary_jump"></a>17_angr_arbitrary_jump</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> __cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Enter the password: &quot;</span>);</span><br><span class="line">  read_input();</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Try again.&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中read_input()就是输入</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">read_input</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> v1[<span class="number">43</span>]; <span class="comment">// [esp+Dh] [ebp-2Bh] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> __isoc99_scanf(<span class="string">&quot;%s&quot;</span>, v1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>按照这个代码逻辑的话，程序只会输出”Try again.”。但__isoc99_scanf()存在栈溢出漏洞，可以覆盖其返回地址为puts()地址，输出”Good Job.”;或者其中还有个函数print_good()，地址为<strong>0x4D435250</strong></p>
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604193135657.png" class title="image-20240604193135657">
+
+<p>pwn代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&quot;./17_angr_arbitrary_jump&quot;</span>)</span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span> *<span class="number">0x2F</span>  + p32(<span class="number">0x4D435250</span>)</span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/image-20240604193012329.png" class title="image-20240604193012329">
+
+
+
+<p>这道题获取输入，使得某个state的eip变成想要的值。意味着让eip变成某个符号量，然后求解这个符号变量。angr对于这种情况，一般会将state放到unconstrained这个stash中,这个stash中的state会被angr默认丢弃以增加效率，而现在我们需要这个stash里面的state。可以在创建SM时保存，就像这样</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">simgr = p.factory.simgr(init_state, save_unconstrained=True)</span><br></pre></td></tr></table></figure>
+
+<p>处于unconstrained中的state，如果它在eip等于目标地址（也就是print_good的地址）时，能够有解（满足state.satisfiable为真），这样的状态就是目标状态了.angr在执行时，每次进入新的路径就会有新的state，为了判断这个state是否符合要求，这次不用explorer自动探索了，我们采用step单步执行，然后获取state进行判断。</p>
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">argv</span>):</span></span><br><span class="line">  project = angr.Project(<span class="string">&#x27;17_angr_arbitrary_jump&#x27;</span>)</span><br><span class="line">  initial_state = project.factory.entry_state()</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">SimScanfProcedure</span>(<span class="params">angr.SimProcedure</span>):</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">self, fmtstr, input_addr</span>):</span></span><br><span class="line">      input_bvs = claripy.BVS(<span class="string">&#x27;input_addr&#x27;</span>, <span class="number">200</span> * <span class="number">8</span>)</span><br><span class="line">      <span class="keyword">for</span> <span class="built_in">chr</span> <span class="keyword">in</span> input_bvs.chop(bits=<span class="number">8</span>):</span><br><span class="line">        self.state.add_constraints(<span class="built_in">chr</span> &gt;= <span class="string">&#x27;0&#x27;</span>, <span class="built_in">chr</span> &lt;= <span class="string">&#x27;z&#x27;</span>)</span><br><span class="line">      self.state.memory.store(input_addr, input_bvs)</span><br><span class="line">      self.state.<span class="built_in">globals</span>[<span class="string">&#x27;input_val&#x27;</span>] = input_bvs</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  project.hook_symbol(<span class="string">&#x27;__isoc99_scanf&#x27;</span>, SimScanfProcedure())</span><br><span class="line"></span><br><span class="line">  simulation = project.factory.simgr(</span><br><span class="line">    initial_state,</span><br><span class="line">    save_unconstrained=<span class="literal">True</span>,</span><br><span class="line">    stashes=&#123;</span><br><span class="line">      <span class="string">&#x27;active&#x27;</span> : [initial_state],</span><br><span class="line">      <span class="string">&#x27;unconstrained&#x27;</span> : [],</span><br><span class="line">      <span class="string">&#x27;found&#x27;</span> : [],</span><br><span class="line">      <span class="string">&#x27;not_needed&#x27;</span> : []</span><br><span class="line">    &#125;</span><br><span class="line">  )</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">has_found_solution</span>():</span></span><br><span class="line">    <span class="keyword">return</span> simulation.found</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">has_unconstrained_to_check</span>():</span></span><br><span class="line">    <span class="keyword">return</span> simulation.unconstrained</span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">has_active</span>():</span></span><br><span class="line">    <span class="keyword">return</span> simulation.active</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (has_active() <span class="keyword">or</span> has_unconstrained_to_check()) <span class="keyword">and</span> (<span class="keyword">not</span> has_found_solution()):</span><br><span class="line">    <span class="keyword">for</span> unconstrained_state <span class="keyword">in</span> simulation.unconstrained:</span><br><span class="line">      simulation.move(<span class="string">&#x27;unconstrained&#x27;</span>, <span class="string">&#x27;found&#x27;</span>)</span><br><span class="line">    simulation.step()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> simulation.found:</span><br><span class="line">    solution_state = simulation.found[<span class="number">0</span>]</span><br><span class="line">    solution_state.add_constraints(solution_state.regs.eip == <span class="number">0x4d435250</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Solve for the symbolic_input</span></span><br><span class="line">    symbolic_input = solution_state.<span class="built_in">globals</span>[<span class="string">&#x27;input_val&#x27;</span>]</span><br><span class="line">    solution = solution_state.solver.<span class="built_in">eval</span>(symbolic_input,cast_to=<span class="built_in">bytes</span>).decode()</span><br><span class="line">    <span class="built_in">print</span>(solution)</span><br><span class="line">  <span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">raise</span> Exception(<span class="string">&#x27;Could not find the solution&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">  main(sys.argv)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到**@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@PRCM@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@**</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/05/31/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%BA%8C)/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91-%E7%AC%A6%E5%8F%B7%E6%89%A7%E8%A1%8C/" rel="tag">-逆向 -符号执行</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/06/05/DLL%E6%B3%A8%E5%85%A5%E7%AE%80%E4%BB%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            DLL注入简介
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/05/29/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAangr--angrctf(%E4%B8%80)/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">深入浅出angr--angrctf(一)</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

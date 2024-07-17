@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Hook技术 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Hook技术"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hook技术
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/" class="article-date">
+  <time datetime="2024-06-06T12:14:28.000Z" itemprop="datePublished">2024-06-06</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/Hook%E6%8A%80%E6%9C%AF/">Hook技术</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">14 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Hook技术"><a href="#Hook技术" class="headerlink" title="Hook技术"></a>Hook技术</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Hook的关键就是通过一定的手段埋下”钩子”，“钩”住外面关心的重要流程，然后根据需要对执行过程进行干预。</p>
+<p>主要使用的是Win32中的**SetWindowsHookEx()**，参考详见<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/windows/win32/winmsg/using-hooks">API文档</a></p>
+<p>参数名称及其含义如下：</p>
+<img src="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/image-20240606154954268.png" class title="image-20240606154954268">
+
+<p>示例如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">HOOKPROC hkprcSysMsg;</span><br><span class="line"><span class="keyword">static</span> HINSTANCE hinstDLL; </span><br><span class="line"><span class="keyword">static</span> HHOOK hhookSysMsg; </span><br><span class="line"> </span><br><span class="line">hinstDLL = <span class="built_in">LoadLibrary</span>(<span class="built_in">TEXT</span>(<span class="string">&quot;c:\\myapp\\sysmsg.dll&quot;</span>)); </span><br><span class="line">hkprcSysMsg = (HOOKPROC)<span class="built_in">GetProcAddress</span>(hinstDLL, <span class="string">&quot;SysMessageProc&quot;</span>); </span><br><span class="line"></span><br><span class="line">hhookSysMsg = <span class="built_in">SetWindowsHookEx</span>( </span><br><span class="line">                    WH_SYSMSGFILTER,</span><br><span class="line">                    hkprcSysMsg,</span><br><span class="line">                    hinstDLL,</span><br><span class="line">                    <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>使用LoadLibrary()获取DLL函数的句柄，再调用GetProcessAdrress()检索指向挂钩过程的指针，最后使用SetWindowsHookEx()传递模块句柄和0作为线程标识符，指示挂钩过程应与调用线程位于同一桌面的所有线程相关联。</p>
+<p><strong>Monitoring System Events</strong></p>
+<p>下面的示例使用各种特定于线程的挂钩过程来监视系统是否存在影响线程的事件。它演示了如何处理以下类型的挂钩过程的事件：</p>
+<ul>
+<li><strong>WH_CALLWNDPROC</strong></li>
+<li><strong>WH_CBT</strong></li>
+<li><strong>WH_DEBUG</strong></li>
+<li><strong>WH_GETMESSAGE</strong></li>
+<li><strong>WH_KEYBOARD</strong></li>
+<li><strong>WH_MOUSE</strong></li>
+<li><strong>WH_MSGFILTER</strong></li>
+</ul>
+<p>用户可以使用菜单安装和删除挂钩过程。当安装挂钩过程并发生该过程监视的事件时，该过程会将有关该事件的信息写入应用程序主窗口的工作区。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br><span class="line">399</span><br><span class="line">400</span><br><span class="line">401</span><br><span class="line">402</span><br><span class="line">403</span><br><span class="line">404</span><br><span class="line">405</span><br><span class="line">406</span><br><span class="line">407</span><br><span class="line">408</span><br><span class="line">409</span><br><span class="line">410</span><br><span class="line">411</span><br><span class="line">412</span><br><span class="line">413</span><br><span class="line">414</span><br><span class="line">415</span><br><span class="line">416</span><br><span class="line">417</span><br><span class="line">418</span><br><span class="line">419</span><br><span class="line">420</span><br><span class="line">421</span><br><span class="line">422</span><br><span class="line">423</span><br><span class="line">424</span><br><span class="line">425</span><br><span class="line">426</span><br><span class="line">427</span><br><span class="line">428</span><br><span class="line">429</span><br><span class="line">430</span><br><span class="line">431</span><br><span class="line">432</span><br><span class="line">433</span><br><span class="line">434</span><br><span class="line">435</span><br><span class="line">436</span><br><span class="line">437</span><br><span class="line">438</span><br><span class="line">439</span><br><span class="line">440</span><br><span class="line">441</span><br><span class="line">442</span><br><span class="line">443</span><br><span class="line">444</span><br><span class="line">445</span><br><span class="line">446</span><br><span class="line">447</span><br><span class="line">448</span><br><span class="line">449</span><br><span class="line">450</span><br><span class="line">451</span><br><span class="line">452</span><br><span class="line">453</span><br><span class="line">454</span><br><span class="line">455</span><br><span class="line">456</span><br><span class="line">457</span><br><span class="line">458</span><br><span class="line">459</span><br><span class="line">460</span><br><span class="line">461</span><br><span class="line">462</span><br><span class="line">463</span><br><span class="line">464</span><br><span class="line">465</span><br><span class="line">466</span><br><span class="line">467</span><br><span class="line">468</span><br><span class="line">469</span><br><span class="line">470</span><br><span class="line">471</span><br><span class="line">472</span><br><span class="line">473</span><br><span class="line">474</span><br><span class="line">475</span><br><span class="line">476</span><br><span class="line">477</span><br><span class="line">478</span><br><span class="line">479</span><br><span class="line">480</span><br><span class="line">481</span><br><span class="line">482</span><br><span class="line">483</span><br><span class="line">484</span><br><span class="line">485</span><br><span class="line">486</span><br><span class="line">487</span><br><span class="line">488</span><br><span class="line">489</span><br><span class="line">490</span><br><span class="line">491</span><br><span class="line">492</span><br><span class="line">493</span><br><span class="line">494</span><br><span class="line">495</span><br><span class="line">496</span><br><span class="line">497</span><br><span class="line">498</span><br><span class="line">499</span><br><span class="line">500</span><br><span class="line">501</span><br><span class="line">502</span><br><span class="line">503</span><br><span class="line">504</span><br><span class="line">505</span><br><span class="line">506</span><br><span class="line">507</span><br><span class="line">508</span><br><span class="line">509</span><br><span class="line">510</span><br><span class="line">511</span><br><span class="line">512</span><br><span class="line">513</span><br><span class="line">514</span><br><span class="line">515</span><br><span class="line">516</span><br><span class="line">517</span><br><span class="line">518</span><br><span class="line">519</span><br><span class="line">520</span><br><span class="line">521</span><br><span class="line">522</span><br><span class="line">523</span><br><span class="line">524</span><br><span class="line">525</span><br><span class="line">526</span><br><span class="line">527</span><br><span class="line">528</span><br><span class="line">529</span><br><span class="line">530</span><br><span class="line">531</span><br><span class="line">532</span><br><span class="line">533</span><br><span class="line">534</span><br><span class="line">535</span><br><span class="line">536</span><br><span class="line">537</span><br><span class="line">538</span><br><span class="line">539</span><br><span class="line">540</span><br><span class="line">541</span><br><span class="line">542</span><br><span class="line">543</span><br><span class="line">544</span><br><span class="line">545</span><br><span class="line">546</span><br><span class="line">547</span><br><span class="line">548</span><br><span class="line">549</span><br><span class="line">550</span><br><span class="line">551</span><br><span class="line">552</span><br><span class="line">553</span><br><span class="line">554</span><br><span class="line">555</span><br><span class="line">556</span><br><span class="line">557</span><br><span class="line">558</span><br><span class="line">559</span><br><span class="line">560</span><br><span class="line">561</span><br><span class="line">562</span><br><span class="line">563</span><br><span class="line">564</span><br><span class="line">565</span><br><span class="line">566</span><br><span class="line">567</span><br><span class="line">568</span><br><span class="line">569</span><br><span class="line">570</span><br><span class="line">571</span><br><span class="line">572</span><br><span class="line">573</span><br><span class="line">574</span><br><span class="line">575</span><br><span class="line">576</span><br><span class="line">577</span><br><span class="line">578</span><br><span class="line">579</span><br><span class="line">580</span><br><span class="line">581</span><br><span class="line">582</span><br><span class="line">583</span><br><span class="line">584</span><br><span class="line">585</span><br><span class="line">586</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;strsafe.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;app.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment( lib, <span class="meta-string">&quot;user32.lib&quot;</span>) </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment( lib, <span class="meta-string">&quot;gdi32.lib&quot;</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NUMHOOKS 7 </span></span><br><span class="line"> </span><br><span class="line"><span class="comment">// Global variables </span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MYHOOKDATA</span> </span></span><br><span class="line"><span class="class">&#123;</span> </span><br><span class="line">    <span class="keyword">int</span> nType; </span><br><span class="line">    HOOKPROC hkprc; </span><br><span class="line">    HHOOK hhook; </span><br><span class="line">&#125; MYHOOKDATA; </span><br><span class="line"> </span><br><span class="line">MYHOOKDATA myhookdata[NUMHOOKS]; </span><br><span class="line"></span><br><span class="line">HWND gh_hwndMain;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Hook procedures</span></span><br><span class="line"></span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">CallWndProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">CBTProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">DebugProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">GetMsgProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">KeyboardProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">MouseProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">MessageProc</span><span class="params">(<span class="keyword">int</span>, WPARAM, LPARAM)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">LookUpTheMessage</span><span class="params">(PMSG, LPTSTR)</span></span>;</span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">MainWndProc</span><span class="params">(HWND hwndMain, UINT uMsg, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    <span class="keyword">static</span> BOOL afHooks[NUMHOOKS]; </span><br><span class="line">    <span class="keyword">int</span> index; </span><br><span class="line">    <span class="keyword">static</span> HMENU hmenu; </span><br><span class="line"> </span><br><span class="line">    gh_hwndMain = hwndMain;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (uMsg) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> WM_CREATE: </span><br><span class="line"> </span><br><span class="line">            <span class="comment">// Save the menu handle</span></span><br><span class="line"> </span><br><span class="line">            hmenu = <span class="built_in">GetMenu</span>(hwndMain); </span><br><span class="line"> </span><br><span class="line">            <span class="comment">// Initialize structures with hook data. The menu-item identifiers are </span></span><br><span class="line">            <span class="comment">// defined as 0 through 6 in the header file app.h. They can be used to </span></span><br><span class="line">            <span class="comment">// identify array elements both here and during the WM_COMMAND message. </span></span><br><span class="line"> </span><br><span class="line">            myhookdata[IDM_CALLWNDPROC].nType = WH_CALLWNDPROC; </span><br><span class="line">            myhookdata[IDM_CALLWNDPROC].hkprc = CallWndProc; </span><br><span class="line">            myhookdata[IDM_CBT].nType = WH_CBT; </span><br><span class="line">            myhookdata[IDM_CBT].hkprc = CBTProc; </span><br><span class="line">            myhookdata[IDM_DEBUG].nType = WH_DEBUG; </span><br><span class="line">            myhookdata[IDM_DEBUG].hkprc = DebugProc; </span><br><span class="line">            myhookdata[IDM_GETMESSAGE].nType = WH_GETMESSAGE; </span><br><span class="line">            myhookdata[IDM_GETMESSAGE].hkprc = GetMsgProc; </span><br><span class="line">            myhookdata[IDM_KEYBOARD].nType = WH_KEYBOARD; </span><br><span class="line">            myhookdata[IDM_KEYBOARD].hkprc = KeyboardProc; </span><br><span class="line">            myhookdata[IDM_MOUSE].nType = WH_MOUSE; </span><br><span class="line">            myhookdata[IDM_MOUSE].hkprc = MouseProc; </span><br><span class="line">            myhookdata[IDM_MSGFILTER].nType = WH_MSGFILTER; </span><br><span class="line">            myhookdata[IDM_MSGFILTER].hkprc = MessageProc; </span><br><span class="line"> </span><br><span class="line">            <span class="comment">// Initialize all flags in the array to FALSE. </span></span><br><span class="line"> </span><br><span class="line">            <span class="built_in">memset</span>(afHooks, FALSE, <span class="built_in"><span class="keyword">sizeof</span></span>(afHooks)); </span><br><span class="line"> </span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> WM_COMMAND: </span><br><span class="line">            <span class="built_in"><span class="keyword">switch</span></span> (<span class="built_in">LOWORD</span>(wParam)) </span><br><span class="line">            &#123; </span><br><span class="line">                 <span class="comment">// The user selected a hook command from the menu. </span></span><br><span class="line"> </span><br><span class="line">                <span class="keyword">case</span> IDM_CALLWNDPROC: </span><br><span class="line">                <span class="keyword">case</span> IDM_CBT: </span><br><span class="line">                <span class="keyword">case</span> IDM_DEBUG: </span><br><span class="line">                <span class="keyword">case</span> IDM_GETMESSAGE: </span><br><span class="line">                <span class="keyword">case</span> IDM_KEYBOARD: </span><br><span class="line">                <span class="keyword">case</span> IDM_MOUSE: </span><br><span class="line">                <span class="keyword">case</span> IDM_MSGFILTER: </span><br><span class="line"> </span><br><span class="line">                    <span class="comment">// Use the menu-item identifier as an index </span></span><br><span class="line">                    <span class="comment">// into the array of structures with hook data. </span></span><br><span class="line"> </span><br><span class="line">                    index = <span class="built_in">LOWORD</span>(wParam); </span><br><span class="line"> </span><br><span class="line">                    <span class="comment">// If the selected type of hook procedure isn&#x27;t </span></span><br><span class="line">                    <span class="comment">// installed yet, install it and check the </span></span><br><span class="line">                    <span class="comment">// associated menu item. </span></span><br><span class="line"> </span><br><span class="line">                    <span class="keyword">if</span> (!afHooks[index]) </span><br><span class="line">                    &#123; </span><br><span class="line">                        myhookdata[index].hhook = <span class="built_in">SetWindowsHookEx</span>( </span><br><span class="line">                            myhookdata[index].nType, </span><br><span class="line">                            myhookdata[index].hkprc, </span><br><span class="line">                            (HINSTANCE) <span class="literal">NULL</span>, <span class="built_in">GetCurrentThreadId</span>()); </span><br><span class="line">                        <span class="built_in">CheckMenuItem</span>(hmenu, index, </span><br><span class="line">                            MF_BYCOMMAND | MF_CHECKED); </span><br><span class="line">                        afHooks[index] = TRUE; </span><br><span class="line">                    &#125; </span><br><span class="line"> </span><br><span class="line">                    <span class="comment">// If the selected type of hook procedure is </span></span><br><span class="line">                    <span class="comment">// already installed, remove it and remove the </span></span><br><span class="line">                    <span class="comment">// check mark from the associated menu item. </span></span><br><span class="line"> </span><br><span class="line">                    <span class="keyword">else</span> </span><br><span class="line">                    &#123; </span><br><span class="line">                        <span class="built_in">UnhookWindowsHookEx</span>(myhookdata[index].hhook); </span><br><span class="line">                        <span class="built_in">CheckMenuItem</span>(hmenu, index, </span><br><span class="line">                            MF_BYCOMMAND | MF_UNCHECKED); </span><br><span class="line">                        afHooks[index] = FALSE; </span><br><span class="line">                    &#125; </span><br><span class="line"> </span><br><span class="line">                <span class="keyword">default</span>: </span><br><span class="line">                    <span class="keyword">return</span> (<span class="built_in">DefWindowProc</span>(hwndMain, uMsg, wParam, </span><br><span class="line">                        lParam)); </span><br><span class="line">            &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">            <span class="comment">//</span></span><br><span class="line">            <span class="comment">// Process other messages. </span></span><br><span class="line">            <span class="comment">//</span></span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>: </span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">DefWindowProc</span>(hwndMain, uMsg, wParam, lParam); </span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>; </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_CALLWNDPROC hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT WINAPI <span class="title">CallWndProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szCWPBuf[<span class="number">256</span>]; </span><br><span class="line">    CHAR szMsg[<span class="number">16</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch;</span><br><span class="line">    HRESULT hResult; </span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_CALLWNDPROC].hhook, nCode, wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Call an application-defined function that converts a message </span></span><br><span class="line">    <span class="comment">// constant to a string and copies it to a buffer. </span></span><br><span class="line"> </span><br><span class="line">    <span class="built_in">LookUpTheMessage</span>((PMSG) lParam, szMsg); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain); </span><br><span class="line"> </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (nCode) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> HC_ACTION:</span><br><span class="line">            hResult = <span class="built_in">StringCchPrintf</span>(szCWPBuf, <span class="number">256</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR),  </span><br><span class="line">               <span class="string">&quot;CALLWNDPROC - tsk: %ld, msg: %s, %d times   &quot;</span>, </span><br><span class="line">                wParam, szMsg, c++);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> writer error handler</span></span><br><span class="line">            &#125;</span><br><span class="line">            hResult = <span class="built_in">StringCchLength</span>(szCWPBuf, <span class="number">256</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">            &#125; </span><br><span class="line">            <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">15</span>, szCWPBuf, cch); </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>: </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line">    &#125; </span><br><span class="line"> </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_CALLWNDPROC].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_GETMESSAGE hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">GetMsgProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szMSGBuf[<span class="number">256</span>]; </span><br><span class="line">    CHAR szRem[<span class="number">16</span>]; </span><br><span class="line">    CHAR szMsg[<span class="number">16</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>) <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_GETMESSAGE].hhook, nCode, </span><br><span class="line">            wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (nCode) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> HC_ACTION: </span><br><span class="line">            <span class="built_in"><span class="keyword">switch</span></span> (wParam) </span><br><span class="line">            &#123; </span><br><span class="line">                <span class="keyword">case</span> PM_REMOVE:</span><br><span class="line">                    hResult = <span class="built_in">StringCchCopy</span>(szRem, <span class="number">16</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;PM_REMOVE&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">                    <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">                <span class="keyword">case</span> PM_NOREMOVE:</span><br><span class="line">                    hResult = <span class="built_in">StringCchCopy</span>(szRem, <span class="number">16</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;PM_NOREMOVE&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">                    <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">                <span class="keyword">default</span>:</span><br><span class="line">                    hResult = <span class="built_in">StringCchCopy</span>(szRem, <span class="number">16</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;Unknown&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">                    <span class="keyword">break</span>; </span><br><span class="line">            &#125; </span><br><span class="line"> </span><br><span class="line">            <span class="comment">// Call an application-defined function that converts a </span></span><br><span class="line">            <span class="comment">// message constant to a string and copies it to a </span></span><br><span class="line">            <span class="comment">// buffer. </span></span><br><span class="line"> </span><br><span class="line">            <span class="built_in">LookUpTheMessage</span>((PMSG) lParam, szMsg); </span><br><span class="line"> </span><br><span class="line">            hdc = <span class="built_in">GetDC</span>(gh_hwndMain);</span><br><span class="line">            hResult = <span class="built_in">StringCchPrintf</span>(szMSGBuf, <span class="number">256</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), </span><br><span class="line">                <span class="string">&quot;GETMESSAGE - wParam: %s, msg: %s, %d times   &quot;</span>, </span><br><span class="line">                szRem, szMsg, c++);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">            &#125;</span><br><span class="line">            hResult = <span class="built_in">StringCchLength</span>(szMSGBuf, <span class="number">256</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">            &#125; </span><br><span class="line">            <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">35</span>, szMSGBuf, cch); </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>: </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line">    &#125; </span><br><span class="line"> </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_GETMESSAGE].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_DEBUG hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">DebugProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szBuf[<span class="number">128</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_DEBUG].hhook, nCode, </span><br><span class="line">            wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain); </span><br><span class="line"> </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (nCode) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> HC_ACTION:</span><br><span class="line">            hResult = <span class="built_in">StringCchPrintf</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR),   </span><br><span class="line">                <span class="string">&quot;DEBUG - nCode: %d, tsk: %ld, %d times   &quot;</span>, </span><br><span class="line">                nCode,wParam, c++);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">            &#125;</span><br><span class="line">            hResult = <span class="built_in">StringCchLength</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">            &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">            &#125; </span><br><span class="line">            <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">55</span>, szBuf, cch); </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>: </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line">    &#125; </span><br><span class="line"> </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_DEBUG].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_CBT hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">CBTProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szBuf[<span class="number">128</span>]; </span><br><span class="line">    CHAR szCode[<span class="number">128</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_CBT].hhook, nCode, wParam, </span><br><span class="line">            lParam); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain); </span><br><span class="line"> </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (nCode) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> HCBT_ACTIVATE:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_ACTIVATE&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_CLICKSKIPPED:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_CLICKSKIPPED&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_CREATEWND:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_CREATEWND&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_DESTROYWND:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_DESTROYWND&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_KEYSKIPPED:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_KEYSKIPPED&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_MINMAX:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_MINMAX&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_MOVESIZE:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_MOVESIZE&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_QS:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_QS&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_SETFOCUS:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_SETFOCUS&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> HCBT_SYSCOMMAND:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;HCBT_SYSCOMMAND&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;Unknown&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line">    &#125; </span><br><span class="line">    hResult = <span class="built_in">StringCchPrintf</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;CBT -  nCode: %s, tsk: %ld, %d times   &quot;</span>,</span><br><span class="line">        szCode, wParam, c++);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125;</span><br><span class="line">    hResult = <span class="built_in">StringCchLength</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125; </span><br><span class="line">    <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">75</span>, szBuf, cch); </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_CBT].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_MOUSE hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">MouseProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szBuf[<span class="number">128</span>]; </span><br><span class="line">    CHAR szMsg[<span class="number">16</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process the message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_MOUSE].hhook, nCode, </span><br><span class="line">            wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Call an application-defined function that converts a message </span></span><br><span class="line">    <span class="comment">// constant to a string and copies it to a buffer. </span></span><br><span class="line"> </span><br><span class="line">    <span class="built_in">LookUpTheMessage</span>((PMSG) lParam, szMsg); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain);</span><br><span class="line">    hResult = <span class="built_in">StringCchPrintf</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), </span><br><span class="line">        <span class="string">&quot;MOUSE - nCode: %d, msg: %s, x: %d, y: %d, %d times   &quot;</span>, </span><br><span class="line">        nCode, szMsg, <span class="built_in">LOWORD</span>(lParam), <span class="built_in">HIWORD</span>(lParam), c++); </span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125;</span><br><span class="line">    hResult = <span class="built_in">StringCchLength</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">95</span>, szBuf, cch); </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_MOUSE].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_KEYBOARD hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">KeyboardProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szBuf[<span class="number">128</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_KEYBOARD].hhook, nCode, </span><br><span class="line">            wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain);</span><br><span class="line">    hResult = <span class="built_in">StringCchPrintf</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;KEYBOARD - nCode: %d, vk: %d, %d times &quot;</span>, nCode, wParam, c++);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125; </span><br><span class="line">    hResult = <span class="built_in">StringCchLength</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125; </span><br><span class="line">    <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">115</span>, szBuf, cch); </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_KEYBOARD].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line"><span class="comment">/**************************************************************** </span></span><br><span class="line"><span class="comment">  WH_MSGFILTER hook procedure </span></span><br><span class="line"><span class="comment"> ****************************************************************/</span> </span><br><span class="line"> </span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">MessageProc</span><span class="params">(<span class="keyword">int</span> nCode, WPARAM wParam, LPARAM lParam)</span> </span></span><br><span class="line"><span class="function"></span>&#123; </span><br><span class="line">    CHAR szBuf[<span class="number">128</span>]; </span><br><span class="line">    CHAR szMsg[<span class="number">16</span>]; </span><br><span class="line">    CHAR szCode[<span class="number">32</span>]; </span><br><span class="line">    HDC hdc; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">size_t</span> cch; </span><br><span class="line">    HRESULT hResult;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (nCode &lt; <span class="number">0</span>)  <span class="comment">// do not process message </span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_MSGFILTER].hhook, nCode, </span><br><span class="line">            wParam, lParam); </span><br><span class="line"> </span><br><span class="line">    <span class="built_in"><span class="keyword">switch</span></span> (nCode) </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="keyword">case</span> MSGF_DIALOGBOX:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">32</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;MSGF_DIALOGBOX&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> MSGF_MENU:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">32</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;MSGF_MENU&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">case</span> MSGF_SCROLLBAR:</span><br><span class="line">            hResult = <span class="built_in">StringCchCopy</span>(szCode, <span class="number">32</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;MSGF_SCROLLBAR&quot;</span>);</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">                    &#123;</span><br><span class="line">                    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">                    &#125; </span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line"> </span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            hResult = <span class="built_in">StringCchPrintf</span>(szCode, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), <span class="string">&quot;Unknown: %d&quot;</span>, nCode);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125;</span><br><span class="line">            <span class="keyword">break</span>; </span><br><span class="line">    &#125; </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Call an application-defined function that converts a message </span></span><br><span class="line">    <span class="comment">// constant to a string and copies it to a buffer. </span></span><br><span class="line"> </span><br><span class="line">    <span class="built_in">LookUpTheMessage</span>((PMSG) lParam, szMsg); </span><br><span class="line"> </span><br><span class="line">    hdc = <span class="built_in">GetDC</span>(gh_hwndMain);</span><br><span class="line">    hResult = <span class="built_in">StringCchPrintf</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR),  </span><br><span class="line">        <span class="string">&quot;MSGFILTER  nCode: %s, msg: %s, %d times    &quot;</span>, </span><br><span class="line">        szCode, szMsg, c++);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125; </span><br><span class="line">    hResult = <span class="built_in">StringCchLength</span>(szBuf, <span class="number">128</span>/<span class="built_in"><span class="keyword">sizeof</span></span>(TCHAR), &amp;cch);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">FAILED</span>(hResult))</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> write error handler</span></span><br><span class="line">    &#125; </span><br><span class="line">    <span class="built_in">TextOut</span>(hdc, <span class="number">2</span>, <span class="number">135</span>, szBuf, cch); </span><br><span class="line">    <span class="built_in">ReleaseDC</span>(gh_hwndMain, hdc); </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">CallNextHookEx</span>(myhookdata[IDM_MSGFILTER].hhook, nCode, wParam, lParam); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Hook分类"><a href="#Hook分类" class="headerlink" title="Hook分类"></a>Hook分类</h2><p>Hook分为应用层（Ring3）Hook和内核层（Ring0）Hook，应用层Hook适用于x86和x64，而内核层Hook一般仅在x86平台适用，因为从Windows Vista的64版本开始引入的Patch Guard技术极大地限制了Windows x64内核挂钩的使用。</p>
+<img src="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/image-20240606160315163.png" class title="image-20240606160315163">
+
+<p>由于程序是指令和数据的集合，相应的出现了两类Hook，一类是修改数据，一类是修改函数内的指令。按C语言来类比的话，第一类是修改指针的值，第二类是修改指针指向的内容的值。总结来说就是Address Hook和Inline Hook。如下列示例</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printchar</span><span class="params">(<span class="keyword">char</span>* ptr)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> ch = <span class="string">&#x27;A&#x27;</span>;</span><br><span class="line">	<span class="keyword">char</span> ch1 = <span class="string">&#x27;B&#x27;</span>;</span><br><span class="line">	<span class="keyword">char</span>* pchar;</span><br><span class="line"></span><br><span class="line">	pchar = &amp;ch;</span><br><span class="line">	<span class="built_in">printchar</span>(pchar);</span><br><span class="line"></span><br><span class="line">	pchar = &amp;ch1;</span><br><span class="line">	<span class="built_in">printchar</span>(pchar);</span><br><span class="line">    <span class="comment">//Address Hook</span></span><br><span class="line">	pchar = &amp;ch;</span><br><span class="line">	*pchar = <span class="string">&#x27;C&#x27;</span>;</span><br><span class="line">	<span class="built_in">printchar</span>(pchar);</span><br><span class="line">    <span class="comment">//Inline Hook</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printchar</span><span class="params">(<span class="keyword">char</span>* ptr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Address=0x%x,Char=%c\n&quot;</span>,ptr,*ptr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行如下</p>
+<img src="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/image-20240606161834473.png" class title="image-20240606161834473">
+
+<h3 id="Address-Hook"><a href="#Address-Hook" class="headerlink" title="Address Hook"></a>Address Hook</h3><p>通过修改函数地址进行Hook的方法。</p>
+<h4 id="各类表中的地址"><a href="#各类表中的地址" class="headerlink" title="各类表中的地址"></a>各类表中的地址</h4><ul>
+<li><strong>IAT</strong></li>
+</ul>
+<p>IAT存放输入函数地址，在静态链接的方式调用API时才会被Hook，在使用LoadLibrary或者GetProAddress进行动态调用时不受影响。</p>
+<ul>
+<li><strong>EAT</strong></li>
+</ul>
+<p>输出表存放函数地址的偏移，使用时需要加上模块基址。在Hook之后，所有通过输出表获取函数地址的行为都要受到欺骗。</p>
+<ul>
+<li><strong>user32.dll的回调函数表</strong></li>
+</ul>
+<p>USER32!apfnDispatch的回调函数表，用于存放各种用于GUI的回调函数</p>
+<ul>
+<li><strong>IDT</strong></li>
+</ul>
+<p>(Interrupt Descriptor Table)系统的中断描述符表是操作系统处理中断机制时使用的一张表。</p>
+<ul>
+<li><strong>SSDT</strong></li>
+</ul>
+<p>(system service descriptor table)系统服务描述符表，应用程序调用API后转入操作系统内核进行处理的表</p>
+<ul>
+<li><strong>C++类的虚地址表</strong></li>
+</ul>
+<p>虚函数使子类以相同的接口实现与基类不同的功能，用来保存虚函数的地址。一旦子类重载了某个函数，编译器会用子类中该函数的地址替换虚函数中对应的函数地址。</p>
+<ul>
+<li><strong>COM接口的功能函数表</strong></li>
+</ul>
+<p>同一个COM接口的所有接口函数都放在一个表中。</p>
+<h4 id="处理例程地址"><a href="#处理例程地址" class="headerlink" title="处理例程地址"></a>处理例程地址</h4><p>常见于内核中</p>
+<h4 id="特殊寄存器地址"><a href="#特殊寄存器地址" class="headerlink" title="特殊寄存器地址"></a>特殊寄存器地址</h4><p>Windows使用MSR寄存器组中IA32_SYSENTER_EIP的值作为内核调用的入口，通过修改MSR寄存器中保存的快速调用入口函数地址来进行Hook</p>
+<h4 id="特定的函数指针"><a href="#特定的函数指针" class="headerlink" title="特定的函数指针"></a><strong>特定的函数指针</strong></h4><p>函数指针存在一个已知的地址，可以通过修改函数指针中的地址来实现Hook.</p>
+<h3 id="Inline-Hook"><a href="#Inline-Hook" class="headerlink" title="Inline Hook"></a>Inline Hook</h3><p>直接修改指令的Hook，转移程序的执行流程，一般使用jmp、call、retn 、move之类的转移指令</p>
+<p><strong>push xxx&#x2F;retn</strong></p>
+<p><strong>jmp xxxx</strong></p>
+<p><strong>mov eax,xxxx&#x2F;jmp eax</strong></p>
+<p><strong>call Hook</strong></p>
+<p><strong>HotPatch Hook</strong></p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/06/06/Hook%E6%8A%80%E6%9C%AF/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B3%A8%E5%85%A5-Hook/" rel="tag">-注入 -Hook</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/06/13/Shellcode/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Shellcode
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/06/06/%E8%84%B1%E5%A3%B3%E6%8A%80%E6%9C%AF/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">脱壳技术</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

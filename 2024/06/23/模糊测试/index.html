@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>模糊测试 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-模糊测试"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  模糊测试
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/" class="article-date">
+  <time datetime="2024-06-23T12:14:28.000Z" itemprop="datePublished">2024-06-23</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/">基本知识</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.8k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">6 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="模糊测试"><a href="#模糊测试" class="headerlink" title="模糊测试"></a>模糊测试</h1><p>模糊测试，又称为fuzzing，是一种软件测试技术。原理是自动生成大量随机输入到程序中，监视程序异常信息，尽可能发现导致目标程序错误的非法输入，找到目标程序的脆弱点。</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623155043950.png" class title="image-20240623155043950">
+
+<p>模糊测试主要分为两个关键模块：程序监控器和输入生成器</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623155417030.png" class title="image-20240623155417030">
+
+<p>其中模糊器的好坏，通常取决于</p>
+<ol>
+<li>种子选择释放能挑选出真正有意义的种子</li>
+<li>变异的随机算法有效率</li>
+<li>覆盖实现的方式算法会造成大量的开销</li>
+</ol>
+<h2 id="AFL"><a href="#AFL" class="headerlink" title="AFL"></a>AFL</h2><p>以下是一些比较有名的开源模糊测试工具：</p>
+<ol>
+<li><strong>American Fuzzy Lop (AFL)</strong>: AFL 是一个高效的模糊测试工具</li>
+<li><strong>libFuzzer</strong>: libFuzzer 是 LLVM&#x2F;Clang 提供的一个模糊测试引擎，它可以轻松地集成到现有的代码中</li>
+<li><strong>Syzkaller</strong>: Syzkaller 是一个专注于系统调用接口的模糊测试工具，它可以自动生成各种系统调用序列，并对内核进行测试以发现漏洞和错误。</li>
+<li><strong>OSS-Fuzz</strong>: OSS-Fuzz旨在通过自动化模糊测试发现开源软件中的安全漏洞和错误。</li>
+</ol>
+<p>下面介绍AFL工具的使用。AFL，全称“American Fuzzy Lop”，是由安全研究员Michal Zalewski开发的一款基于覆盖引导（Coverage-guided）的模糊测试工具，它通过记录输入样本的代码覆盖率（代码执行路径的覆盖情况），以此进行反馈，对输入样本进行调整以提高覆盖率，从而提升发现漏洞的可能性。</p>
+<p>AFL工具有两种Fuzz方式。对于开源软件来说，AFL可以再进行编译的同时进行插桩；对于闭源软件来说，可以通过和QEMU直接对闭源的二进制代码进行fuzz。</p>
+<blockquote>
+<p>插桩：指的是在不影响程序正常逻辑运行的完整性下，在程序中插入程序码来采集程序运行期间的执行状态。在模糊器中，插桩常用于进行覆盖，记录多少程序码被执行到。如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> test_var = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// original (1)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b</span><span class="params">()</span> </span>&#123; ...; &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span> </span>&#123; ...; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// instrumented (2)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">b</span><span class="params">()</span> </span>&#123; <span class="built_in">printf</span>(<span class="string">&quot;test_var: %d\n&quot;</span>, test_var); ...; &#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">a</span><span class="params">()</span> </span>&#123; <span class="built_in">printf</span>(<span class="string">&quot;test_var: %d\n&quot;</span>, test_var); ...; &#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>各个模块如下：</p>
+<ul>
+<li>插桩模式</li>
+</ul>
+<ol>
+<li>普通插桩模式：afl-as.h, afl-as.c, afl-gcc.c，针对源码插桩，编译器可以使用gcc， clang；</li>
+<li>llvm插桩模式：针对源码插桩，编译器使用clang；</li>
+<li>qemu插桩模式：针对二进制文件插桩</li>
+</ol>
+<ul>
+<li>fuzzer模块</li>
+</ul>
+<p>​      fuzzer 实现的核心代码，AFL 的主体</p>
+<ul>
+<li>辅助模块</li>
+</ul>
+<ol>
+<li><code>afl-analyze</code>：对测试用例进行分析，通过分析给定的用例，确定是否可以发现用例中有意义的字段；</li>
+<li><code>afl-plot</code>：生成测试任务的状态图；</li>
+<li><code>afl-tmin</code>：对测试用例进行最小化；</li>
+<li><code>afl-cmin</code>：对语料库进行精简操作；</li>
+<li><code>afl-showmap</code>：对单个测试用例进行执行路径跟踪；</li>
+<li><code>afl-whatsup</code>：各并行例程fuzzing结果统计；</li>
+<li><code>afl-gotcpu</code>：查看当前CPU状态。</li>
+</ol>
+<h3 id="种子语料库"><a href="#种子语料库" class="headerlink" title="种子语料库"></a>种子语料库</h3><p>AFL需要提供初始的种子输入，变异算法会根据此种子变异生成各种测试用例，然后输入给程序得到反馈。这里给出一些开源的语料库：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://samples.ffmpeg.org/tests/DivX-test/">ffmpeg</a></li>
+<li><a target="_blank" rel="noopener" href="https://gitlab.anu.edu.au/lunar/moonlight">MoonLight</a></li>
+<li><a target="_blank" rel="noopener" href="https://lcamtuf.coredump.cx/afl/demo/">afl-generated, minimized image test sets </a></li>
+<li><a target="_blank" rel="noopener" href="https://gitcode.com/google/fuzzer-test-suite?utm_source=csdn_github_accelerator&isLogin=1">fuzzer-test-suite</a></li>
+</ul>
+<p><strong>Demo</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> a,index;</span><br><span class="line">        <span class="keyword">char</span> buf[<span class="number">100</span>];</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;index);</span><br><span class="line">        buf[index]=<span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line"></span><br><span class="line">        read(<span class="number">0</span>,&amp;a,<span class="number">0x2</span>);</span><br><span class="line">        <span class="keyword">if</span>(a== <span class="number">0x1234</span>)</span><br><span class="line">        &#123;</span><br><span class="line">                *(<span class="keyword">int</span> *)<span class="number">0</span> = <span class="number">0xdeadabcd</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用普通插桩模式进行编译，首先使用afl-gcc进行编译，命令如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-gcc -o test test.c</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623175521861.png" class title="image-20240623175521861">
+
+<p>可以从上面的输出结果中看到在编译的时候也使用afl-as进行了插桩了9个位置。而afl-as首先会执行<strong>add_instrumentation()<strong>做插桩，做完插桩后会执行调整后的参数来汇编形成新的asm文件，所以最后产生的test文件是存在插桩信息的。可以使用</strong>objdump</strong>命令查看，</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623180347146.png" class title="image-20240623180347146">
+
+<p>随后使用<strong>afl-fuzz</strong>进行fuzz，命令如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">afl-fuzz -i seed-dir -o out-dir -m none ./test</span><br><span class="line">//</span><br><span class="line">-i - 存放测试用例的资料夹</span><br><span class="line"></span><br><span class="line">-o - 搁置执行结果资料夹</span><br><span class="line"></span><br><span class="line">-f - 从指定文件读取输入</span><br><span class="line"></span><br><span class="line">-t - timeout，执行时间超过的话就会被kill掉</span><br><span class="line"></span><br><span class="line">-m - 内存限制，执行时所能使用的内存体上限</span><br><span class="line"></span><br><span class="line">-d - 跳过确定性，突变阶段跳过最初的处理</span><br><span class="line"></span><br><span class="line">-n - 对没有插桩的目标进行模糊测试</span><br><span class="line">//</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623182411031.png" class title="image-20240623182411031">
+
+<p><strong>结果解读</strong></p>
+<p>AFL在运行过程中，会不断地产生输出。输出目录结构如下：</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623183006875.png" class title="image-20240623183006875">
+
+<ul>
+<li><strong>queue&#x2F;</strong> - 存放AFL生成的触发新代码路径的测试样本</li>
+<li><strong>crashes&#x2F;</strong> - 存放能触发待测程序崩溃的测试样本</li>
+<li><strong>hangs&#x2F;</strong> - 存发导致待测程序超时的测试样本</li>
+<li><strong>fuzzer_stats</strong> - 文本文件，包含了fuzzer的实时统计信息，如执行速度、路径覆盖等度量指标。这个文件不断更新以反映当前的fuzzing状态。</li>
+<li><strong>plot_data</strong> - 文本文件，包含了AFL执行过程中的统计数据。使用AFL的<code>afl-plot</code>工具处理<code>plot_data</code>文件，可以生成fuzz过程的可视化图像。</li>
+<li><strong>fuzz_bitmap</strong> - 这是用来记录路径覆盖率的位图（coverage bitmap），非人类可读。AFL使用这个位图来跟踪程序在处理不同输入时执行的不同分支，用来帮助AFL识别新的、唯一的代码路径，以便后续生成更具有探索性的测试样本</li>
+</ul>
+<h3 id="Sanitizer"><a href="#Sanitizer" class="headerlink" title="Sanitizer"></a><strong>Sanitizer</strong></h3><p>即使程序存在漏洞，也不一定会在执行到有漏洞的程式码时触发异常，例如上面的代码中存在数组越界漏洞</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">char</span> buf[<span class="number">100</span>];</span><br><span class="line"><span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;idx);</span><br><span class="line">buf[idx] = <span class="string">&#x27;\0&#x27;</span>; <span class="comment">// (1)</span></span><br></pre></td></tr></table></figure>
+
+<p>即使存在溢出漏洞，但如果buf[101]对应的地址正好没有被使用到，fuzzer也不感兴趣。</p>
+<p>常见的Sanitizer有：</p>
+<ol>
+<li><strong>AddressSanitizer</strong> (+LeakSanitizer)</li>
+<li>ThreadSanitizer</li>
+<li>UndefinedBehaviorSanitizer</li>
+<li>MemorySanitizer</li>
+</ol>
+<p><strong>下面对AddressSanitizer原理进行简介</strong></p>
+<p>如果通过启用Address Sanitizer来编译可执行文件，则每次访问内存之前，都会有前缀指令来检查该内存是否为<code>poisoned</code>.如果是，Address Sanitizer 将生成诊断报告。</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623183358105.png" class title="image-20240623183358105">
+
+<p>下图显示该进程正在尝试访问中毒内存，并触发<code>Crash</code>并生成诊断报告</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623183550352.png" class title="image-20240623183550352">
+
+<p>Address Sanitizer在堆和栈中都对此进行了防护措施，在堆中通过使用它自己的分配实现来替换默认的 Malloc 实现，该实现将对象彼此分开</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623183736117.png" class title="image-20240623183736117">
+
+<p>在两个堆栈变量之间插入红色区域，防止越界</p>
+<img src="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/image-20240623183816160.png" class title="image-20240623183816160">
+
+<h3 id="实践Libpng"><a href="#实践Libpng" class="headerlink" title="实践Libpng"></a>实践Libpng</h3><p><strong>0x0.编译目标程序</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://nchc.dl.sourceforge.net/project/libpng/libpng16/1.6.36/libpng-1.6.36.tar.xz</span><br><span class="line">$ tar xvf libpng-1.6.36.tar.xz</span><br><span class="line">$ cd libpng-1.6.36</span><br><span class="line">$ ./autogen.sh </span><br><span class="line">$ CC=afl-clang CXX=afl-g++ ./configure --enable-static</span><br><span class="line">$ make -j4</span><br></pre></td></tr></table></figure>
+
+<p><strong>0x1.准备种子</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir fuzz_in fuzz_out</span><br><span class="line">$ cd fuzz_in</span><br><span class="line">$ wget http://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz</span><br><span class="line">$ tar xvf afl_testcases.tgz</span><br></pre></td></tr></table></figure>
+
+<p><strong>0x2.开始fuzz</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afl-fuzz -i ../fuzz_in/png/full/images -o ../fuzz_out ../.libs/pngimage @@</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" rel="tag">-逆向分析</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/07/08/%E8%BF%9B%E9%98%B6%E9%80%86%E5%90%91%E6%8A%80%E5%B7%A7/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            进阶逆向技巧
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/06/13/Shellcode/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Shellcode</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

